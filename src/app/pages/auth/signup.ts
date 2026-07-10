@@ -161,7 +161,18 @@ type StepKey = 1 | 2 | 3;
 
                                         <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                             <label for="contactEmail" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo electrónico</label>
-                                            <input pInputText id="contactEmail" type="email" [(ngModel)]="form.contactEmail" name="contactEmail" placeholder="tenant.demo@example.com" class="w-full" />
+                                            <input
+                                                pInputText
+                                                id="contactEmail"
+                                                type="text"
+                                                [(ngModel)]="form.contactEmail"
+                                                name="contactEmail"
+                                                placeholder="tenant.demo@example.com"
+                                                class="w-full"
+                                                (keydown)="onEmailKeydown($event)"
+                                                (paste)="onEmailPaste($event)"
+                                                (input)="onEmailInput()"
+                                            />
                                             @if (showError('contactEmail')) {
                                                 <p-message severity="error" size="small">Escribe un correo válido.</p-message>
                                             }
@@ -510,6 +521,41 @@ export class Signup {
         this.touched['phoneNumber'] = true;
     }
 
+    onEmailInput() {
+        this.form.contactEmail = this.sanitizeEmailInput(this.form.contactEmail);
+    }
+
+    onEmailKeydown(event: KeyboardEvent) {
+        if (this.isAllowedEditingKey(event)) {
+            return;
+        }
+
+        if (event.ctrlKey || event.metaKey || event.altKey) {
+            return;
+        }
+
+        if (!this.isAllowedEmailCharacter(event.key)) {
+            event.preventDefault();
+        }
+    }
+
+    onEmailPaste(event: ClipboardEvent) {
+        const pastedText = event.clipboardData?.getData('text') ?? '';
+        const sanitizedText = this.sanitizeEmailInput(pastedText);
+
+        if (pastedText !== sanitizedText) {
+            event.preventDefault();
+            const input = event.target as HTMLInputElement | null;
+
+            if (input) {
+                const start = input.selectionStart ?? input.value.length;
+                const end = input.selectionEnd ?? input.value.length;
+                const nextValue = input.value.slice(0, start) + sanitizedText + input.value.slice(end);
+                this.form.contactEmail = nextValue;
+            }
+        }
+    }
+
     onCountryCodeChange() {
         this.form.department = '';
         this.form.city = '';
@@ -538,7 +584,7 @@ export class Signup {
     }
 
     showError(field: string): boolean {
-        return this.currentStep === this.getFieldStep(field) && (this.stepSubmitted[this.currentStep] || this.touched[field]) && !this.isFieldValid(field);
+        return this.currentStep === this.getFieldStep(field) && this.stepSubmitted[this.currentStep] && !this.isFieldValid(field);
     }
 
     private touchStepFields(step: StepKey) {
@@ -645,6 +691,10 @@ export class Signup {
         return value.replace(/[^\d\s()+-]/g, '');
     }
 
+    private sanitizeEmailInput(value: string): string {
+        return value.replace(/[^a-zA-Z0-9@._%+\-]/g, '').replace(/\s+/g, '');
+    }
+
     private isAllowedEditingKey(event: KeyboardEvent): boolean {
         return ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key);
     }
@@ -655,6 +705,10 @@ export class Signup {
 
     private isAllowedNameText(text: string): boolean {
         return /^[\p{L}\p{N}][\p{L}\p{N}\s]*$/u.test(text);
+    }
+
+    private isAllowedEmailCharacter(character: string): boolean {
+        return /^[a-zA-Z0-9@._%+\-]$/.test(character);
     }
 
     private isValidPhoneNumber(countryCode: string, phoneNumber: string): boolean {
