@@ -26,49 +26,34 @@ type StepKey = 1 | 2 | 3;
         <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.12),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(34,197,94,0.08),_transparent_25%),linear-gradient(180deg,_#f8fafc_0%,_#eef2f7_100%)] px-4 py-6 dark:bg-none dark:bg-surface-950 sm:px-6 lg:px-8">
             <div class="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-7xl items-center">
                 <div class="grid w-full overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_28px_90px_-28px_rgba(15,23,42,0.24)] dark:border-surface-800 dark:bg-surface-900 lg:grid-cols-[0.9fr_1.1fr]">
-                    <div class="relative overflow-hidden border-b border-slate-200 bg-slate-950 px-6 py-7 text-white dark:border-surface-800 lg:border-b-0 lg:border-r lg:px-8 lg:py-10">
+                    <div class="relative overflow-hidden border-b border-slate-200 bg-slate-950 px-6 py-8 text-white dark:border-surface-800 lg:border-b-0 lg:border-r lg:px-8 lg:py-10">
                         <div class="absolute inset-0 opacity-90">
                             <div class="absolute inset-0 bg-[linear-gradient(135deg,_rgba(15,23,42,0.90),_rgba(15,23,42,0.70))]"></div>
                             <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(34,197,94,0.18),_transparent_28%),radial-gradient(circle_at_bottom_left,_rgba(59,130,246,0.20),_transparent_24%)]"></div>
                             <div class="absolute inset-0 bg-[linear-gradient(transparent_95%,rgba(255,255,255,0.05)_95%),linear-gradient(90deg,transparent_95%,rgba(255,255,255,0.05)_95%)] bg-[size:100%_64px,64px_100%]"></div>
                         </div>
-                        <div class="relative flex h-full flex-col justify-between gap-10">
-                            <div class="space-y-6">
-                                <div class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur">
-                                    <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
-                                    Alta de academia
-                                </div>
-
-                                <div class="space-y-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-base font-semibold text-white ring-1 ring-inset ring-white/15">PT</div>
-                                        <div>
-                                            <p class="text-[0.72rem] uppercase tracking-[0.35em] text-white/50">PlayerTech</p>
-                                            <h2 class="mt-1 text-3xl font-semibold tracking-tight text-white">Registra una academia de fútbol en 3 pasos</h2>
-                                        </div>
-                                    </div>
-                                    <p class="max-w-md text-sm leading-6 text-white/70">Un flujo corto, claro y consistente para crear la cuenta inicial, asignar el contacto principal y dejar listo el acceso.</p>
-                                </div>
+                        <div class="relative flex min-h-[28rem] h-full flex-col items-center justify-center text-center">
+                            <div class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur">
+                                <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+                                Alta de academia
                             </div>
+                            <h2 class="mt-8 max-w-sm text-3xl font-semibold tracking-tight text-white">Registra una academia de fútbol con un flujo claro y profesional</h2>
+                            <p class="mt-5 max-w-sm text-sm leading-6 text-white/70">Completa los datos esenciales, define el contacto principal y configura el acceso inicial en tres pasos breves.</p>
 
-                            <div class="space-y-4">
-                                <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/6 p-4 backdrop-blur-sm">
-                                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-400/15 text-emerald-300">
-                                        <i class="pi pi-sitemap"></i>
-                                    </div>
-                                    <div>
-                                        <p class="font-medium text-white">Paso 1: datos de la academia</p>
-                                        <p class="text-sm text-white/65">Nombre, categoría y equipo inicial.</p>
-                                    </div>
+                            <div class="mt-10 grid w-full max-w-sm gap-3 text-left">
+                                <div class="rounded-2xl border border-white/10 bg-white/6 p-4 backdrop-blur-sm">
+                                    <p class="text-xs uppercase tracking-[0.22em] text-white/45">01</p>
+                                    <p class="mt-2 font-medium text-white">Datos de la academia</p>
+                                    <p class="mt-1 text-sm text-white/65">Nombre, categoría y equipo inicial.</p>
                                 </div>
                                 <div class="grid gap-3 sm:grid-cols-2">
                                     <div class="rounded-2xl border border-white/10 bg-white/6 p-4 backdrop-blur-sm">
-                                        <p class="text-xs uppercase tracking-[0.22em] text-white/45">Paso 2</p>
+                                        <p class="text-xs uppercase tracking-[0.22em] text-white/45">02</p>
                                         <p class="mt-2 font-medium text-white">Contacto</p>
                                         <p class="mt-1 text-sm text-white/65">Correo, teléfono y ubicación.</p>
                                     </div>
                                     <div class="rounded-2xl border border-white/10 bg-white/6 p-4 backdrop-blur-sm">
-                                        <p class="text-xs uppercase tracking-[0.22em] text-white/45">Paso 3</p>
+                                        <p class="text-xs uppercase tracking-[0.22em] text-white/45">03</p>
                                         <p class="mt-2 font-medium text-white">Acceso</p>
                                         <p class="mt-1 text-sm text-white/65">Contraseña y aceptación de términos.</p>
                                     </div>
@@ -78,17 +63,6 @@ type StepKey = 1 | 2 | 3;
                     </div>
 
                     <div class="px-6 py-7 sm:px-8 lg:px-10 lg:py-10">
-                        @if (showSummary) {
-                            <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200">
-                                <div class="font-medium">Revisa los campos obligatorios.</div>
-                                <ul class="mt-2 list-disc space-y-1 pl-5">
-                                    @for (error of summaryErrors; track error) {
-                                        <li>{{ error }}</li>
-                                    }
-                                </ul>
-                            </div>
-                        }
-
                         <div class="mb-8 flex items-center justify-between gap-4">
                             <div>
                                 <p class="text-xs uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Registro</p>
@@ -424,25 +398,4 @@ export class Signup {
         return this.isStepValid(1) && this.isStepValid(2) && this.isStepValid(3);
     }
 
-    get summaryErrors(): string[] {
-        const errors: string[] = [];
-
-        if (!this.form.name.trim()) errors.push('El nombre de la academia es obligatorio.');
-        if (!this.form.contactName.trim()) errors.push('El nombre de contacto es obligatorio.');
-        if (!this.form.contactEmail.trim()) errors.push('El correo de contacto es obligatorio.');
-        if (!this.form.password.trim() || this.form.password.length < 8) errors.push('La contraseña debe tener al menos 8 caracteres.');
-        if (this.form.password !== this.confirmPassword) errors.push('Las contraseñas deben coincidir.');
-        if (!this.form.phoneNumber.trim()) errors.push('El teléfono es obligatorio.');
-        if (!this.form.address.trim()) errors.push('La dirección es obligatoria.');
-        if (!this.form.city.trim()) errors.push('La ciudad es obligatoria.');
-        if (!this.form.categoryId.trim()) errors.push('La categoría inicial es obligatoria.');
-        if (!this.form.teamName.trim()) errors.push('El nombre del primer equipo es obligatorio.');
-        if (!this.accepted) errors.push('Debes aceptar la condición de uso mock para continuar.');
-
-        return errors;
-    }
-
-    get showSummary(): boolean {
-        return this.submitted && this.summaryErrors.length > 0;
-    }
 }
