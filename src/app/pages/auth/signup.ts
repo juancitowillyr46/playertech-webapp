@@ -26,36 +26,37 @@ type StepKey = 1 | 2 | 3;
         <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.12),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(34,197,94,0.08),_transparent_25%),linear-gradient(180deg,_#f8fafc_0%,_#eef2f7_100%)] px-4 py-6 dark:bg-none dark:bg-surface-950 sm:px-6 lg:px-8">
             <div class="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-7xl items-center">
                 <div class="grid w-full overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_28px_90px_-28px_rgba(15,23,42,0.24)] dark:border-surface-800 dark:bg-surface-900 lg:grid-cols-[0.9fr_1.1fr]">
-                    <div class="relative overflow-hidden border-b border-slate-200 bg-slate-950 px-6 py-8 text-white dark:border-surface-800 lg:border-b-0 lg:border-r lg:px-8 lg:py-10">
+                    <div class="relative overflow-hidden border-b border-slate-200 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.10),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.10),_transparent_26%),linear-gradient(180deg,_#f8fbff_0%,_#edf4ff_100%)] px-6 py-8 text-slate-900 dark:border-surface-800 dark:bg-slate-950 dark:text-white lg:border-b-0 lg:border-r lg:px-8 lg:py-10">
                         <div class="absolute inset-0 opacity-90">
-                            <div class="absolute inset-0 bg-[linear-gradient(135deg,_rgba(15,23,42,0.90),_rgba(15,23,42,0.70))]"></div>
-                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(34,197,94,0.18),_transparent_28%),radial-gradient(circle_at_bottom_left,_rgba(59,130,246,0.20),_transparent_24%)]"></div>
-                            <div class="absolute inset-0 bg-[linear-gradient(transparent_95%,rgba(255,255,255,0.05)_95%),linear-gradient(90deg,transparent_95%,rgba(255,255,255,0.05)_95%)] bg-[size:100%_64px,64px_100%]"></div>
+                            <div class="absolute inset-0 bg-[linear-gradient(135deg,_rgba(255,255,255,0.55),_transparent_45%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.10),_transparent_28%),radial-gradient(circle_at_bottom_left,_rgba(16,185,129,0.08),_transparent_24%)] dark:bg-[linear-gradient(135deg,_rgba(15,23,42,0.90),_rgba(15,23,42,0.70))]"></div>
+                            <div class="absolute inset-0 bg-[linear-gradient(transparent_95%,rgba(99,102,241,0.08)_95%),linear-gradient(90deg,transparent_95%,rgba(99,102,241,0.08)_95%)] bg-[size:100%_64px,64px_100%] dark:bg-[linear-gradient(transparent_95%,rgba(255,255,255,0.05)_95%),linear-gradient(90deg,transparent_95%,rgba(255,255,255,0.05)_95%)]"></div>
                         </div>
                         <div class="relative flex min-h-[28rem] h-full flex-col items-center justify-center text-center">
-                            <div class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur">
-                                <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
-                                Alta de academia
-                            </div>
-                            <h2 class="mt-8 max-w-sm text-3xl font-semibold tracking-tight text-white">Registra una academia de fútbol con un flujo claro y profesional</h2>
-                            <p class="mt-5 max-w-sm text-sm leading-6 text-white/70">Completa los datos esenciales, define el contacto principal y configura el acceso inicial en tres pasos breves.</p>
+                            <h2 class="mt-8 max-w-sm text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">Crea la cuenta de tu academia</h2>
+                            <p class="mt-5 max-w-sm text-sm leading-6 text-slate-600 dark:text-white/70">Completa estos datos para empezar.</p>
 
-                            <div class="mt-10 grid w-full max-w-sm gap-3 text-left">
-                                <div class="rounded-2xl border border-white/10 bg-white/6 p-4 backdrop-blur-sm">
-                                    <p class="text-xs uppercase tracking-[0.22em] text-white/45">01</p>
-                                    <p class="mt-2 font-medium text-white">Datos de la academia</p>
-                                    <p class="mt-1 text-sm text-white/65">Nombre, categoría y equipo inicial.</p>
-                                </div>
-                                <div class="grid gap-3 sm:grid-cols-2">
-                                    <div class="rounded-2xl border border-white/10 bg-white/6 p-4 backdrop-blur-sm">
-                                        <p class="text-xs uppercase tracking-[0.22em] text-white/45">02</p>
-                                        <p class="mt-2 font-medium text-white">Contacto</p>
-                                        <p class="mt-1 text-sm text-white/65">Correo, teléfono y ubicación.</p>
+                            <div class="mt-10 w-full max-w-sm text-left">
+                                <div class="space-y-4 rounded-3xl border border-slate-200 bg-white/70 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/6">
+                                    <div class="flex items-start gap-4">
+                                        <span class="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-500/10 text-[0.65rem] font-semibold text-sky-700 dark:bg-sky-400/15 dark:text-sky-300">1</span>
+                                        <div class="min-w-0">
+                                            <p style="margin:0" class="font-medium text-slate-900 dark:text-white">Datos de la academia</p>
+                                            <p style="margin:0" class="text-sm leading-5 text-slate-600 dark:text-white/65">Nombre, categoría y equipo inicial.</p>
+                                        </div>
                                     </div>
-                                    <div class="rounded-2xl border border-white/10 bg-white/6 p-4 backdrop-blur-sm">
-                                        <p class="text-xs uppercase tracking-[0.22em] text-white/45">03</p>
-                                        <p class="mt-2 font-medium text-white">Acceso</p>
-                                        <p class="mt-1 text-sm text-white/65">Contraseña y aceptación de términos.</p>
+                                    <div class="flex items-start gap-4">
+                                        <span class="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-500/10 text-[0.65rem] font-semibold text-sky-700 dark:bg-sky-400/15 dark:text-sky-300">2</span>
+                                        <div class="min-w-0">
+                                            <p style="margin:0" class="font-medium text-slate-900 dark:text-white">Contacto principal</p>
+                                            <p style="margin:0" class="text-sm leading-5 text-slate-600 dark:text-white/65">Correo, teléfono y ubicación.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-4">
+                                        <span class="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-500/10 text-[0.65rem] font-semibold text-sky-700 dark:bg-sky-400/15 dark:text-sky-300">3</span>
+                                        <div class="min-w-0">
+                                            <p style="margin:0" class="font-medium text-slate-900 dark:text-white">Acceso</p>
+                                            <p style="margin:0" class="text-sm leading-5 text-slate-600 dark:text-white/65">Contraseña y aceptación de términos.</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -74,28 +75,41 @@ type StepKey = 1 | 2 | 3;
                             </div>
                         </div>
 
-                        <div class="mb-8 flex items-center gap-3">
-                            @for (step of steps; track step.id) {
-                                <button
-                                    type="button"
-                                    class="flex h-10 items-center rounded-full border px-4 text-sm font-medium transition"
-                                    [class.border-sky-500]="currentStep === step.id"
-                                    [class.bg-sky-50]="currentStep === step.id"
-                                    [class.text-sky-700]="currentStep === step.id"
-                                    [class.dark:border-sky-400]="currentStep === step.id"
-                                    [class.dark:bg-sky-950/40]="currentStep === step.id"
-                                    [class.dark:text-sky-300]="currentStep === step.id"
-                                    [class.border-slate-200]="currentStep !== step.id"
-                                    [class.bg-white]="currentStep !== step.id"
-                                    [class.text-slate-500]="currentStep !== step.id"
-                                    [class.dark:border-surface-800]="currentStep !== step.id"
-                                    [class.dark:bg-surface-950]="currentStep !== step.id"
-                                    [class.dark:text-slate-400]="currentStep !== step.id"
-                                    (click)="goToStep(step.id)"
-                                >
-                                    {{ step.label }}
-                                </button>
-                            }
+                        <div class="mb-8 rounded-2xl border border-slate-200 bg-slate-50 p-2 dark:border-surface-800 dark:bg-surface-950">
+                            <div class="grid grid-cols-3 gap-2">
+                                @for (step of steps; track step.id) {
+                                    <button
+                                        type="button"
+                                        class="flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-medium transition"
+                                        [class.bg-white]="currentStep === step.id"
+                                        [class.text-sky-700]="currentStep === step.id"
+                                        [class.shadow-sm]="currentStep === step.id"
+                                        [class.border]="currentStep === step.id"
+                                        [class.border-sky-200]="currentStep === step.id"
+                                        [class.dark:bg-surface-900]="currentStep === step.id"
+                                        [class.dark:text-sky-300]="currentStep === step.id"
+                                        [class.dark:border-sky-900/40]="currentStep === step.id"
+                                        [class.text-slate-500]="currentStep !== step.id"
+                                        [class.dark:text-slate-400]="currentStep !== step.id"
+                                        (click)="goToStep(step.id)"
+                                    >
+                                        <span
+                                            class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition"
+                                            [class.bg-sky-100]="currentStep === step.id"
+                                            [class.text-sky-700]="currentStep === step.id"
+                                            [class.dark:bg-sky-400/15]="currentStep === step.id"
+                                            [class.dark:text-sky-300]="currentStep === step.id"
+                                            [class.bg-slate-200]="currentStep !== step.id"
+                                            [class.text-slate-600]="currentStep !== step.id"
+                                            [class.dark:bg-surface-800]="currentStep !== step.id"
+                                            [class.dark:text-slate-300]="currentStep !== step.id"
+                                        >
+                                            {{ step.id }}
+                                        </span>
+                                        <span class="leading-tight">{{ step.label }}</span>
+                                    </button>
+                                }
+                            </div>
                         </div>
 
                         <form class="space-y-8" (ngSubmit)="submit()">
@@ -276,9 +290,9 @@ export class Signup {
     currentStep: StepKey = 1;
 
     steps = [
-        { id: 1 as StepKey, label: '1. Academia' },
-        { id: 2 as StepKey, label: '2. Contacto' },
-        { id: 3 as StepKey, label: '3. Acceso' }
+        { id: 1 as StepKey, label: 'Academia' },
+        { id: 2 as StepKey, label: 'Contacto' },
+        { id: 3 as StepKey, label: 'Acceso' }
     ];
 
     form = {
