@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
@@ -18,7 +19,7 @@ type CountryOption = {
 @Component({
     selector: 'app-signup',
     standalone: true,
-    imports: [ButtonModule, CheckboxModule, FormsModule, InputGroupModule, InputTextModule, MessageModule, PasswordModule, RouterModule, SelectModule, TextareaModule],
+    imports: [ButtonModule, CheckboxModule, DialogModule, FormsModule, InputGroupModule, InputTextModule, MessageModule, PasswordModule, RouterModule, SelectModule, TextareaModule],
     template: `
         <div class="min-h-screen px-4 py-8 bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.14),_transparent_42%),linear-gradient(180deg,_#f8fafc_0%,_#f1f5f9_100%)] dark:bg-none dark:bg-surface-950">
             <div class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl items-center">
@@ -39,15 +40,12 @@ type CountryOption = {
                                     }
                                 </ul>
                             </div>
-                        } @else {
-                            <div class="mb-6 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-800 dark:border-sky-900/50 dark:bg-sky-950/40 dark:text-sky-200">
-                                Formulario de demostración. Los valores visibles son mockups para validar la UX antes de la integración real.
-                            </div>
                         }
 
-                        <form class="space-y-6" (ngSubmit)="submit()">
-                            <div class="grid gap-4 md:grid-cols-2">
-                                <div class="flex flex-col gap-2 md:col-span-2">
+                        <form class="space-y-8" (ngSubmit)="submit()">
+                            <div class="font-semibold text-xl">Academia</div>
+                            <div class="grid grid-cols-12 gap-4">
+                                <div class="col-span-12 flex flex-col gap-2">
                                     <label for="academyName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre de la academia</label>
                                     <input pInputText id="academyName" type="text" [(ngModel)]="form.name" name="name" placeholder="Academia PlayerTech Demo" class="w-full" (blur)="markTouched('name')" />
                                     @if (showError('name')) {
@@ -55,7 +53,26 @@ type CountryOption = {
                                     }
                                 </div>
 
-                                <div class="flex flex-col gap-2">
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="categoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categoría inicial</label>
+                                    <p-select id="categoryId" [(ngModel)]="form.categoryId" name="categoryId" [options]="categories" optionLabel="name" optionValue="id" placeholder="Seleccionar categoría" class="w-full" (onChange)="markTouched('categoryId')"></p-select>
+                                    @if (showError('categoryId')) {
+                                        <p-message severity="error" size="small">Debes seleccionar una categoría.</p-message>
+                                    }
+                                </div>
+
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="teamName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre del primer equipo</label>
+                                    <input pInputText id="teamName" type="text" [(ngModel)]="form.teamName" name="teamName" placeholder="Sub 12 A" class="w-full" (blur)="markTouched('teamName')" />
+                                    @if (showError('teamName')) {
+                                        <p-message severity="error" size="small">Debes indicar el nombre del primer equipo.</p-message>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="font-semibold text-xl">Contacto principal</div>
+                            <div class="grid grid-cols-12 gap-4">
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="contactName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre del contacto</label>
                                     <input pInputText id="contactName" type="text" [(ngModel)]="form.contactName" name="contactName" placeholder="Juan Perez" class="w-full" (blur)="markTouched('contactName')" />
                                     @if (showError('contactName')) {
@@ -63,7 +80,7 @@ type CountryOption = {
                                     }
                                 </div>
 
-                                <div class="flex flex-col gap-2">
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="contactEmail" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo de contacto</label>
                                     <input pInputText id="contactEmail" type="email" [(ngModel)]="form.contactEmail" name="contactEmail" placeholder="tenant.demo@example.com" class="w-full" (blur)="markTouched('contactEmail')" />
                                     @if (showError('contactEmail')) {
@@ -71,25 +88,9 @@ type CountryOption = {
                                     }
                                 </div>
 
-                                <div class="flex flex-col gap-2">
-                                    <label for="password" class="text-sm font-medium text-surface-700 dark:text-surface-200">Contraseña</label>
-                                    <p-password id="password" [(ngModel)]="form.password" name="password" placeholder="Crear contraseña" [toggleMask]="true" [fluid]="true" [feedback]="false" (onBlur)="markTouched('password')"></p-password>
-                                    @if (showError('password')) {
-                                        <p-message severity="error" size="small">La contraseña debe tener al menos 8 caracteres.</p-message>
-                                    }
-                                </div>
-
-                                <div class="flex flex-col gap-2">
-                                    <label for="confirmPassword" class="text-sm font-medium text-surface-700 dark:text-surface-200">Confirmar contraseña</label>
-                                    <p-password id="confirmPassword" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Repite la contraseña" [toggleMask]="true" [fluid]="true" [feedback]="false" (onBlur)="markTouched('confirmPassword')"></p-password>
-                                    @if (showError('confirmPassword')) {
-                                        <p-message severity="error" size="small">Las contraseñas no coinciden.</p-message>
-                                    }
-                                </div>
-
-                                <div class="flex flex-col gap-2 md:col-span-2">
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="phoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono</label>
-                                    <div class="grid gap-3 sm:grid-cols-[9rem_1fr]">
+                                    <div class="grid grid-cols-12 gap-3">
                                         <p-select
                                             id="countryCode"
                                             [(ngModel)]="form.countryCode"
@@ -99,8 +100,8 @@ type CountryOption = {
                                             optionValue="dialCode"
                                             [filter]="true"
                                             filterBy="name,dialCode"
-                                            placeholder="País"
-                                            class="w-full"
+                                            placeholder="Código"
+                                            class="col-span-12 sm:col-span-4 lg:col-span-5 w-full"
                                         >
                                             <ng-template #selectedItem let-option>
                                                 <span>{{ option?.name ?? 'País' }}</span>
@@ -112,15 +113,17 @@ type CountryOption = {
                                                 </div>
                                             </ng-template>
                                         </p-select>
-                                        <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" name="phoneNumber" placeholder="987 654 321" class="w-full" (blur)="markTouched('phoneNumber')" />
+                                        <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" name="phoneNumber" placeholder="987 654 321" class="col-span-12 sm:col-span-8 lg:col-span-7 w-full" (blur)="markTouched('phoneNumber')" />
                                     </div>
-                                    <div class="text-xs text-muted-color">El backend recibirá este valor concatenado en una sola cadena.</div>
                                     @if (showError('phoneNumber')) {
                                         <p-message severity="error" size="small">Ingresa un número de teléfono válido.</p-message>
                                     }
                                 </div>
+                            </div>
 
-                                <div class="flex flex-col gap-2 md:col-span-2">
+                            <div class="font-semibold text-xl">Ubicación</div>
+                            <div class="grid grid-cols-12 gap-4">
+                                <div class="col-span-12 flex flex-col gap-2">
                                     <label for="address" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección</label>
                                     <textarea pTextarea id="address" rows="3" [(ngModel)]="form.address" name="address" placeholder="Jr. Secundario 789" class="w-full" (blur)="markTouched('address')"></textarea>
                                     @if (showError('address')) {
@@ -128,36 +131,42 @@ type CountryOption = {
                                     }
                                 </div>
 
-                                <div class="flex flex-col gap-2">
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="city" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad</label>
                                     <input pInputText id="city" type="text" [(ngModel)]="form.city" name="city" placeholder="Arequipa" class="w-full" (blur)="markTouched('city')" />
                                     @if (showError('city')) {
                                         <p-message severity="error" size="small">La ciudad es obligatoria.</p-message>
                                     }
                                 </div>
+                            </div>
 
-                                <div class="flex flex-col gap-2">
-                                    <label for="categoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categoría inicial</label>
-                                    <p-select id="categoryId" [(ngModel)]="form.categoryId" name="categoryId" [options]="categories" optionLabel="name" optionValue="id" placeholder="Seleccionar categoría" class="w-full" (onChange)="markTouched('categoryId')"></p-select>
-                                    @if (showError('categoryId')) {
-                                        <p-message severity="error" size="small">Debes seleccionar una categoría.</p-message>
+                            <div class="font-semibold text-xl">Acceso y seguridad</div>
+                            <div class="grid grid-cols-12 gap-4">
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="password" class="text-sm font-medium text-surface-700 dark:text-surface-200">Contraseña</label>
+                                    <p-password id="password" [(ngModel)]="form.password" name="password" placeholder="Crear contraseña" [toggleMask]="true" [fluid]="true" [feedback]="false" (onBlur)="markTouched('password')"></p-password>
+                                    @if (showError('password')) {
+                                        <p-message severity="error" size="small">La contraseña debe tener al menos 8 caracteres.</p-message>
                                     }
                                 </div>
 
-                                <div class="flex flex-col gap-2 md:col-span-2">
-                                    <label for="teamName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre del primer equipo</label>
-                                    <input pInputText id="teamName" type="text" [(ngModel)]="form.teamName" name="teamName" placeholder="Sub 12 A" class="w-full" (blur)="markTouched('teamName')" />
-                                    @if (showError('teamName')) {
-                                        <p-message severity="error" size="small">Debes indicar el nombre del primer equipo.</p-message>
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="confirmPassword" class="text-sm font-medium text-surface-700 dark:text-surface-200">Confirmar contraseña</label>
+                                    <p-password id="confirmPassword" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Repite la contraseña" [toggleMask]="true" [fluid]="true" [feedback]="false" (onBlur)="markTouched('confirmPassword')"></p-password>
+                                    @if (showError('confirmPassword')) {
+                                        <p-message severity="error" size="small">Las contraseñas no coinciden.</p-message>
                                     }
                                 </div>
 
-                                <div class="flex items-start gap-3 md:col-span-2">
+                                <div class="col-span-12 flex items-start gap-3">
                                     <p-checkbox [(ngModel)]="accepted" inputId="terms" name="terms" binary (onChange)="markTouched('terms')"></p-checkbox>
-                                    <label for="terms" class="text-sm leading-6 text-muted-color">Acepto usar una cuenta de prueba/mock para esta iteración visual mientras se valida el flujo de onboarding.</label>
+                                    <label for="terms" class="text-sm leading-6 text-muted-color">
+                                        Acepto los
+                                        <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openTerms($event)">términos y condiciones</a>
+                                    </label>
                                 </div>
                                 @if (showError('terms')) {
-                                    <div class="md:col-span-2">
+                                    <div class="col-span-12">
                                         <p-message severity="error" size="small">Debes aceptar esta condición para continuar.</p-message>
                                     </div>
                                 }
@@ -168,14 +177,22 @@ type CountryOption = {
                                 <p-button label="Ya tengo cuenta" severity="secondary" styleClass="w-full sm:w-auto" routerLink="/auth/login" />
                             </div>
 
-                            <div class="rounded-2xl border border-dashed border-surface-200 bg-surface-50 p-4 text-sm text-muted-color dark:border-surface-800 dark:bg-surface-950">
-                                Datos esperados por el backend: nombre, correo de contacto, nombre de contacto, contraseña, teléfono, dirección, ciudad, categoría inicial y nombre del equipo.
-                            </div>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
+
+        <p-dialog [(visible)]="showTermsDialog" header="Términos y condiciones" [modal]="true" [style]="{ width: '42rem' }" [breakpoints]="{ '960px': '90vw', '640px': '95vw' }">
+            <div class="space-y-4 text-sm leading-6 text-surface-700 dark:text-surface-200">
+                <p>Estos términos describen el uso inicial de la cuenta de demostración mientras se valida la experiencia de registro y acceso.</p>
+                <p>La información ingresada en este formulario será tratada como datos de configuración de una academia dentro de la plataforma PlayerTech.</p>
+                <p>Este contenido es una referencia temporal para la iteración de UX y podrá evolucionar cuando se conecte el flujo real de onboarding.</p>
+            </div>
+            <ng-template #footer>
+                <p-button label="Cerrar" (click)="showTermsDialog = false" />
+            </ng-template>
+        </p-dialog>
     `
 })
 export class Signup {
@@ -198,6 +215,8 @@ export class Signup {
 
     submitted = false;
 
+    showTermsDialog = false;
+
     touched: Record<string, boolean> = {};
 
     categories = [
@@ -217,6 +236,11 @@ export class Signup {
 
     markTouched(field: string) {
         this.touched[field] = true;
+    }
+
+    openTerms(event: MouseEvent) {
+        event.preventDefault();
+        this.showTermsDialog = true;
     }
 
     submit() {
