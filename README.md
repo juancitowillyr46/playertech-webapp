@@ -1,59 +1,64 @@
-# Sakai19
+# PlayerTech WebApp
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.
+Frontend web for PlayerTech, built with Angular 21 and PrimeNG 21, to manage football academies, players, teams, memberships, payments, and operational workflows in a multi-tenant SaaS platform.
 
-## Development server
+The project starts from the PrimeNG Sakai template and is being adapted into a production-oriented application for academy administration.
 
-To start a local development server, run:
+## Tech Stack
 
-```bash
-ng serve
-```
+- Angular 21
+- PrimeNG 21
+- PrimeIcons
+- Tailwind CSS
+- TypeScript
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Requirements
 
-## Code scaffolding
+- Node.js 20.19.0
+- npm 10+
+- The repository is intended to run with `npx` for Angular CLI commands
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Setup
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+Install dependencies:
 
 ```bash
-ng build
+npx --yes npm@10 install
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+Run the development server:
 
 ```bash
-ng test
+npx ng serve
 ```
 
-## Running end-to-end tests
+Open the app in:
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
+```text
+http://localhost:4200/
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Scripts
 
-## Additional Resources
+- `npx ng serve` starts the development server
+- `npx ng build` builds the application
+- `npx ng test` runs unit tests
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Repository Structure
+
+- `src/` Angular application source
+- `src/assets/` Sakai layout and styling assets
+- `public/` static assets
+
+## Notes
+
+- `origin` points to `playertech-webapp`
+- `upstream` points to the original Sakai repository
+- The UI is being transformed from the Sakai starter into the PlayerTech brand and workflows
+
+## Next Frontend Steps
+
+1. Clean the remaining Sakai demo views.
+2. Define the PlayerTech frontend module structure.
+3. Build the shell, navigation, and auth flow.
+4. Add API integration for the first business modules.

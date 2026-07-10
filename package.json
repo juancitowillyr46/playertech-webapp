@@ -1,13 +1,13 @@
 {
-    "name": "sakai-ng",
+    "name": "playertech-webapp",
     "version": "21.0.0",
     "scripts": {
-        "ng": "ng",
-        "start": "ng serve",
-        "build": "ng build",
-        "watch": "ng build --watch --configuration development",
+        "ng": "npx ng",
+        "start": "npx ng serve",
+        "build": "npx ng build",
+        "watch": "npx ng build --watch --configuration development",
         "format": "prettier --write \"**/*.{js,mjs,ts,mts,d.ts,html}\" --cache",
-        "test": "ng test"
+        "test": "npx ng test"
     },
     "private": true,
     "dependencies": {
