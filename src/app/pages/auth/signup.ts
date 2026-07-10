@@ -4,7 +4,6 @@ import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
-import { InputGroupModule } from 'primeng/inputgroup';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
@@ -19,17 +18,20 @@ type CountryOption = {
 @Component({
     selector: 'app-signup',
     standalone: true,
-    imports: [ButtonModule, CheckboxModule, DialogModule, FormsModule, InputGroupModule, InputTextModule, MessageModule, PasswordModule, RouterModule, SelectModule, TextareaModule],
+    imports: [ButtonModule, CheckboxModule, DialogModule, FormsModule, InputTextModule, MessageModule, PasswordModule, RouterModule, SelectModule, TextareaModule],
     template: `
-        <div class="min-h-screen px-4 py-8 bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.14),_transparent_42%),linear-gradient(180deg,_#f8fafc_0%,_#f1f5f9_100%)] dark:bg-none dark:bg-surface-950">
-            <div class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl items-center">
-                <div class="w-full overflow-hidden rounded-[2rem] border border-surface-200 bg-surface-0 shadow-2xl dark:border-surface-800 dark:bg-surface-900">
-                    <div class="px-6 py-8 sm:px-8 sm:py-10">
-                        <div class="mb-8">
-                            <p class="text-sm font-medium uppercase tracking-[0.24em] text-sky-700 dark:text-sky-400">Sign Up</p>
-                            <h2 class="mt-2 text-3xl font-semibold text-surface-900 dark:text-surface-0">Registrar nueva academia</h2>
-                            <p class="mt-2 text-sm text-muted-color">Completa los datos básicos para crear el tenant inicial.</p>
+        <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.14),_transparent_40%),linear-gradient(180deg,_#f8fafc_0%,_#eef2f7_100%)] px-4 py-8 dark:bg-none dark:bg-surface-950">
+            <div class="relative mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl items-center">
+                <div class="pointer-events-none absolute -top-6 left-1/2 h-24 w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-sky-500/10 via-emerald-500/10 to-transparent blur-3xl"></div>
+                <div class="relative w-full overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_24px_80px_-24px_rgba(15,23,42,0.25)] dark:border-surface-800 dark:bg-surface-900">
+                    <div class="border-b border-slate-200 px-6 py-6 dark:border-surface-800 sm:px-8">
+                        <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700 dark:border-sky-900/50 dark:bg-sky-950/40 dark:text-sky-200">
+                            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                            Alta de academia
                         </div>
+                        <h2 class="text-3xl font-semibold tracking-tight text-surface-900 dark:text-surface-0">Registrar nueva academia</h2>
+                        <p class="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">Completa los datos básicos para crear el acceso inicial de tu academia.</p>
+                    </div>
 
                         @if (showSummary) {
                             <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200">
@@ -42,8 +44,9 @@ type CountryOption = {
                             </div>
                         }
 
+                    <div class="px-6 py-8 sm:px-8">
                         <form class="space-y-8" (ngSubmit)="submit()">
-                            <div class="font-semibold text-xl">Academia</div>
+                            <div class="font-semibold text-lg text-surface-900 dark:text-surface-0">Academia</div>
                             <div class="grid grid-cols-12 gap-4">
                                 <div class="col-span-12 flex flex-col gap-2">
                                     <label for="academyName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre de la academia</label>
@@ -70,7 +73,7 @@ type CountryOption = {
                                 </div>
                             </div>
 
-                            <div class="font-semibold text-xl">Contacto principal</div>
+                            <div class="font-semibold text-lg text-surface-900 dark:text-surface-0">Contacto principal</div>
                             <div class="grid grid-cols-12 gap-4">
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="contactName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre del contacto</label>
@@ -101,7 +104,7 @@ type CountryOption = {
                                             [filter]="true"
                                             filterBy="name,dialCode"
                                             placeholder="Código"
-                                            class="col-span-12 sm:col-span-4 lg:col-span-5 w-full"
+                                            class="col-span-12 sm:col-span-4 lg:col-span-4 w-full"
                                         >
                                             <ng-template #selectedItem let-option>
                                                 <span>{{ option?.name ?? 'País' }}</span>
@@ -113,7 +116,7 @@ type CountryOption = {
                                                 </div>
                                             </ng-template>
                                         </p-select>
-                                        <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" name="phoneNumber" placeholder="987 654 321" class="col-span-12 sm:col-span-8 lg:col-span-7 w-full" (blur)="markTouched('phoneNumber')" />
+                                        <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" name="phoneNumber" placeholder="987 654 321" class="col-span-12 sm:col-span-8 lg:col-span-8 w-full" (blur)="markTouched('phoneNumber')" />
                                     </div>
                                     @if (showError('phoneNumber')) {
                                         <p-message severity="error" size="small">Ingresa un número de teléfono válido.</p-message>
@@ -121,7 +124,7 @@ type CountryOption = {
                                 </div>
                             </div>
 
-                            <div class="font-semibold text-xl">Ubicación</div>
+                            <div class="font-semibold text-lg text-surface-900 dark:text-surface-0">Ubicación</div>
                             <div class="grid grid-cols-12 gap-4">
                                 <div class="col-span-12 flex flex-col gap-2">
                                     <label for="address" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección</label>
@@ -140,7 +143,7 @@ type CountryOption = {
                                 </div>
                             </div>
 
-                            <div class="font-semibold text-xl">Acceso y seguridad</div>
+                            <div class="font-semibold text-lg text-surface-900 dark:text-surface-0">Acceso y seguridad</div>
                             <div class="grid grid-cols-12 gap-4">
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="password" class="text-sm font-medium text-surface-700 dark:text-surface-200">Contraseña</label>
@@ -172,7 +175,7 @@ type CountryOption = {
                                 }
                             </div>
 
-                            <div class="flex flex-col gap-3 sm:flex-row">
+                            <div class="flex flex-col gap-3 border-t border-slate-200 pt-2 sm:flex-row dark:border-surface-800">
                                 <p-button label="Crear academia" styleClass="w-full sm:w-auto" type="submit" />
                                 <p-button label="Ya tengo cuenta" severity="secondary" styleClass="w-full sm:w-auto" routerLink="/auth/login" />
                             </div>
