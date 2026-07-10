@@ -76,6 +76,20 @@ Un empty state debe explicar:
 
 ---
 
+# Post-Submit Confirmation
+
+Después de completar un flujo crítico como `signup` o activación inicial, la UI debe mostrar una pantalla de confirmación o cierre cuando el backend haya aceptado la operación.
+
+Reglas:
+
+* confirmar explícitamente el resultado de la acción;
+* explicar el siguiente paso con lenguaje simple;
+* ofrecer una acción principal clara;
+* evitar dejar al usuario en una pantalla muda o ambigua;
+* mantener el tono acorde al contexto del usuario, especialmente en flujos de onboarding.
+
+---
+
 # Responsive Behavior
 
 La app debe funcionar bien en:
@@ -113,4 +127,3 @@ No se define todavía:
 * motion avanzada como requisito base;
 * personalización visual por academia en la primera fase;
 * experimentación libre sin reglas compartidas.
-

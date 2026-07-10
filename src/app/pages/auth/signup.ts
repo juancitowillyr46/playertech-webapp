@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
@@ -475,6 +475,8 @@ export class Signup {
         this.stepNavigationMessage = null;
     }
 
+    constructor(private router: Router) {}
+
     submit() {
         this.stepSubmitted[this.currentStep] = true;
         this.touchStepFields(3);
@@ -482,6 +484,14 @@ export class Signup {
         if (!this.isFormValid()) {
             return;
         }
+
+        void this.router.navigate(['/auth/signup-success'], {
+            state: {
+                academyName: this.form.name,
+                contactEmail: this.form.contactEmail,
+                contactName: this.form.contactName
+            }
+        });
     }
 
     onAcademyNameInput(event: Event) {

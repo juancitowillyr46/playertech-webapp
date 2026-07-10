@@ -3,10 +3,12 @@ import { Access } from './access';
 import { Login } from './login';
 import { Error } from './error';
 import { Signup } from './signup';
+import { SignupSuccess } from './signup-success';
 
 export default [
     { path: 'access', component: Access },
     { path: 'error', component: Error },
     { path: 'login', component: Login },
-    { path: 'signup', component: Signup }
+    { path: 'signup', component: Signup },
+    { path: 'signup-success', component: SignupSuccess }
 ] as Routes;
