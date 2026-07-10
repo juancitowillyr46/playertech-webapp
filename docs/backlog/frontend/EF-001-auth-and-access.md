@@ -31,12 +31,15 @@ Habilita el uso seguro de la plataforma y la entrada a los flujos de negocio.
 * HU-002 Cerrar sesión.
 * HU-003 Recuperar acceso o rehidratar sesión.
 * HU-004 Redirigir según rol y contexto.
+* HU-005 Mostrar una pantalla de ingreso clara y consistente con el signup.
 
 ## Reglas de UX Relacionadas
 
 * Mostrar error claro ante credenciales inválidas.
 * Diferenciar sesión de plataforma y sesión tenant.
 * Redirigir a la vista correcta según el rol.
+* Mantener una experiencia visual coherente entre signup y signin.
+* Guiar al usuario no técnico con etiquetas y mensajes simples.
 
 ## Fuera de Alcance
 
@@ -47,4 +50,3 @@ Habilita el uso seguro de la plataforma y la entrada a los flujos de negocio.
 ## Estado
 
 Draft.
-

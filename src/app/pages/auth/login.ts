@@ -1,78 +1,74 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
+import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-login',
     standalone: true,
-    imports: [ButtonModule, CheckboxModule, InputTextModule, PasswordModule, FormsModule, RouterModule],
+    imports: [ButtonModule, CheckboxModule, CommonModule, FormsModule, InputTextModule, MessageModule, PasswordModule, RouterModule],
     template: `
-        <div class="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.16),_transparent_42%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)] px-4 py-8 dark:bg-none dark:bg-surface-950">
-            <div class="w-full max-w-5xl overflow-hidden rounded-[2rem] border border-surface-200 bg-surface-0 shadow-2xl dark:border-surface-800 dark:bg-surface-900">
-                <div class="grid md:grid-cols-2">
-                    <div class="relative overflow-hidden bg-slate-950 px-8 py-10 text-white sm:px-12">
-                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.24),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(34,197,94,0.18),_transparent_32%)]"></div>
-                        <div class="relative flex h-full flex-col justify-between gap-10">
-                            <div>
-                                <div class="mb-8 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15">
-                                    <span class="text-lg font-semibold">PT</span>
-                                </div>
-                                <p class="text-sm uppercase tracking-[0.32em] text-cyan-200/80">PlayerTech</p>
-                                <h1 class="mt-4 max-w-sm text-4xl font-semibold leading-tight">Accede al panel de tu academia con una interfaz limpia y clara.</h1>
-                                <p class="mt-4 max-w-md text-sm leading-6 text-slate-300">Esta primera iteración prioriza lectura, concentración y una experiencia visual liviana para el acceso.</p>
-                            </div>
+        <div class="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.12),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(34,197,94,0.08),_transparent_25%),linear-gradient(180deg,_#f8fafc_0%,_#eef2f7_100%)] px-4 py-6 dark:bg-none dark:bg-surface-950 sm:px-6 lg:px-8">
+            <div class="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-7xl items-center">
+                <div class="grid w-full min-w-0 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_28px_90px_-28px_rgba(15,23,42,0.24)] dark:border-surface-800 dark:bg-surface-900 lg:grid-cols-[0.95fr_1.05fr]">
+                    <div class="relative hidden overflow-hidden border-b border-slate-200 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.08),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.08),_transparent_26%),linear-gradient(180deg,_#f8fbff_0%,_#edf4ff_100%)] px-5 py-6 text-slate-900 dark:border-surface-800 dark:bg-slate-950 dark:text-white lg:block lg:border-b-0 lg:border-r lg:px-8 lg:py-10">
+                        <div class="absolute inset-0 opacity-90">
+                            <div class="absolute inset-0 bg-[linear-gradient(135deg,_rgba(255,255,255,0.58),_transparent_45%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.08),_transparent_28%),radial-gradient(circle_at_bottom_left,_rgba(16,185,129,0.06),_transparent_24%)] dark:bg-[linear-gradient(135deg,_rgba(15,23,42,0.90),_rgba(15,23,42,0.72))]"></div>
+                            <div class="absolute inset-0 bg-[linear-gradient(transparent_95%,rgba(99,102,241,0.07)_95%),linear-gradient(90deg,transparent_95%,rgba(99,102,241,0.07)_95%)] bg-[size:100%_64px,64px_100%] dark:bg-[linear-gradient(transparent_95%,rgba(255,255,255,0.04)_95%),linear-gradient(90deg,transparent_95%,rgba(255,255,255,0.04)_95%)]"></div>
+                        </div>
 
-                            <div class="grid gap-3 text-sm text-slate-300">
-                                <div class="flex items-center gap-3">
-                                    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-white/10">1</span>
-                                    <span>Inicio de sesión rápido para usuarios administrativos.</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-white/10">2</span>
-                                    <span>Separación clara entre acceso y navegación interna.</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-white/10">3</span>
-                                    <span>Base visual lista para iterar sobre autenticación real.</span>
-                                </div>
+                        <div class="relative flex min-h-0 h-full flex-col justify-center lg:min-h-[28rem]">
+                            <div class="mx-auto flex max-w-xl flex-col items-center text-center">
+                                <h1 class="mt-4 text-[2.45rem] font-semibold leading-tight text-slate-900 dark:text-white">Ingresa a tu academia</h1>
+                                <p class="mt-4 max-w-md text-sm leading-6 text-slate-600 dark:text-white/70">Usa tus datos para seguir trabajando.</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="px-6 py-8 sm:px-10 sm:py-10">
-                        <div class="mb-8">
-                            <p class="text-sm font-medium uppercase tracking-[0.24em] text-sky-700 dark:text-sky-400">Sign In</p>
-                            <h2 class="mt-2 text-3xl font-semibold text-surface-900 dark:text-surface-0">Bienvenido de nuevo</h2>
-                            <p class="mt-2 text-sm text-muted-color">Ingresa para continuar con la administración de tu academia.</p>
+                    <div class="min-w-0 px-5 py-6 sm:px-6 sm:py-7 lg:px-10 lg:py-10">
+                        <div class="mb-7 text-center sm:text-left">
+                            <p class="text-sm font-medium uppercase tracking-[0.24em] text-sky-700 dark:text-sky-400">Inicio de sesión</p>
+                            <h2 class="mt-2 text-[1.9rem] font-semibold tracking-tight text-surface-900 dark:text-surface-0">Bienvenido de nuevo</h2>
+                            <p class="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">Ingresa con tu correo y contraseña para continuar.</p>
                         </div>
 
-                        <div class="space-y-5">
+                        <div class="space-y-6">
                             <div class="flex flex-col gap-2">
                                 <label for="email1" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo electrónico</label>
-                                <input pInputText id="email1" type="text" placeholder="admin@playertech.com" class="w-full" [(ngModel)]="email" />
+                                <input pInputText id="email1" type="text" placeholder="Ej. admin@academia.com" class="w-full" [(ngModel)]="email" name="email" (blur)="markTouched('email')" />
+                                @if (showError('email')) {
+                                    <p-message severity="error" size="small">Escribe un correo válido.</p-message>
+                                }
                             </div>
 
                             <div class="flex flex-col gap-2">
                                 <label for="password1" class="text-sm font-medium text-surface-700 dark:text-surface-200">Contraseña</label>
-                                <p-password id="password1" [(ngModel)]="password" placeholder="••••••••" [toggleMask]="true" [fluid]="true" [feedback]="false"></p-password>
+                                <p-password id="password1" [(ngModel)]="password" name="password" placeholder="Ingresa tu contraseña" [toggleMask]="true" [fluid]="true" [feedback]="false" (onBlur)="markTouched('password')"></p-password>
+                                @if (showError('password')) {
+                                    <p-message severity="error" size="small">Ingresa tu contraseña.</p-message>
+                                }
                             </div>
 
-                            <div class="flex items-center justify-between gap-4 text-sm">
+                            <div class="flex flex-col gap-4 text-sm sm:flex-row sm:items-center sm:justify-between">
                                 <div class="flex items-center gap-2">
-                                    <p-checkbox [(ngModel)]="checked" id="rememberme1" binary></p-checkbox>
-                                    <label for="rememberme1" class="text-muted-color">Recordarme</label>
+                                    <p-checkbox [(ngModel)]="checked" id="rememberme1" binary name="rememberme"></p-checkbox>
+                                    <label for="rememberme1" class="text-slate-600 dark:text-slate-300">Recordarme</label>
                                 </div>
-                                <span class="cursor-pointer font-medium text-sky-700 hover:underline dark:text-sky-400">¿Olvidaste tu contraseña?</span>
+                                <span class="cursor-pointer font-medium text-sky-700 hover:underline dark:text-sky-400">Recuperar contraseña</span>
                             </div>
 
-                            <p-button label="Ingresar" styleClass="w-full" routerLink="/" />
+                            <div class="pt-1">
+                                <p-button label="Ingresar" styleClass="w-full" type="button" (onClick)="submit()" />
+                            </div>
                         </div>
 
-                        <div class="mt-8 border-t border-surface-200 pt-6 text-sm text-muted-color dark:border-surface-800">
+                        <div class="mt-7 border-t border-slate-200 pt-6 text-sm text-slate-600 dark:border-surface-800 dark:text-slate-300">
                             ¿No tienes una cuenta?
                             <a routerLink="/auth/signup" class="font-medium text-sky-700 hover:underline dark:text-sky-400">Crear academia</a>
                         </div>
@@ -88,4 +84,39 @@ export class Login {
     password: string = '';
 
     checked: boolean = false;
+
+    submitted = false;
+
+    touched: Record<string, boolean> = {};
+
+    constructor(private router: Router) {}
+
+    markTouched(field: string) {
+        this.touched[field] = true;
+    }
+
+    showError(field: string): boolean {
+        return (this.submitted || this.touched[field]) && !this.isFieldValid(field);
+    }
+
+    submit() {
+        this.submitted = true;
+
+        if (!this.isFieldValid('email') || !this.isFieldValid('password')) {
+            return;
+        }
+
+        void this.router.navigate(['/']);
+    }
+
+    private isFieldValid(field: string): boolean {
+        switch (field) {
+            case 'email':
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim());
+            case 'password':
+                return this.password.trim().length >= 8;
+            default:
+                return true;
+        }
+    }
 }
