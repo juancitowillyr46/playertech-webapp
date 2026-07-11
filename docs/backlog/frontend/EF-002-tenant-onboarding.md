@@ -31,6 +31,7 @@ Acelera la activación de nuevas academias dentro de la plataforma.
 * HU-003 Activar cuenta y definir contraseña.
 * HU-004 Primer acceso del owner/admin.
 * HU-005 Confirmar el registro con una página de cierre.
+* HU-006 Separar el wizard de alta de academia en una página dedicada.
 
 ### HU-005 Confirmar el registro con una página de cierre
 
@@ -73,6 +74,36 @@ La experiencia debe ser simple y comprensible para usuarios con poca familiarida
 * Mostrar una página de confirmación después del signup.
 * Guiar al usuario hacia la siguiente acción con un mensaje claro.
 * Evitar pantallas ambiguas entre registro y activación.
+* Mantener el wizard de alta en una página independiente del listado para evitar ruido visual y problemas de interacción.
+
+### HU-006 Separar el wizard de alta de academia en una página dedicada
+
+**Como** administrador que crea o edita una academia desde la plataforma,  
+**quiero** abrir el formulario de alta en una página independiente del listado,  
+**para** completar el proceso sin mezclarlo con la tabla de administración y con una jerarquía visual más clara.
+
+#### Descripción
+
+El alta de academia debe vivir en una vista propia, accesible desde el listado de academias.
+La pantalla de listado conserva su función de administración y la pantalla de wizard concentra la captura de datos en pasos.
+Esto evita saturación visual, reduce interferencias con la tabla y mejora la comprensión del flujo.
+
+#### Criterios de Aceptación
+
+* El listado de academias no debe contener el wizard embebido.
+* La acción `Nuevo` debe llevar a una página dedicada de alta.
+* La acción de edición debe llevar a la misma página dedicada en modo edición.
+* La navegación entre listado y wizard debe ser clara y directa.
+* El wizard debe conservar la lógica de pasos, validaciones y datos mock.
+* La página del wizard debe mantener consistencia visual con el resto del frontend.
+* El flujo debe funcionar correctamente en escritorio y mobile.
+
+#### Reglas de UX
+
+* Separar claramente la exploración del listado y la captura del formulario.
+* Evitar contenedores duplicados o elementos de formulario dentro de la tabla.
+* Mantener una jerarquía visual simple: contexto, pasos, campos y acciones.
+* Priorizar claridad sobre compactación excesiva.
 
 ## Fuera de Alcance
 
