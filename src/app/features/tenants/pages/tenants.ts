@@ -49,13 +49,12 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
         <p-toast />
         <p-confirmdialog />
 
-        <div class="space-y-6">
-            <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-5 sm:py-5">
-                <h2 class="m-0 text-base font-medium tracking-tight text-surface-900 dark:text-surface-0 sm:text-lg">Academias</h2>
-                <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Aquí puedes ver y administrar los equipos registrados.</p>
+        <div class="space-y-3">
+            <div class="leading-none">
+                <h2 class="m-0 text-base font-semibold tracking-tight text-surface-900 dark:text-surface-0 sm:text-lg">Academias</h2>
             </div>
 
-            <div class="grid gap-3 md:grid-cols-3">
+            <div class="grid gap-2 md:grid-cols-3">
                 <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-2.5 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-4 sm:py-3">
                     <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Total</p>
                     <p class="mt-1 text-xl font-semibold tracking-tight text-surface-900 dark:text-surface-0">{{ tenants().length }}</p>
@@ -168,7 +167,7 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
                                 <td>
                                     <div class="flex flex-col">
                                         <span class="font-medium text-surface-900 dark:text-surface-0">{{ tenant.name }}</span>
-                                        <span class="text-xs text-slate-500 dark:text-slate-400">{{ tenant.createdAt }}</span>
+                                        <span class="text-xs text-slate-500 dark:text-slate-400">{{ formatDate(tenant.createdAt) }}</span>
                                     </div>
                                 </td>
                             }
@@ -310,7 +309,7 @@ export class Tenants implements OnInit {
 
     dialogVisible = false;
 
-    dialogHeader = 'Nuevo tenant';
+    dialogHeader = 'Nueva academia';
 
     form: TenantForm = this.emptyForm();
 
@@ -345,7 +344,7 @@ export class Tenants implements OnInit {
 
     openNew() {
         this.form = this.emptyForm();
-        this.dialogHeader = 'Nuevo tenant';
+        this.dialogHeader = 'Nueva academia';
         this.dialogVisible = true;
     }
 
@@ -361,7 +360,7 @@ export class Tenants implements OnInit {
             city: tenant.city,
             address: tenant.address
         };
-        this.dialogHeader = 'Editar tenant';
+        this.dialogHeader = 'Editar academia';
         this.dialogVisible = true;
     }
 
@@ -372,7 +371,7 @@ export class Tenants implements OnInit {
 
     deleteSelectedTenants() {
         this.confirmationService.confirm({
-            message: '¿Eliminar los tenants seleccionados?',
+            message: '¿Eliminar las academias seleccionadas?',
             header: 'Eliminar',
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
@@ -381,7 +380,7 @@ export class Tenants implements OnInit {
                 this.messageService.add({
                     severity: 'success',
                     summary: 'Listo',
-                    detail: 'Tenants eliminados'
+                    detail: 'Academias eliminadas'
                 });
             }
         });
@@ -392,7 +391,7 @@ export class Tenants implements OnInit {
         this.messageService.add({
             severity: 'success',
             summary: 'Listo',
-            detail: this.form.id ? 'Actualizado.' : 'Creado.'
+            detail: this.form.id ? 'Academia actualizada' : 'Academia creada'
         });
         this.closeDialog();
     }
@@ -457,6 +456,19 @@ export class Tenants implements OnInit {
             default:
                 return status;
         }
+    }
+
+    formatDate(value: string) {
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return value;
+        }
+
+        return new Intl.DateTimeFormat('es-PE', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        }).format(date);
     }
 
     private emptyForm(): TenantForm {
