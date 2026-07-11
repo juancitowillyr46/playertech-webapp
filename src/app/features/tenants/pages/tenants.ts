@@ -51,57 +51,61 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
                 <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Aquí puedes ver y administrar los equipos registrados.</p>
             </div>
 
-            <div class="grid gap-4 md:grid-cols-3">
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-5 sm:py-5">
+            <div class="grid gap-3 md:grid-cols-3">
+                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-5 sm:py-4">
                     <div class="flex items-start justify-between gap-3">
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Total</p>
-                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sky-600 dark:bg-sky-400/15 dark:text-sky-300">
+                        <p class="text-xs font-medium uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Total</p>
+                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sky-100 text-sky-600 dark:bg-sky-400/15 dark:text-sky-300">
                             <i class="pi pi-building"></i>
                         </span>
                     </div>
-                    <p class="mt-3 text-[1.75rem] font-semibold tracking-tight text-surface-900 dark:text-surface-0">{{ tenants().length }}</p>
+                    <p class="mt-2 text-[1.5rem] font-semibold tracking-tight text-surface-900 dark:text-surface-0">{{ tenants().length }}</p>
                 </div>
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-5 sm:py-5">
+                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-5 sm:py-4">
                     <div class="flex items-start justify-between gap-3">
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Activas</p>
-                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-300">
+                        <p class="text-xs font-medium uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Activas</p>
+                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-300">
                             <i class="pi pi-check-circle"></i>
                         </span>
                     </div>
-                    <p class="mt-3 text-[1.75rem] font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">{{ activeCount }}</p>
+                    <p class="mt-2 text-[1.5rem] font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">{{ activeCount }}</p>
                 </div>
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-5 sm:py-5">
+                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-5 sm:py-4">
                     <div class="flex items-start justify-between gap-3">
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Suspendidas</p>
-                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-rose-600 dark:bg-rose-400/15 dark:text-rose-300">
+                        <p class="text-xs font-medium uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Suspendidas</p>
+                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-rose-100 text-rose-600 dark:bg-rose-400/15 dark:text-rose-300">
                             <i class="pi pi-ban"></i>
                         </span>
                     </div>
-                    <p class="mt-3 text-[1.75rem] font-semibold tracking-tight text-rose-600 dark:text-rose-400">{{ suspendedCount }}</p>
+                    <p class="mt-2 text-[1.5rem] font-semibold tracking-tight text-rose-600 dark:text-rose-400">{{ suspendedCount }}</p>
                 </div>
             </div>
 
+            <p-toolbar styleClass="rounded-[0.75rem] bg-white shadow-sm dark:bg-surface-900">
+                <ng-template #start>
+                    <p-iconfield class="w-full max-w-md">
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input pInputText type="text" class="w-full" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar academia" />
+                    </p-iconfield>
+                </ng-template>
+
+                <ng-template #end>
+                    <div class="flex items-center gap-2">
+                        <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-1" (onClick)="openNew()" />
+                        <p-button
+                            severity="secondary"
+                            label="Eliminar"
+                            icon="pi pi-trash"
+                            outlined
+                            (onClick)="deleteSelectedTenants()"
+                            [disabled]="!selectedTenants || !selectedTenants.length"
+                        />
+                        <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+                    </div>
+                </ng-template>
+            </p-toolbar>
+
             <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                <div class="border-b border-slate-200 bg-slate-50/70 p-3 dark:border-surface-800 dark:bg-surface-800/40 sm:p-4">
-                    <p-toolbar styleClass="mb-0 border-0 rounded-none bg-transparent p-0">
-                        <ng-template #start>
-                            <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
-                            <p-button
-                                severity="secondary"
-                                label="Eliminar"
-                                icon="pi pi-trash"
-                                outlined
-                                (onClick)="deleteSelectedTenants()"
-                                [disabled]="!selectedTenants || !selectedTenants.length"
-                            />
-                        </ng-template>
-
-                        <ng-template #end>
-                            <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
-                        </ng-template>
-                    </p-toolbar>
-                </div>
-
                 <p-table
                     #dt
                     [value]="tenants()"
@@ -117,15 +121,6 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
                     [showCurrentPageReport]="true"
                     [rowsPerPageOptions]="[10, 20, 30]"
                 >
-                    <ng-template #caption>
-                        <div class="flex w-full justify-end px-4 py-4">
-                            <p-iconfield class="ml-auto w-full max-w-sm sm:w-72">
-                                <p-inputicon styleClass="pi pi-search" />
-                                <input pInputText type="text" class="w-full" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar academia" />
-                            </p-iconfield>
-                        </div>
-                    </ng-template>
-
                     <ng-template #header>
                         <tr>
                             <th style="width: 3rem">
