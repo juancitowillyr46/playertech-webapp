@@ -5,7 +5,6 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
@@ -46,7 +45,6 @@ interface LocationDepartment {
         CheckboxModule,
         CommonModule,
         ConfirmDialogModule,
-        DialogModule,
         FormsModule,
         IconFieldModule,
         InputIconModule,
@@ -249,15 +247,22 @@ interface LocationDepartment {
             </div>
         </div>
 
-        <p-dialog
-            [(visible)]="dialogVisible"
-            [modal]="true"
-            [style]="{ width: '64rem' }"
-            [breakpoints]="{ '960px': '92vw', '640px': '96vw' }"
-            [header]="dialogHeader"
-        >
-            <div class="max-h-[72vh] overflow-y-auto pr-1">
-                <div class="space-y-4">
+        @if (dialogVisible) {
+            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                <div class="flex flex-col gap-3 border-b border-slate-200 px-3 py-3 sm:px-4 sm:py-4 dark:border-surface-800 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="min-w-0">
+                        <p class="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-sky-700 dark:text-sky-400">Nuevo registro</p>
+                        <h3 class="mt-1 text-lg font-semibold tracking-tight text-surface-900 dark:text-surface-0">
+                            {{ form.id ? 'Editar academia' : 'Crear academia' }}
+                        </h3>
+                        <p class="mt-1 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
+                            Completa los datos para dejar la academia, el usuario inicial y el primer equipo listos en una sola operación.
+                        </p>
+                    </div>
+                    <p-button label="Cerrar" severity="secondary" text (onClick)="closeDialog()" />
+                </div>
+
+                <div class="space-y-4 px-3 py-4 sm:px-4 sm:py-5">
                     <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50/80 p-4 dark:border-surface-700 dark:bg-surface-900/40">
                         <div class="flex items-start justify-between gap-4">
                             <div class="min-w-0">
@@ -335,13 +340,13 @@ interface LocationDepartment {
                                     (input)="onAcademyNameInput($event)"
                                 />
                                 @if (showError('name')) {
-                                    <p-message severity="error" size="small">Escribe el nombre de la academia.</p-message>
+                                    <p-message severity="error" size="small">Ingresa el nombre de la academia.</p-message>
                                 }
                             </div>
 
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                 <label for="contactEmail" class="text-sm font-medium text-surface-700 dark:text-surface-200">
-                                    Correo de contacto <span class="text-rose-500">*</span>
+                                    Correo principal <span class="text-rose-500">*</span>
                                 </label>
                                 <input
                                     pInputText
@@ -356,7 +361,7 @@ interface LocationDepartment {
                                     (input)="onEmailInput('contactEmail')"
                                 />
                                 @if (showError('contactEmail')) {
-                                    <p-message severity="error" size="small">Escribe un correo válido.</p-message>
+                                    <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
                                 }
                             </div>
 
@@ -373,7 +378,7 @@ interface LocationDepartment {
                                     optionValue="name"
                                     [filter]="true"
                                     filterBy="name"
-                                    placeholder="Selecciona un país"
+                                    placeholder="Selecciona país de operación"
                                     class="w-full"
                                     (onChange)="onLocationCountryChange()"
                                 >
@@ -394,7 +399,7 @@ interface LocationDepartment {
                                     </ng-template>
                                 </p-select>
                                 @if (showError('country')) {
-                                    <p-message severity="error" size="small">Selecciona el país.</p-message>
+                                    <p-message severity="error" size="small">Selecciona el país de operación.</p-message>
                                 }
                             </div>
 
@@ -445,7 +450,7 @@ interface LocationDepartment {
                                     />
                                 </div>
                                 @if (showError('countryCode') || showError('phoneNumber')) {
-                                    <p-message severity="error" size="small">Escribe un teléfono válido.</p-message>
+                                    <p-message severity="error" size="small">Ingresa un teléfono válido.</p-message>
                                 }
                             </div>
 
@@ -552,7 +557,7 @@ interface LocationDepartment {
                                     (input)="onEmailInput('adminEmail')"
                                 />
                                 @if (showError('adminEmail')) {
-                                    <p-message severity="error" size="small">Escribe un correo válido.</p-message>
+                                    <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
                                 }
                             </div>
                         </div>
@@ -578,7 +583,7 @@ interface LocationDepartment {
                                         filterBy="label"
                                     />
                                     @if (showError('categoryId')) {
-                                        <p-message severity="error" size="small">Selecciona la categoría.</p-message>
+                                        <p-message severity="error" size="small">Selecciona la categoría inicial.</p-message>
                                     }
                                 </div>
 
@@ -599,7 +604,7 @@ interface LocationDepartment {
                                         (input)="onTeamNameInput($event)"
                                     />
                                     @if (showError('teamName')) {
-                                        <p-message severity="error" size="small">Escribe el nombre del equipo.</p-message>
+                                        <p-message severity="error" size="small">Ingresa el nombre del equipo.</p-message>
                                     }
                                 </div>
                             </div>
@@ -607,7 +612,7 @@ interface LocationDepartment {
                             <div class="rounded-[0.9rem] border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-surface-700 dark:bg-surface-900">
                                 <p class="text-sm font-medium text-surface-900 dark:text-surface-0">Resumen de creación</p>
                                 <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                                    La academia, el usuario inicial y el primer equipo se crearán en una sola operación.
+                                    La academia, el usuario inicial y el primer equipo quedarán listos en una sola operación.
                                 </p>
                                 <div class="mt-4 grid gap-3 sm:grid-cols-3">
                                     <div class="rounded-[0.8rem] bg-slate-50 px-4 py-3 dark:bg-surface-800/60">
@@ -626,11 +631,9 @@ interface LocationDepartment {
                             </div>
                         </div>
                     }
-                </div>
             </div>
 
-            <ng-template #footer>
-                <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex w-full flex-col gap-3 border-t border-slate-200 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 dark:border-surface-800">
                     <p-button label="Cancelar" severity="secondary" text (onClick)="closeDialog()" />
 
                     <div class="flex items-center gap-2 sm:ml-auto">
@@ -639,15 +642,15 @@ interface LocationDepartment {
                         }
 
                         <p-button
-                            [label]="currentStep < 2 ? 'Siguiente' : (form.id ? 'Guardar cambios' : 'Crear academia')"
+                            [label]="currentStep < 2 ? 'Continuar' : (form.id ? 'Guardar cambios' : 'Crear academia')"
                             [icon]="currentStep < 2 ? 'pi pi-arrow-right' : 'pi pi-check'"
                             [iconPos]="currentStep < 2 ? 'right' : 'left'"
                             (onClick)="currentStep < 2 ? nextStep() : saveTenant()"
                         />
                     </div>
                 </div>
-            </ng-template>
-        </p-dialog>
+            </div>
+        }
     `
 })
 export class Tenants implements OnInit {
@@ -703,8 +706,6 @@ export class Tenants implements OnInit {
     });
 
     dialogVisible = false;
-    dialogHeader = 'Crear academia';
-
     currentStep = 0;
     stepSubmitted: boolean[] = [false, false, false];
 
@@ -713,20 +714,20 @@ export class Tenants implements OnInit {
     readonly wizardSteps: WizardStep[] = [
         {
             key: 'academy',
-            title: 'Información de la academia',
-            subtitle: 'Datos base, ubicación y teléfono para dejar la academia lista.',
+            title: 'Datos de la academia',
+            subtitle: 'Define la información principal y la ubicación de operación.',
             fields: ['name', 'contactEmail', 'country', 'countryCode', 'phoneNumber', 'department', 'city', 'address']
         },
         {
             key: 'admin',
             title: 'Usuario inicial',
-            subtitle: 'Define quién administrará la academia desde el primer momento.',
+            subtitle: 'Configura el acceso administrativo inicial.',
             fields: ['adminName', 'adminEmail']
         },
         {
             key: 'team',
-            title: 'Primer equipo',
-            subtitle: 'Selecciona la categoría y el nombre del primer equipo.',
+            title: 'Equipo inicial',
+            subtitle: 'Selecciona la categoría y nombra el primer equipo.',
             fields: ['categoryId', 'teamName']
         }
     ];
@@ -866,7 +867,6 @@ export class Tenants implements OnInit {
 
     openNew() {
         this.form = this.emptyForm();
-        this.dialogHeader = 'Crear academia';
         this.currentStep = 0;
         this.stepSubmitted = [false, false, false];
         this.dialogVisible = true;
@@ -880,7 +880,6 @@ export class Tenants implements OnInit {
         }
 
         this.form = form;
-        this.dialogHeader = 'Editar academia';
         this.currentStep = 0;
         this.stepSubmitted = [false, false, false];
         this.dialogVisible = true;
@@ -891,7 +890,6 @@ export class Tenants implements OnInit {
         this.form = this.emptyForm();
         this.currentStep = 0;
         this.stepSubmitted = [false, false, false];
-        this.dialogHeader = 'Crear academia';
     }
 
     deleteSelectedTenants() {
