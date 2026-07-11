@@ -10,7 +10,9 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputIconModule } from 'primeng/inputicon';
 import { MessageModule } from 'primeng/message';
+import { CheckboxModule } from 'primeng/checkbox';
 import { SelectModule } from 'primeng/select';
+import { MenuModule } from 'primeng/menu';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
@@ -28,10 +30,12 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
         ConfirmDialogModule,
         DialogModule,
         FormsModule,
+        CheckboxModule,
         IconFieldModule,
         InputIconModule,
         InputTextModule,
         MessageModule,
+        MenuModule,
         RouterModule,
         SelectModule,
         TableModule,
@@ -52,37 +56,22 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
             </div>
 
             <div class="grid gap-3 md:grid-cols-3">
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-5 sm:py-4">
-                    <div class="flex items-start justify-between gap-3">
-                        <p class="text-xs font-medium uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Total</p>
-                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sky-100 text-sky-600 dark:bg-sky-400/15 dark:text-sky-300">
-                            <i class="pi pi-building"></i>
-                        </span>
-                    </div>
-                    <p class="mt-2 text-[1.5rem] font-semibold tracking-tight text-surface-900 dark:text-surface-0">{{ tenants().length }}</p>
+                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-2.5 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-4 sm:py-3">
+                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Total</p>
+                    <p class="mt-1 text-xl font-semibold tracking-tight text-surface-900 dark:text-surface-0">{{ tenants().length }}</p>
                 </div>
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-5 sm:py-4">
-                    <div class="flex items-start justify-between gap-3">
-                        <p class="text-xs font-medium uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Activas</p>
-                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-300">
-                            <i class="pi pi-check-circle"></i>
-                        </span>
-                    </div>
-                    <p class="mt-2 text-[1.5rem] font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">{{ activeCount }}</p>
+                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-2.5 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-4 sm:py-3">
+                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Activas</p>
+                    <p class="mt-1 text-xl font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">{{ activeCount }}</p>
                 </div>
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-5 sm:py-4">
-                    <div class="flex items-start justify-between gap-3">
-                        <p class="text-xs font-medium uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Suspendidas</p>
-                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-rose-100 text-rose-600 dark:bg-rose-400/15 dark:text-rose-300">
-                            <i class="pi pi-ban"></i>
-                        </span>
-                    </div>
-                    <p class="mt-2 text-[1.5rem] font-semibold tracking-tight text-rose-600 dark:text-rose-400">{{ suspendedCount }}</p>
+                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-2.5 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-4 sm:py-3">
+                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Suspendidas</p>
+                    <p class="mt-1 text-xl font-semibold tracking-tight text-rose-600 dark:text-rose-400">{{ suspendedCount }}</p>
                 </div>
             </div>
 
             <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                <div class="border-b border-slate-200 px-3 pt-3 pb-3 dark:border-surface-800 sm:px-4 sm:pt-4 sm:pb-4">
+                <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-800 sm:px-4 sm:py-4">
                     <p-toolbar
                         styleClass="mb-0 rounded-none bg-transparent p-0 shadow-none"
                         [style]="{ border: '0', background: 'transparent', boxShadow: 'none' }"
@@ -90,39 +79,59 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
                         <ng-template #start>
                             <p-iconfield class="w-full max-w-md">
                                 <p-inputicon styleClass="pi pi-search" />
-                                <input pInputText type="text" class="w-full" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar academia" />
+                                <input pInputText type="text" class="w-full" placeholder="Buscar academia" />
                             </p-iconfield>
                         </ng-template>
 
                         <ng-template #end>
                             <div class="flex items-center gap-2">
-                                <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-1" (onClick)="openNew()" />
-                                <p-button
-                                    severity="secondary"
-                                    label="Eliminar"
-                                    icon="pi pi-trash"
-                                    outlined
-                                    (onClick)="deleteSelectedTenants()"
-                                    [disabled]="!selectedTenants || !selectedTenants.length"
-                                />
-                                <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+                                <p-button label="Nuevo" icon="pi pi-plus" severity="primary" (onClick)="openNew()" />
+                                <p-menu #actionsMenu [popup]="true" [model]="actionsMenuItems" />
+                                <p-button label="Acciones" icon="pi pi-chevron-down" severity="secondary" outlined (click)="actionsMenu.toggle($event)" />
+                                <div class="relative">
+                                    <p-button label="Filtrar" icon="pi pi-filter" severity="secondary" outlined (click)="filtersPanelOpen = !filtersPanelOpen" />
+                                    @if (filtersPanelOpen) {
+                                        <div class="absolute right-0 top-full z-20 mt-2 w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-surface-700 dark:bg-surface-900">
+                                            <div class="border-b border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 dark:border-surface-700 dark:text-slate-200">Columnas visibles</div>
+                                            <div class="space-y-3 px-4 py-3">
+                                                <label class="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-200">
+                                                    <p-checkbox [(ngModel)]="secondaryVisibleColumns.name" [binary]="true" />
+                                                    Academia
+                                                </label>
+                                                <label class="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-200">
+                                                    <p-checkbox [(ngModel)]="secondaryVisibleColumns.contact" [binary]="true" />
+                                                    Contacto
+                                                </label>
+                                                <label class="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-200">
+                                                    <p-checkbox [(ngModel)]="secondaryVisibleColumns.location" [binary]="true" />
+                                                    Ubicación
+                                                </label>
+                                                <label class="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-200">
+                                                    <p-checkbox [(ngModel)]="secondaryVisibleColumns.phone" [binary]="true" />
+                                                    Teléfono
+                                                </label>
+                                                <label class="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-200">
+                                                    <p-checkbox [(ngModel)]="secondaryVisibleColumns.status" [binary]="true" />
+                                                    Estado
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
                             </div>
                         </ng-template>
                     </p-toolbar>
                 </div>
 
                 <p-table
-                    #dt
                     [value]="tenants()"
-                    [rows]="10"
-                    [columns]="cols"
+                    [rows]="6"
                     [paginator]="true"
-                    [globalFilterFields]="['name', 'contactName', 'contactEmail', 'city', 'department', 'country', 'phone', 'status']"
-                    [tableStyle]="{ 'min-width': '75rem' }"
-                    [(selection)]="selectedTenants"
                     [rowHover]="true"
+                    [(selection)]="secondarySelectedTenants"
+                    [globalFilterFields]="['name', 'contactName', 'contactEmail', 'city', 'department', 'country', 'phone', 'status']"
                     dataKey="id"
-                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} academias"
+                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
                     [showCurrentPageReport]="true"
                     [rowsPerPageOptions]="[10, 20, 30]"
                 >
@@ -131,11 +140,21 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
                             <th style="width: 3rem">
                                 <p-tableHeaderCheckbox />
                             </th>
-                            <th style="min-width: 16rem">Academia</th>
-                            <th style="min-width: 14rem">Contacto</th>
-                            <th style="min-width: 12rem">Ubicación</th>
-                            <th style="min-width: 12rem">Teléfono</th>
-                            <th style="min-width: 10rem">Estado</th>
+                            @if (secondaryVisibleColumns.name) {
+                                <th style="min-width: 16rem">Academia</th>
+                            }
+                            @if (secondaryVisibleColumns.contact) {
+                                <th style="min-width: 14rem">Contacto</th>
+                            }
+                            @if (secondaryVisibleColumns.location) {
+                                <th style="min-width: 12rem">Ubicación</th>
+                            }
+                            @if (secondaryVisibleColumns.phone) {
+                                <th style="min-width: 12rem">Teléfono</th>
+                            }
+                            @if (secondaryVisibleColumns.status) {
+                                <th style="min-width: 10rem">Estado</th>
+                            }
                             <th style="min-width: 12rem"></th>
                         </tr>
                     </ng-template>
@@ -145,47 +164,59 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
                             <td style="width: 3rem">
                                 <p-tableCheckbox [value]="tenant" />
                             </td>
+                            @if (secondaryVisibleColumns.name) {
+                                <td>
+                                    <div class="flex flex-col">
+                                        <span class="font-medium text-surface-900 dark:text-surface-0">{{ tenant.name }}</span>
+                                        <span class="text-xs text-slate-500 dark:text-slate-400">{{ tenant.createdAt }}</span>
+                                    </div>
+                                </td>
+                            }
+                            @if (secondaryVisibleColumns.contact) {
+                                <td>
+                                    <div class="flex flex-col">
+                                        <span class="font-medium text-surface-900 dark:text-surface-0">{{ tenant.contactName }}</span>
+                                        <span class="text-sm text-slate-500 dark:text-slate-400">{{ tenant.contactEmail }}</span>
+                                    </div>
+                                </td>
+                            }
+                            @if (secondaryVisibleColumns.location) {
+                                <td>
+                                    <div class="flex flex-col">
+                                        <span class="text-surface-900 dark:text-surface-0">{{ tenant.city }}</span>
+                                        <span class="text-sm text-slate-500 dark:text-slate-400">{{ tenant.department }}, {{ tenant.country }}</span>
+                                    </div>
+                                </td>
+                            }
+                            @if (secondaryVisibleColumns.phone) {
+                                <td class="text-surface-900 dark:text-surface-0">{{ tenant.phone }}</td>
+                            }
+                            @if (secondaryVisibleColumns.status) {
+                                <td>
+                                    <p-tag [value]="getStatusLabel(tenant.status)" [severity]="getSeverity(tenant.status)" />
+                                </td>
+                            }
                             <td>
-                                <div class="flex flex-col">
-                                    <span class="font-medium text-surface-900 dark:text-surface-0">{{ tenant.name }}</span>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">{{ tenant.createdAt }}</span>
+                                <div class="flex items-center justify-end gap-2">
+                                    <p-button icon="pi pi-pencil" [rounded]="true" [outlined]="true" (click)="editTenant(tenant)" />
+                                    <p-button
+                                        *ngIf="tenant.status === 'ACTIVE'"
+                                        icon="pi pi-pause"
+                                        severity="warn"
+                                        [rounded]="true"
+                                        [outlined]="true"
+                                        (click)="suspendTenant(tenant)"
+                                    />
+                                    <p-button
+                                        *ngIf="tenant.status === 'SUSPENDED'"
+                                        icon="pi pi-play"
+                                        severity="success"
+                                        [rounded]="true"
+                                        [outlined]="true"
+                                        (click)="reactivateTenant(tenant)"
+                                    />
+                                    <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="removeTenant(tenant)" />
                                 </div>
-                            </td>
-                            <td>
-                                <div class="flex flex-col">
-                                    <span class="font-medium text-surface-900 dark:text-surface-0">{{ tenant.contactName }}</span>
-                                    <span class="text-sm text-slate-500 dark:text-slate-400">{{ tenant.contactEmail }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="flex flex-col">
-                                    <span class="text-surface-900 dark:text-surface-0">{{ tenant.city }}</span>
-                                    <span class="text-sm text-slate-500 dark:text-slate-400">{{ tenant.department }}, {{ tenant.country }}</span>
-                                </div>
-                            </td>
-                            <td class="text-surface-900 dark:text-surface-0">{{ tenant.phone }}</td>
-                            <td>
-                                <p-tag [value]="getStatusLabel(tenant.status)" [severity]="getSeverity(tenant.status)" />
-                            </td>
-                            <td>
-                                <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editTenant(tenant)" />
-                                <p-button
-                                    *ngIf="tenant.status === 'ACTIVE'"
-                                    icon="pi pi-pause"
-                                    severity="warn"
-                                    [rounded]="true"
-                                    [outlined]="true"
-                                    (click)="suspendTenant(tenant)"
-                                />
-                                <p-button
-                                    *ngIf="tenant.status === 'SUSPENDED'"
-                                    icon="pi pi-play"
-                                    severity="success"
-                                    [rounded]="true"
-                                    [outlined]="true"
-                                    (click)="reactivateTenant(tenant)"
-                                />
-                                <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="removeTenant(tenant)" />
                             </td>
                         </tr>
                     </ng-template>
@@ -251,6 +282,29 @@ export class Tenants implements OnInit {
     tenants = signal<TenantListItem[]>([]);
 
     selectedTenants: TenantListItem[] | null = null;
+
+    secondarySelectedTenants: TenantListItem[] | null = null;
+    filtersPanelOpen = false;
+    actionsMenuItems = [
+        {
+            label: 'Eliminar',
+            icon: 'pi pi-trash',
+            command: () => this.deleteSelectedTenants()
+        },
+        {
+            label: 'Exportar',
+            icon: 'pi pi-upload',
+            command: () => this.exportCSV()
+        }
+    ];
+
+    secondaryVisibleColumns = {
+        name: true,
+        contact: true,
+        location: true,
+        phone: true,
+        status: true
+    };
 
     cols!: { field: string; header: string }[];
 
