@@ -3,25 +3,23 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { PasswordModule } from 'primeng/password';
 import { Router } from '@angular/router';
 
 @Component({
-    selector: 'app-login',
+    selector: 'app-forgot-password',
     standalone: true,
-    imports: [ButtonModule, CheckboxModule, CommonModule, FormsModule, InputTextModule, MessageModule, PasswordModule, RouterModule],
+    imports: [ButtonModule, CommonModule, FormsModule, InputTextModule, MessageModule, RouterModule],
     template: `
         <div class="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.12),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(34,197,94,0.08),_transparent_25%),linear-gradient(180deg,_#f8fafc_0%,_#eef2f7_100%)] px-4 py-6 dark:bg-none dark:bg-surface-950 sm:px-6 lg:px-8">
             <div class="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-2xl items-center justify-center">
                 <div class="w-full min-w-0 max-w-xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_28px_90px_-28px_rgba(15,23,42,0.24)] dark:border-surface-800 dark:bg-surface-900">
                     <div class="min-w-0 px-5 py-6 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
                         <div class="mb-7 text-center">
-                            <p class="text-sm font-medium uppercase tracking-[0.24em] text-sky-700 dark:text-sky-400">Inicio de sesión</p>
-                            <h2 class="mt-2 text-[1.9rem] font-semibold tracking-tight text-surface-900 dark:text-surface-0">Bienvenido de nuevo</h2>
-                            <p class="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">Ingresa con tu correo y contraseña para continuar.</p>
+                            <p class="text-sm font-medium uppercase tracking-[0.24em] text-sky-700 dark:text-sky-400">Ayuda de acceso</p>
+                            <h1 class="mt-2 text-[1.9rem] font-semibold tracking-tight text-surface-900 dark:text-surface-0">Recuperar contraseña</h1>
+                            <p class="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">Escribe tu correo para recibir los pasos para continuar.</p>
                         </div>
 
                         @if (apiMessage) {
@@ -44,35 +42,18 @@ import { Router } from '@angular/router';
                                     (keydown)="handleEmailKeydown($event)"
                                     (paste)="handleEmailPaste($event)"
                                 />
-                                @if (showError('email')) {
-                                    <p-message severity="error" size="small">Escribe un correo válido.</p-message>
+                                @if (showError()) {
+                                    <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
                                 }
-                            </div>
-
-                            <div class="flex flex-col gap-2">
-                                <label for="password1" class="text-sm font-medium text-surface-700 dark:text-surface-200">Contraseña</label>
-                                <p-password id="password1" [(ngModel)]="password" name="password" placeholder="Ingresa tu contraseña" [toggleMask]="true" [fluid]="true" [feedback]="false"></p-password>
-                                @if (showError('password')) {
-                                    <p-message severity="error" size="small">Ingresa tu contraseña.</p-message>
-                                }
-                            </div>
-
-                            <div class="flex flex-col gap-4 text-sm sm:flex-row sm:items-center sm:justify-between">
-                                <div class="flex items-center gap-2">
-                                    <p-checkbox [(ngModel)]="checked" id="rememberme1" binary name="rememberme"></p-checkbox>
-                                    <label for="rememberme1" class="text-slate-600 dark:text-slate-300">Recordarme</label>
-                                </div>
-                                <a routerLink="/auth/forgot-password" class="cursor-pointer font-medium text-sky-700 hover:underline dark:text-sky-400">Olvidé mi contraseña</a>
                             </div>
 
                             <div class="pt-1">
-                                <p-button label="Ingresar" styleClass="w-full" type="button" (onClick)="submit()" />
+                                <p-button label="Enviar pasos" styleClass="w-full" type="button" (onClick)="submit()" />
                             </div>
                         </div>
 
                         <div class="mt-7 border-t border-slate-200 pt-6 text-center text-sm text-slate-600 dark:border-surface-800 dark:text-slate-300">
-                            ¿No tienes una cuenta?
-                            <a routerLink="/auth/signup" class="font-medium text-sky-700 hover:underline dark:text-sky-400">Crear academia</a>
+                            <a routerLink="/auth/login" class="font-medium text-sky-700 hover:underline dark:text-sky-400">Volver al ingreso</a>
                         </div>
                     </div>
                 </div>
@@ -80,16 +61,12 @@ import { Router } from '@angular/router';
         </div>
     `
 })
-export class Login {
-    email: string = '';
-
-    password: string = '';
-
-    checked: boolean = false;
-
-    apiMessage: { severity: 'success' | 'info' | 'warn' | 'error'; text: string } | null = null;
+export class ForgotPassword {
+    email = '';
 
     submitted = false;
+
+    apiMessage: { severity: 'success' | 'info' | 'warn' | 'error'; text: string } | null = null;
 
     constructor(private router: Router) {}
 
@@ -100,9 +77,7 @@ export class Login {
             return;
         }
 
-        const allowedPattern = /^[a-zA-Z0-9@._%+\-]$/;
-
-        if (!allowedPattern.test(event.key)) {
+        if (!/^[a-zA-Z0-9@._%+\-]$/.test(event.key)) {
             event.preventDefault();
         }
     }
@@ -124,36 +99,30 @@ export class Login {
         }
     }
 
-    showError(field: string): boolean {
-        return this.submitted && !this.isFieldValid(field);
+    showError(): boolean {
+        return this.submitted && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim());
     }
 
     submit() {
         this.submitted = true;
 
-        if (!this.isFieldValid('email') || !this.isFieldValid('password')) {
+        if (this.showError()) {
             this.apiMessage = {
                 severity: 'error',
-                text: 'Revisa los datos antes de continuar.'
+                text: 'Revisa el correo e inténtalo de nuevo.'
             };
             return;
         }
 
         this.apiMessage = {
             severity: 'success',
-            text: 'Los datos son válidos. Aquí luego mostraremos la respuesta del backend.'
+            text: 'Si el correo está registrado, recibirás un mensaje con los pasos.'
         };
-        void this.router.navigate(['/']);
-    }
 
-    private isFieldValid(field: string): boolean {
-        switch (field) {
-            case 'email':
-                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim());
-            case 'password':
-                return this.password.trim().length >= 8;
-            default:
-                return true;
-        }
+        void this.router.navigate(['/auth/forgot-password-success'], {
+            state: {
+                email: this.email
+            }
+        });
     }
 }
