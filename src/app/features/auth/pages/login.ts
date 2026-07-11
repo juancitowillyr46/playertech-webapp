@@ -8,6 +8,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
 import { Router } from '@angular/router';
+import { AuthAccessService } from '../data-access/auth-access.service';
 
 @Component({
     selector: 'app-login',
@@ -91,7 +92,7 @@ export class Login {
 
     submitted = false;
 
-    constructor(private router: Router) {}
+    constructor(private router: Router, private auth: AuthAccessService) {}
 
     handleEmailKeydown(event: KeyboardEvent) {
         const allowedControlKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
@@ -143,6 +144,7 @@ export class Login {
             severity: 'success',
             text: 'Los datos son válidos. Aquí luego mostraremos la respuesta del backend.'
         };
+        this.auth.login('tenant_owner');
         void this.router.navigate(['/']);
     }
 

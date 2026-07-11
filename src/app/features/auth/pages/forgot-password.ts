@@ -16,10 +16,10 @@ import { Router } from '@angular/router';
             <div class="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-2xl items-center justify-center">
                 <div class="w-full min-w-0 max-w-xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_28px_90px_-28px_rgba(15,23,42,0.24)] dark:border-surface-800 dark:bg-surface-900">
                     <div class="min-w-0 px-5 py-6 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
-                        <div class="mb-7 text-center">
-                            <p class="text-sm font-medium uppercase tracking-[0.24em] text-sky-700 dark:text-sky-400">Ayuda de acceso</p>
-                            <h1 class="mt-2 text-[1.9rem] font-semibold tracking-tight text-surface-900 dark:text-surface-0">Recuperar contraseña</h1>
-                            <p class="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">Escribe tu correo para recibir los pasos para continuar.</p>
+                        <div class="mb-6 text-center sm:mb-7">
+                            <p class="hidden text-sm font-medium uppercase tracking-[0.24em] text-sky-700 dark:text-sky-400 sm:block">Ayuda de acceso</p>
+                            <h1 class="mt-1 text-[clamp(1.55rem,6vw,1.9rem)] font-semibold tracking-tight text-surface-900 dark:text-surface-0">Recuperar contraseña</h1>
+                            <p class="mx-auto mt-2 max-w-[22rem] text-sm leading-6 text-slate-600 dark:text-slate-300 sm:max-w-xl">Escribe tu correo para recibir los pasos para continuar.</p>
                         </div>
 
                         @if (apiMessage) {
@@ -28,7 +28,7 @@ import { Router } from '@angular/router';
                             </div>
                         }
 
-                        <div class="space-y-6">
+                        <div class="space-y-5 sm:space-y-6">
                             <div class="flex flex-col gap-2">
                                 <label for="email1" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo electrónico</label>
                                 <input
@@ -52,7 +52,7 @@ import { Router } from '@angular/router';
                             </div>
                         </div>
 
-                        <div class="mt-7 border-t border-slate-200 pt-6 text-center text-sm text-slate-600 dark:border-surface-800 dark:text-slate-300">
+                        <div class="mt-6 border-t border-slate-200 pt-5 text-center text-sm text-slate-600 dark:border-surface-800 dark:text-slate-300 sm:mt-7 sm:pt-6">
                             <a routerLink="/auth/login" class="font-medium text-sky-700 hover:underline dark:text-sky-400">Volver al ingreso</a>
                         </div>
                     </div>
