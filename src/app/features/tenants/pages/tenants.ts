@@ -81,31 +81,36 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
                 </div>
             </div>
 
-            <p-toolbar styleClass="rounded-[0.75rem] bg-white shadow-sm dark:bg-surface-900">
-                <ng-template #start>
-                    <p-iconfield class="w-full max-w-md">
-                        <p-inputicon styleClass="pi pi-search" />
-                        <input pInputText type="text" class="w-full" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar academia" />
-                    </p-iconfield>
-                </ng-template>
-
-                <ng-template #end>
-                    <div class="flex items-center gap-2">
-                        <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-1" (onClick)="openNew()" />
-                        <p-button
-                            severity="secondary"
-                            label="Eliminar"
-                            icon="pi pi-trash"
-                            outlined
-                            (onClick)="deleteSelectedTenants()"
-                            [disabled]="!selectedTenants || !selectedTenants.length"
-                        />
-                        <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
-                    </div>
-                </ng-template>
-            </p-toolbar>
-
             <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                <div class="border-b border-slate-200 px-3 pt-3 pb-3 dark:border-surface-800 sm:px-4 sm:pt-4 sm:pb-4">
+                    <p-toolbar
+                        styleClass="mb-0 rounded-none bg-transparent p-0 shadow-none"
+                        [style]="{ border: '0', background: 'transparent', boxShadow: 'none' }"
+                    >
+                        <ng-template #start>
+                            <p-iconfield class="w-full max-w-md">
+                                <p-inputicon styleClass="pi pi-search" />
+                                <input pInputText type="text" class="w-full" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar academia" />
+                            </p-iconfield>
+                        </ng-template>
+
+                        <ng-template #end>
+                            <div class="flex items-center gap-2">
+                                <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-1" (onClick)="openNew()" />
+                                <p-button
+                                    severity="secondary"
+                                    label="Eliminar"
+                                    icon="pi pi-trash"
+                                    outlined
+                                    (onClick)="deleteSelectedTenants()"
+                                    [disabled]="!selectedTenants || !selectedTenants.length"
+                                />
+                                <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+                            </div>
+                        </ng-template>
+                    </p-toolbar>
+                </div>
+
                 <p-table
                     #dt
                     [value]="tenants()"
