@@ -80,3 +80,27 @@ Cobertura de invitación, activación y relación del staff con equipos.
 10. EF-010 Payment Management
 11. EF-011 Operative Dashboard
 12. EF-012 Staff Management
+
+---
+
+# Trazabilidad Actual
+
+## EF-001 Auth and Access
+
+* HU-001 Iniciar sesión → `Done` → `src/app/features/auth/pages/login.ts`
+* HU-002 Cerrar sesión → `Done` → `src/app/layout/component/app.sidebar.ts`
+* HU-005 Pantalla de ingreso consistente → `Done` → `src/app/features/auth/pages/login.ts`
+* HU-006 Recuperar contraseña pública → `In Progress` → `src/app/features/auth/pages/forgot-password.ts`, `src/app/features/auth/pages/forgot-password-success.ts`, `src/app/features/auth/pages/reset-password.ts`
+* HU-007 Perfil del usuario autenticado → `In Progress` → `src/app/features/account/pages/profile.ts`, `src/app/features/account/data-access/profile.service.ts`
+
+## EF-002 Tenant Onboarding
+
+* HU-001 Registrar tenant desde flujo público → `Done` → `src/app/features/auth/pages/signup.ts`
+* HU-005 Confirmar registro con página de cierre → `Done` → `src/app/features/auth/pages/signup-success.ts`
+* HU-006 Wizard de alta en página dedicada → `Done` → `src/app/features/tenants/pages/tenant-wizard.ts`, `src/app/features/tenants/tenants.routes.ts`
+
+## EF-003 Academy Management
+
+* HU-003 Consultar academias desde plataforma → `Done` → `src/app/features/tenants/pages/tenants.ts`
+* HU-004 Ver detalle o edición de academia → `Partial` → `src/app/features/tenants/pages/tenant-wizard.ts`
+* HU-005 Suspender o reactivar academia → `Done` → `src/app/features/tenants/pages/tenants.ts`

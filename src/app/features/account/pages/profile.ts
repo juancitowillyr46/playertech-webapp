@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -87,7 +87,8 @@ export class Profile {
 
     constructor(
         private readonly profileService: ProfileService,
-        private readonly messageService: MessageService
+        private readonly messageService: MessageService,
+        private readonly router: Router
     ) {
         this.profile = this.profileService.getCurrentProfile();
         this.editableFullName = this.profile.fullName;
@@ -132,10 +133,10 @@ export class Profile {
     }
 
     sendResetLink() {
-        this.messageService.add({
-            severity: 'info',
-            summary: 'Enlace enviado',
-            detail: `Te enviaremos el enlace a ${this.profile.email}.`
+        void this.router.navigate(['/auth/forgot-password'], {
+            queryParams: {
+                email: this.profile.email
+            }
         });
     }
 

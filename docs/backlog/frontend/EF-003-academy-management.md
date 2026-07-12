@@ -24,12 +24,12 @@ Centraliza la operación institucional y el control del entorno multi-tenant.
 
 ## Historias de Usuario
 
-* HU-001 Consultar academia propia.
-* HU-002 Actualizar academia propia.
-* HU-003 Consultar academias desde plataforma.
-* HU-004 Ver detalle de academia.
-* HU-005 Suspender o reactivar academia.
-* HU-006 Subir escudo institucional.
+* HU-001 Consultar academia propia. `Pending`
+* HU-002 Actualizar academia propia. `Pending`
+* HU-003 Consultar academias desde plataforma. `Done`
+* HU-004 Ver detalle de academia. `Partial`
+* HU-005 Suspender o reactivar academia. `Done`
+* HU-006 Subir escudo institucional. `Pending`
 
 ## Reglas de UX Relacionadas
 
@@ -44,5 +44,4 @@ Centraliza la operación institucional y el control del entorno multi-tenant.
 
 ## Estado
 
-Draft.
-
+In Progress.

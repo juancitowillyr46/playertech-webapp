@@ -26,12 +26,12 @@ Acelera la activación de nuevas academias dentro de la plataforma.
 
 ## Historias de Usuario
 
-* HU-001 Registrar tenant desde flujo público.
-* HU-002 Validar correo de activación.
-* HU-003 Activar cuenta y definir contraseña.
-* HU-004 Primer acceso del owner/admin.
-* HU-005 Confirmar el registro con una página de cierre.
-* HU-006 Separar el wizard de alta de academia en una página dedicada.
+* HU-001 Registrar tenant desde flujo público. `Done`
+* HU-002 Validar correo de activación. `Pending`
+* HU-003 Activar cuenta y definir contraseña. `Pending`
+* HU-004 Primer acceso del owner/admin. `Pending`
+* HU-005 Confirmar el registro con una página de cierre. `Done`
+* HU-006 Separar el wizard de alta de academia en una página dedicada. `Done`
 
 ### HU-005 Confirmar el registro con una página de cierre
 
@@ -112,4 +112,4 @@ Esto evita saturación visual, reduce interferencias con la tabla y mejora la co
 
 ## Estado
 
-Draft.
+In Progress.

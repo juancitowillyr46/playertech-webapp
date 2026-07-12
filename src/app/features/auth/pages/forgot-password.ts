@@ -1,11 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-forgot-password',
@@ -68,7 +67,12 @@ export class ForgotPassword {
 
     apiMessage: { severity: 'success' | 'info' | 'warn' | 'error'; text: string } | null = null;
 
-    constructor(private router: Router) {}
+    constructor(
+        private router: Router,
+        private route: ActivatedRoute
+    ) {
+        this.email = this.route.snapshot.queryParamMap.get('email') ?? '';
+    }
 
     handleEmailKeydown(event: KeyboardEvent) {
         const allowedControlKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
@@ -116,7 +120,7 @@ export class ForgotPassword {
 
         this.apiMessage = {
             severity: 'success',
-            text: 'Si el correo está registrado, recibirás un mensaje con los pasos.'
+            text: 'Si el correo existe, recibirás un enlace para restablecer tu contraseña.'
         };
 
         void this.router.navigate(['/auth/forgot-password-success'], {

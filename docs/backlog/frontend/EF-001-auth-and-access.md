@@ -27,13 +27,13 @@ Habilita el uso seguro de la plataforma y la entrada a los flujos de negocio.
 
 ## Historias de Usuario
 
-* HU-001 Iniciar sesión.
-* HU-002 Cerrar sesión.
-* HU-003 Recuperar acceso o rehidratar sesión.
-* HU-004 Redirigir según rol y contexto.
-* HU-005 Mostrar una pantalla de ingreso clara y consistente con el signup.
-* HU-006 Recuperar contraseña con una pantalla consistente con el SignIn y una página de confirmación.
-* HU-007 Consultar y actualizar el perfil del usuario autenticado.
+* HU-001 Iniciar sesión. `Done`
+* HU-002 Cerrar sesión. `Done`
+* HU-003 Recuperar acceso o rehidratar sesión. `Partial`
+* HU-004 Redirigir según rol y contexto. `Partial`
+* HU-005 Mostrar una pantalla de ingreso clara y consistente con el signup. `Done`
+* HU-006 Recuperar contraseña con solicitud pública, confirmación y nueva contraseña por token. `In Progress`
+* HU-007 Consultar y actualizar el perfil del usuario autenticado. `In Progress`
 
 ## Reglas de UX Relacionadas
 
@@ -49,20 +49,24 @@ Habilita el uso seguro de la plataforma y la entrada a los flujos de negocio.
 
 ## Detalle de HU-006
 
-### HU-006 Recuperar contraseña con una pantalla consistente con el SignIn y una página de confirmación
+### HU-006 Recuperar contraseña con solicitud pública, confirmación y nueva contraseña por token
 
-Como usuario autenticado o no autenticado que olvidó su contraseña, quiero solicitar un enlace o instrucción de recuperación desde una pantalla simple y familiar, para poder restablecer mi acceso sin salir del lenguaje visual del SignIn.
+Como usuario que olvidó su contraseña, quiero solicitar un enlace de recuperación y definir una nueva clave desde un flujo claro y público, para recuperar mi acceso sin depender de soporte ni de pasos técnicos.
 
 #### Criterios de aceptación
 
-* La pantalla de recuperación debe reutilizar el estilo visual del SignIn para mantener coherencia.
-* El formulario debe ser simple y de un solo objetivo principal.
-* El campo principal debe solicitar el correo electrónico del usuario.
-* Los mensajes de ayuda deben ser breves y comprensibles para usuarios no técnicos.
+* La pantalla de solicitud debe reutilizar el estilo visual del SignIn para mantener coherencia.
+* El formulario inicial debe solicitar únicamente el correo electrónico del usuario.
+* La respuesta visual al solicitar el restablecimiento debe ser genérica y no revelar si el correo existe.
 * Al enviar la solicitud, el flujo debe llevar a una página de confirmación similar a la thank-you page del signup.
-* La página de confirmación debe indicar que se revisó el correo o que se enviaron las instrucciones de recuperación.
-* Debe existir una acción secundaria para volver al SignIn.
+* Debe existir una pantalla pública de nueva contraseña que lea el token desde la URL.
+* La pantalla de nueva contraseña debe solicitar contraseña y confirmación.
+* El formulario debe bloquear el envío si el token no existe en la URL.
+* Debe mostrar un error claro si el token es inválido o expiró.
+* Debe mostrar un error claro si la contraseña no cumple la regla mínima definida para frontend.
+* Debe existir una acción para volver al SignIn al terminar el flujo.
 * El diseño debe mantenerse alineado con el sistema visual de Sakai y la línea de auth ya definida.
+* Mientras no exista integración real, el flujo debe operar con datos mock sin romper el contrato esperado por backend.
 
 #### Reglas de UX
 
@@ -70,6 +74,8 @@ Como usuario autenticado o no autenticado que olvidó su contraseña, quiero sol
 * Mantener una jerarquía visual clara: título, ayuda breve, campo, acción principal y cierre.
 * Evitar elementos de navegación innecesarios.
 * Reutilizar componentes y patrones ya usados en SignIn y signup-success siempre que sea posible.
+* Mantener separado este flujo público de los datos de perfil autenticado.
+* El botón `Restablecer contraseña` desde perfil debe reutilizar este flujo público sin mezclar formularios inline de cambio de clave.
 
 ## Detalle de HU-007
 
@@ -81,20 +87,23 @@ Como usuario autenticado de la plataforma, quiero ver y actualizar mi informaci�
 
 * La pantalla debe mostrar la información del usuario autenticado con una estructura de formulario simple.
 * El formulario debe reutilizar el lenguaje visual de los formularios principales ya definidos en la aplicación.
-* Deben mostrarse campos personales y de contacto como nombre, teléfono, país, departamento, ciudad y dirección.
-* El correo principal puede mostrarse como dato de cuenta si no forma parte del alcance editable.
+* Debe permitir editar el nombre del usuario autenticado.
+* El correo principal debe mostrarse como dato de cuenta no editable.
+* El rol principal debe mostrarse como dato visible en formato comprensible para el usuario.
+* El estado de la cuenta debe mostrarse como dato visible no editable.
+* La pantalla debe funcionar para usuarios con academia asociada y también para usuarios de plataforma sin tenant.
 * Debe existir una sección separada para seguridad con una acción de `Restablecer contraseña`.
 * La acción de restablecer contraseña no debe pedir la contraseña actual ni mostrar un formulario de cambio inline.
 * Al activar `Restablecer contraseña`, el sistema debe comunicar que se enviará un enlace al correo registrado.
 * La pantalla debe permitir guardar cambios y mostrar confirmación visual al completar la acción.
-* La pantalla debe usar datos mock mientras se define la integración real con `GET /api/v1/auth/me`, `POST /api/v1/academy/me` y `PUT /api/v1/academy/me`.
+* La pantalla debe usar datos mock mientras se define la integración real con `GET /api/v1/auth/me` y `PUT /api/v1/auth/me/name`.
 
 #### Reglas de UX
 
 * Mantener la pantalla enfocada en edición de datos y no en métricas o resúmenes innecesarios.
 * Usar etiquetas simples para usuarios no técnicos.
 * Mostrar la seguridad como una acción independiente del formulario principal.
-* Mantener jerarquía visual clara entre datos personales, datos de cuenta y seguridad.
+* Mantener jerarquía visual clara entre datos editables, datos de cuenta y seguridad.
 * Aplicar las mismas reglas de validación y consistencia visual usadas en signup y formularios de academia.
 
 ## Fuera de Alcance
@@ -105,4 +114,4 @@ Como usuario autenticado de la plataforma, quiero ver y actualizar mi informaci�
 
 ## Estado
 
-Draft.
+In Progress.
