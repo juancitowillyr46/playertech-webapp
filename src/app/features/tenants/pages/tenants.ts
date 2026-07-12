@@ -42,30 +42,52 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
         <p-confirmdialog />
 
         <div class="space-y-4">
-            <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-5 sm:py-5">
-                <div class="flex items-start justify-between gap-4">
+            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                <div class="flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
                     <div class="min-w-0">
-                        <p class="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-sky-700 dark:text-sky-400">Academias</p>
-                        <h2 class="mt-1 text-lg font-semibold tracking-tight text-surface-900 dark:text-surface-0">Gestión de academias</h2>
-                        <p class="mt-1 max-w-2xl text-sm text-slate-500 dark:text-slate-400">Administra el estado y los datos principales de cada academia desde un solo lugar.</p>
+                        <p class="m-0 text-[1.35rem] font-semibold tracking-tight text-surface-900 dark:text-surface-0">Academias</p>
                     </div>
 
-                    <p-button label="Nuevo" icon="pi pi-plus" severity="primary" (onClick)="openNew()" />
+                    <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
+                        {{ activeCount }} activas
+                    </span>
+                </div>
+
+                <div class="border-t border-slate-200 px-2 dark:border-surface-800 sm:px-4">
+                    <div class="flex gap-1 overflow-x-auto">
+                        @for (section of headerSections; track section.key) {
+                            <button
+                                type="button"
+                                class="inline-flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition"
+                                [class.border-sky-500]="activeHeaderSection() === section.key"
+                                [class.text-sky-700]="activeHeaderSection() === section.key"
+                                [class.dark:text-sky-300]="activeHeaderSection() === section.key"
+                                [class.border-transparent]="activeHeaderSection() !== section.key"
+                                [class.text-slate-500]="activeHeaderSection() !== section.key"
+                                [class.hover:text-slate-700]="activeHeaderSection() !== section.key"
+                                [class.dark:text-slate-400]="activeHeaderSection() !== section.key"
+                                (click)="activeHeaderSection.set(section.key)"
+                            >
+                                <i [class]="section.icon"></i>
+                                <span>{{ section.label }}</span>
+                            </button>
+                        }
+                    </div>
                 </div>
             </div>
 
             <div class="grid gap-2 md:grid-cols-3">
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-2.5 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-4 sm:py-3">
-                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Total</p>
-                    <p class="mt-1 text-xl font-semibold tracking-tight text-surface-900 dark:text-surface-0">{{ tenants().length }}</p>
+                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                    <p class="m-0 text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Total</p>
+                    <p class="mt-1 text-lg font-semibold tracking-tight text-surface-900 dark:text-surface-0">{{ tenants().length }}</p>
                 </div>
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-2.5 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-4 sm:py-3">
-                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Activas</p>
-                    <p class="mt-1 text-xl font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">{{ activeCount }}</p>
+                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                    <p class="m-0 text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Activas</p>
+                    <p class="mt-1 text-lg font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">{{ activeCount }}</p>
                 </div>
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-2.5 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-4 sm:py-3">
-                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Suspendidas</p>
-                    <p class="mt-1 text-xl font-semibold tracking-tight text-rose-600 dark:text-rose-400">{{ suspendedCount }}</p>
+                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                    <p class="m-0 text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Suspendidas</p>
+                    <p class="mt-1 text-lg font-semibold tracking-tight text-rose-600 dark:text-rose-400">{{ suspendedCount }}</p>
                 </div>
             </div>
 
@@ -84,6 +106,7 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
                     </p-iconfield>
 
                     <div class="flex flex-wrap items-center gap-2 lg:justify-end">
+                        <p-button label="Nuevo" icon="pi pi-plus" severity="primary" (onClick)="openNew()" />
                         <p-menu #actionsMenu [popup]="true" appendTo="body" [model]="actionsMenuItems" />
                         <p-button label="Acciones" icon="pi pi-chevron-down" severity="secondary" outlined (click)="actionsMenu.toggle($event)" />
 
@@ -240,6 +263,7 @@ export class Tenants implements OnInit {
     tenants = signal<TenantListItem[]>([]);
     selectedTenants: TenantListItem[] | null = null;
     filtersPanelOpen = false;
+    activeHeaderSection = signal<'listado' | 'alta' | 'estado' | 'actividad'>('listado');
 
     searchTerm = signal('');
     filterStatus = signal<TenantStatus | ''>('');
@@ -250,6 +274,13 @@ export class Tenants implements OnInit {
     readonly statusFilterOptions = [
         { label: 'Activas', value: 'ACTIVE' },
         { label: 'Suspendidas', value: 'SUSPENDED' }
+    ];
+
+    readonly headerSections = [
+        { key: 'listado' as const, label: 'Listado', icon: 'pi pi-list' },
+        { key: 'alta' as const, label: 'Alta de academia', icon: 'pi pi-plus-circle' },
+        { key: 'estado' as const, label: 'Estado', icon: 'pi pi-chart-bar' },
+        { key: 'actividad' as const, label: 'Actividad', icon: 'pi pi-clock' }
     ];
 
     actionsMenuItems = [
