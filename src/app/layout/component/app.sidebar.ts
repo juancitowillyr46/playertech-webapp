@@ -1,10 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, viewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { MenuItem } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
-import { Menu } from 'primeng/menu';
-import { MenuModule } from 'primeng/menu';
 import { filter, Subject, takeUntil } from 'rxjs';
 import { MockAuthService, MockUserRole } from '@/app/core/auth/mock-auth.service';
 import { AppMenu } from './app.menu';
@@ -13,7 +10,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 @Component({
     selector: 'app-sidebar',
     standalone: true,
-    imports: [AppMenu, RouterModule, CommonModule, AvatarModule, MenuModule],
+    imports: [AppMenu, RouterModule, CommonModule, AvatarModule],
     template: `
         <div class="layout-sidebar">
             <div class="layout-sidebar-shell">
@@ -22,6 +19,59 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 </div>
 
                 <div class="layout-sidebar-user">
+                    @if (isUserMenuOpen) {
+                        <div class="layout-user-panel" role="menu">
+                            <button type="button" class="layout-user-panel-account" (click)="goToProfile()">
+                                <p-avatar [label]="userInitials()" shape="circle" styleClass="layout-user-avatar layout-user-avatar-light" />
+
+                                <div class="layout-user-popup-meta">
+                                    <span class="layout-user-name layout-user-name-light">{{ userName() }}</span>
+                                    <span class="layout-user-plan">{{ userPlan() }}</span>
+                                </div>
+
+                                <i class="pi pi-angle-right"></i>
+                            </button>
+
+                            <div class="layout-user-panel-divider"></div>
+
+                            <button type="button" class="layout-user-panel-item" (click)="goToUpgrade()">
+                                <i class="pi pi-sparkles"></i>
+                                <span>Mejorar plan</span>
+                            </button>
+
+                            <button type="button" class="layout-user-panel-item" (click)="goToPreferences()">
+                                <i class="pi pi-clock"></i>
+                                <span>Personalización</span>
+                            </button>
+
+                            <button type="button" class="layout-user-panel-item" (click)="goToProfile()">
+                                <i class="pi pi-user"></i>
+                                <span>Perfil</span>
+                            </button>
+
+                            <button type="button" class="layout-user-panel-item" (click)="goToSettings()">
+                                <i class="pi pi-cog"></i>
+                                <span>Configuración</span>
+                            </button>
+
+                            <div class="layout-user-panel-divider"></div>
+
+                            <button type="button" class="layout-user-panel-item layout-user-panel-item-between" (click)="goToHelp()">
+                                <div class="layout-user-panel-item-content">
+                                    <i class="pi pi-question-circle"></i>
+                                    <span>Ayuda</span>
+                                </div>
+
+                                <i class="pi pi-angle-right"></i>
+                            </button>
+
+                            <button type="button" class="layout-user-panel-item layout-user-panel-item-danger" (click)="logout()">
+                                <i class="pi pi-sign-out"></i>
+                                <span>Cerrar sesión</span>
+                            </button>
+                        </div>
+                    }
+
                     <button type="button" class="layout-user-trigger" (click)="toggleUserMenu($event)" aria-haspopup="menu" [attr.aria-expanded]="isUserMenuOpen">
                         <p-avatar [label]="userInitials()" shape="circle" styleClass="layout-user-avatar" />
 
@@ -32,18 +82,6 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 
                         <i class="pi pi-chevron-up layout-user-chevron" [class.layout-user-chevron-open]="isUserMenuOpen"></i>
                     </button>
-
-                    <p-menu #userMenu [popup]="true" appendTo="body" [model]="userMenuItems" styleClass="layout-user-popup-menu" (onShow)="isUserMenuOpen = true" (onHide)="isUserMenuOpen = false">
-                        <ng-template #start>
-                            <div class="layout-user-popup-header">
-                                <p-avatar [label]="userInitials()" shape="circle" styleClass="layout-user-avatar" />
-                                <div class="layout-user-popup-meta">
-                                    <span class="layout-user-name">{{ userName() }}</span>
-                                    <span class="layout-user-email">{{ userEmail() }}</span>
-                                </div>
-                            </div>
-                        </ng-template>
-                    </p-menu>
                 </div>
             </div>
         </div>
@@ -74,6 +112,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
             }
 
             .layout-sidebar-user {
+                position: relative;
                 flex: 0 0 auto;
                 padding-top: 1rem;
                 margin-top: 1rem;
@@ -112,6 +151,11 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 flex-shrink: 0;
             }
 
+            .layout-user-avatar-light {
+                background: rgba(255, 255, 255, 0.92);
+                color: #0f172a;
+            }
+
             .layout-user-meta,
             .layout-user-popup-meta {
                 display: flex;
@@ -129,14 +173,26 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 text-overflow: ellipsis;
             }
 
-            .layout-user-email {
+            .layout-user-name-light {
+                color: #f8fafc;
+            }
+
+            .layout-user-email,
+            .layout-user-plan {
                 margin-top: 0.15rem;
                 font-size: 0.8rem;
                 line-height: 1.2;
-                color: var(--text-color-secondary);
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+            }
+
+            .layout-user-email {
+                color: var(--text-color-secondary);
+            }
+
+            .layout-user-plan {
+                color: rgba(248, 250, 252, 0.72);
             }
 
             .layout-user-chevron {
@@ -150,29 +206,74 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 transform: rotate(180deg);
             }
 
-            .layout-user-popup-header {
+            .layout-user-panel {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: calc(100% + 0.75rem);
+                padding: 0.7rem;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 1.2rem;
+                background: #3a3a3a;
+                box-shadow:
+                    0 18px 40px rgba(15, 23, 42, 0.18),
+                    0 8px 18px rgba(15, 23, 42, 0.12);
+                z-index: 5;
+            }
+
+            .layout-user-panel-account,
+            .layout-user-panel-item {
                 display: flex;
                 align-items: center;
                 gap: 0.75rem;
-                padding: 0.85rem 0.95rem 0.5rem;
-                border-bottom: 1px solid var(--surface-border);
-                margin-bottom: 0.3rem;
+                width: 100%;
+                padding: 0.8rem 0.85rem;
+                border: 0;
+                border-radius: 0.95rem;
+                background: transparent;
+                color: #f8fafc;
+                cursor: pointer;
+                text-align: left;
+                transition: background-color var(--element-transition-duration);
             }
 
-            :host ::ng-deep .layout-user-popup-menu {
-                width: 16.5rem;
-                border-radius: 1rem;
-                overflow: hidden;
+            .layout-user-panel-account:hover,
+            .layout-user-panel-item:hover {
+                background: rgba(255, 255, 255, 0.06);
             }
 
-            :host ::ng-deep .layout-user-popup-menu .p-menu-list {
-                padding-top: 0.25rem;
-                padding-bottom: 0.35rem;
+            .layout-user-panel-account i {
+                margin-left: auto;
+                color: rgba(248, 250, 252, 0.9);
             }
 
-            :host ::ng-deep .layout-user-popup-menu .p-menu-item-link {
-                padding: 0.8rem 0.95rem;
+            .layout-user-panel-divider {
+                height: 1px;
+                margin: 0.45rem 0;
+                background: rgba(255, 255, 255, 0.12);
+            }
+
+            .layout-user-panel-item {
+                font-size: 0.98rem;
+            }
+
+            .layout-user-panel-item i,
+            .layout-user-panel-item span {
+                color: inherit;
+            }
+
+            .layout-user-panel-item-content {
+                display: flex;
+                align-items: center;
                 gap: 0.75rem;
+            }
+
+            .layout-user-panel-item-between {
+                justify-content: space-between;
+            }
+
+            .layout-user-panel-item-danger {
+                color: #fee2e2;
             }
         `
     ]
@@ -186,36 +287,40 @@ export class AppSidebar implements OnInit, OnDestroy {
 
     auth = inject(MockAuthService);
 
-    userMenu = viewChild<Menu>('userMenu');
-
     private outsideClickListener: ((event: MouseEvent) => void) | null = null;
 
     private destroy$ = new Subject<void>();
 
     isUserMenuOpen = false;
 
-    readonly profileByRole: Record<MockUserRole, { name: string; email: string }> = {
+    readonly profileByRole: Record<MockUserRole, { name: string; email: string; plan: string }> = {
         super_admin: {
             name: 'Administrador Plataforma',
-            email: 'admin@playertech.com'
+            email: 'admin@playertech.com',
+            plan: 'Plataforma'
         },
         tenant_owner: {
             name: 'Juan Rodas',
-            email: 'juan.rodas@playertech.com'
+            email: 'juan.rodas@playertech.com',
+            plan: 'Gratis'
         },
         academy_admin: {
             name: 'María Pérez',
-            email: 'maria.perez@playertech.com'
+            email: 'maria.perez@playertech.com',
+            plan: 'Administrador'
         },
         staff: {
             name: 'Carlos Gómez',
-            email: 'carlos.gomez@playertech.com'
+            email: 'carlos.gomez@playertech.com',
+            plan: 'Equipo'
         }
     };
 
     readonly userName = computed(() => this.profileByRole[this.auth.getRole()].name);
 
     readonly userEmail = computed(() => this.profileByRole[this.auth.getRole()].email);
+
+    readonly userPlan = computed(() => this.profileByRole[this.auth.getRole()].plan);
 
     readonly userInitials = computed(() =>
         this.userName()
@@ -225,14 +330,6 @@ export class AppSidebar implements OnInit, OnDestroy {
             .map((part) => part.charAt(0).toUpperCase())
             .join('')
     );
-
-    readonly userMenuItems: MenuItem[] = [
-        {
-            label: 'Cerrar sesión',
-            icon: 'pi pi-sign-out',
-            command: () => this.logout()
-        }
-    ];
 
     constructor() {
         effect(() => {
@@ -275,13 +372,39 @@ export class AppSidebar implements OnInit, OnDestroy {
     }
 
     toggleUserMenu(event: Event) {
-        this.userMenu()?.toggle(event);
+        event.stopPropagation();
+        this.isUserMenuOpen = !this.isUserMenuOpen;
     }
 
     logout() {
         this.isUserMenuOpen = false;
         this.auth.logout();
         void this.router.navigate(['/auth/login']);
+    }
+
+    goToUpgrade() {
+        this.navigateTo('/pages/empty');
+    }
+
+    goToPreferences() {
+        this.navigateTo('/pages/empty');
+    }
+
+    goToProfile() {
+        this.navigateTo('/pages/empty');
+    }
+
+    goToSettings() {
+        this.navigateTo('/pages/empty');
+    }
+
+    goToHelp() {
+        this.navigateTo('/documentation');
+    }
+
+    private navigateTo(path: string) {
+        this.isUserMenuOpen = false;
+        void this.router.navigate([path]);
     }
 
     private onRouteChange(path: string) {
@@ -300,6 +423,7 @@ export class AppSidebar implements OnInit, OnDestroy {
         if (!this.outsideClickListener) {
             this.outsideClickListener = (event: MouseEvent) => {
                 if (this.isOutsideClicked(event)) {
+                    this.isUserMenuOpen = false;
                     this.layoutService.layoutState.update((val) => ({
                         ...val,
                         overlayMenuActive: false,
