@@ -152,8 +152,8 @@ import { LayoutService } from '@/app/layout/service/layout.service';
             }
 
             .layout-user-avatar-light {
-                background: rgba(255, 255, 255, 0.92);
-                color: #0f172a;
+                background: color-mix(in srgb, var(--primary-color) 12%, white);
+                color: var(--primary-color);
             }
 
             .layout-user-meta,
@@ -174,7 +174,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
             }
 
             .layout-user-name-light {
-                color: #f8fafc;
+                color: var(--text-color);
             }
 
             .layout-user-email,
@@ -192,7 +192,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
             }
 
             .layout-user-plan {
-                color: rgba(248, 250, 252, 0.72);
+                color: var(--text-color-secondary);
             }
 
             .layout-user-chevron {
@@ -212,9 +212,9 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 right: 0;
                 bottom: calc(100% + 0.75rem);
                 padding: 0.7rem;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 1.2rem;
-                background: #3a3a3a;
+                border: 1px solid var(--surface-border);
+                border-radius: var(--content-border-radius);
+                background: var(--surface-overlay);
                 box-shadow:
                     0 18px 40px rgba(15, 23, 42, 0.18),
                     0 8px 18px rgba(15, 23, 42, 0.12);
@@ -229,9 +229,9 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 width: 100%;
                 padding: 0.8rem 0.85rem;
                 border: 0;
-                border-radius: 0.95rem;
+                border-radius: calc(var(--content-border-radius) - 2px);
                 background: transparent;
-                color: #f8fafc;
+                color: var(--text-color);
                 cursor: pointer;
                 text-align: left;
                 transition: background-color var(--element-transition-duration);
@@ -239,18 +239,18 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 
             .layout-user-panel-account:hover,
             .layout-user-panel-item:hover {
-                background: rgba(255, 255, 255, 0.06);
+                background: var(--surface-hover);
             }
 
             .layout-user-panel-account i {
                 margin-left: auto;
-                color: rgba(248, 250, 252, 0.9);
+                color: var(--text-color-secondary);
             }
 
             .layout-user-panel-divider {
                 height: 1px;
                 margin: 0.45rem 0;
-                background: rgba(255, 255, 255, 0.12);
+                background: var(--surface-border);
             }
 
             .layout-user-panel-item {
@@ -273,7 +273,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
             }
 
             .layout-user-panel-item-danger {
-                color: #fee2e2;
+                color: var(--red-500);
             }
         `
     ]
