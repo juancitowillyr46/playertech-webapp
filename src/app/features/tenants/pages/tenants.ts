@@ -14,6 +14,7 @@ import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
 import { TenantListItem, TenantStatus } from '../models/tenant.model';
 import { TenantManagementService } from '../data-access/tenant-management.service';
 
@@ -30,6 +31,7 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
         InputIconModule,
         InputTextModule,
         MenuModule,
+        PageHeader,
         RouterModule,
         SelectModule,
         TableModule,
@@ -42,57 +44,25 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
         <p-confirmdialog />
 
         <div class="space-y-4">
-            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                <div class="flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
-                    <div class="min-w-0">
-                        <p class="m-0 text-[1.35rem] font-semibold tracking-tight text-surface-900 dark:text-surface-0">Academias</p>
-                    </div>
-
-                    <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">
-                        {{ activeCount }} activas
-                    </span>
-                </div>
-
-                <div class="border-t border-slate-200 px-2 dark:border-surface-800 sm:px-4">
-                    <div class="flex gap-1 overflow-x-auto">
-                        @for (section of headerSections; track section.key) {
-                            <button
-                                type="button"
-                                class="inline-flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition"
-                                [class.border-sky-500]="activeHeaderSection() === section.key"
-                                [class.text-sky-700]="activeHeaderSection() === section.key"
-                                [class.dark:text-sky-300]="activeHeaderSection() === section.key"
-                                [class.border-transparent]="activeHeaderSection() !== section.key"
-                                [class.text-slate-500]="activeHeaderSection() !== section.key"
-                                [class.hover:text-slate-700]="activeHeaderSection() !== section.key"
-                                [class.dark:text-slate-400]="activeHeaderSection() !== section.key"
-                                (click)="activeHeaderSection.set(section.key)"
-                            >
-                                <i [class]="section.icon"></i>
-                                <span>{{ section.label }}</span>
-                            </button>
-                        }
-                    </div>
-                </div>
-            </div>
+            <app-page-header [breadcrumbs]="breadcrumbs" title="Academias" subtitle="Consulta el estado, filtra los registros y administra cada academia." />
 
             <div class="grid gap-2 md:grid-cols-3">
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                    <p class="m-0 text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Total</p>
+                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:border-surface-800 dark:bg-surface-900">
+                    <p class="m-0 text-[0.68rem] font-semibold uppercase text-slate-500 dark:text-slate-400">Total</p>
                     <p class="mt-1 text-lg font-semibold tracking-tight text-surface-900 dark:text-surface-0">{{ tenants().length }}</p>
                 </div>
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                    <p class="m-0 text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Activas</p>
+                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:border-surface-800 dark:bg-surface-900">
+                    <p class="m-0 text-[0.68rem] font-semibold uppercase text-slate-500 dark:text-slate-400">Activas</p>
                     <p class="mt-1 text-lg font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">{{ activeCount }}</p>
                 </div>
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                    <p class="m-0 text-xs font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Suspendidas</p>
+                <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:border-surface-800 dark:bg-surface-900">
+                    <p class="m-0 text-[0.68rem] font-semibold uppercase text-slate-500 dark:text-slate-400">Suspendidas</p>
                     <p class="mt-1 text-lg font-semibold tracking-tight text-rose-600 dark:text-rose-400">{{ suspendedCount }}</p>
                 </div>
             </div>
 
-            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                <div class="flex flex-col gap-3 px-3 py-3 sm:px-4 sm:py-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:border-surface-800 dark:bg-surface-900">
+                <div class="flex flex-col gap-3 border-b border-slate-200 px-4 py-4 dark:border-surface-800 lg:flex-row lg:items-center lg:justify-between">
                     <p-iconfield class="w-full lg:max-w-md">
                         <p-inputicon styleClass="pi pi-search" />
                         <input
@@ -113,7 +83,7 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
                         <div class="relative">
                             <p-button label="Filtrar" icon="pi pi-filter" severity="secondary" outlined (click)="filtersPanelOpen = !filtersPanelOpen" />
                             @if (filtersPanelOpen) {
-                                <div class="absolute right-0 top-full z-50 mt-2 w-80 overflow-visible rounded-xl border border-slate-200 bg-white shadow-lg dark:border-surface-700 dark:bg-surface-900">
+                                <div class="absolute right-0 top-full z-50 mt-2 w-80 overflow-visible rounded-[0.75rem] border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.12)] dark:border-surface-700 dark:bg-surface-900">
                                     <div class="border-b border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 dark:border-surface-700 dark:text-slate-200">Filtrar academias</div>
                                     <div class="space-y-4 px-4 py-4">
                                         <div class="flex flex-col gap-2">
@@ -171,88 +141,85 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
                         </div>
                     </div>
                 </div>
+                <p-table
+                    #dt
+                    [value]="filteredTenants()"
+                    [rows]="10"
+                    [paginator]="true"
+                    [rowHover]="true"
+                    [(selection)]="selectedTenants"
+                    [globalFilterFields]="['name', 'adminName', 'adminEmail', 'contactEmail', 'city', 'department', 'country', 'phone', 'status']"
+                    dataKey="id"
+                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} academias"
+                    [showCurrentPageReport]="true"
+                    [rowsPerPageOptions]="[10, 20, 30]"
+                >
+                    <ng-template #header>
+                        <tr>
+                            <th style="width: 3rem">
+                                <p-tableHeaderCheckbox />
+                            </th>
+                            <th style="min-width: 16rem">Academia</th>
+                            <th style="min-width: 15rem">Administrador</th>
+                            <th style="min-width: 13rem">Ubicación</th>
+                            <th style="min-width: 12rem">Teléfono</th>
+                            <th style="min-width: 10rem">Estado</th>
+                            <th style="min-width: 12rem"></th>
+                        </tr>
+                    </ng-template>
 
-                <div class="border-t border-slate-200 dark:border-surface-800">
-                    <p-table
-                        #dt
-                        [value]="filteredTenants()"
-                        [rows]="10"
-                        [paginator]="true"
-                        [rowHover]="true"
-                        [(selection)]="selectedTenants"
-                        [globalFilterFields]="['name', 'adminName', 'adminEmail', 'contactEmail', 'city', 'department', 'country', 'phone', 'status']"
-                        dataKey="id"
-                        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} academias"
-                        [showCurrentPageReport]="true"
-                        [rowsPerPageOptions]="[10, 20, 30]"
-                    >
-                        <ng-template #header>
-                            <tr>
-                                <th style="width: 3rem">
-                                    <p-tableHeaderCheckbox />
-                                </th>
-                                <th style="min-width: 16rem">Academia</th>
-                                <th style="min-width: 15rem">Administrador</th>
-                                <th style="min-width: 13rem">Ubicación</th>
-                                <th style="min-width: 12rem">Teléfono</th>
-                                <th style="min-width: 10rem">Estado</th>
-                                <th style="min-width: 12rem"></th>
-                            </tr>
-                        </ng-template>
-
-                        <ng-template #body let-tenant>
-                            <tr>
-                                <td style="width: 3rem">
-                                    <p-tableCheckbox [value]="tenant" />
-                                </td>
-                                <td>
-                                    <div class="flex flex-col">
-                                        <span class="font-medium text-surface-900 dark:text-surface-0">{{ tenant.name }}</span>
-                                        <span class="text-xs text-slate-500 dark:text-slate-400">{{ formatDate(tenant.createdAt) }}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="flex flex-col">
-                                        <span class="font-medium text-surface-900 dark:text-surface-0">{{ tenant.adminName }}</span>
-                                        <span class="text-sm text-slate-500 dark:text-slate-400">{{ tenant.adminEmail }}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="flex flex-col">
-                                        <span class="text-surface-900 dark:text-surface-0">{{ tenant.city }}</span>
-                                        <span class="text-sm text-slate-500 dark:text-slate-400">{{ tenant.department }}, {{ tenant.country }}</span>
-                                    </div>
-                                </td>
-                                <td class="text-surface-900 dark:text-surface-0">{{ tenant.phone }}</td>
-                                <td>
-                                    <p-tag [value]="getStatusLabel(tenant.status)" [severity]="getSeverity(tenant.status)" />
-                                </td>
-                                <td>
-                                    <div class="flex items-center justify-end gap-2">
-                                        <p-button icon="pi pi-pencil" [rounded]="true" [outlined]="true" [routerLink]="['/tenants', tenant.id, 'edit']" />
-                                        <p-button
-                                            *ngIf="tenant.status === 'ACTIVE'"
-                                            icon="pi pi-pause"
-                                            severity="warn"
-                                            [rounded]="true"
-                                            [outlined]="true"
-                                            (click)="suspendTenant(tenant)"
-                                        />
-                                        <p-button
-                                            *ngIf="tenant.status === 'SUSPENDED'"
-                                            icon="pi pi-play"
-                                            severity="success"
-                                            [rounded]="true"
-                                            [outlined]="true"
-                                            (click)="reactivateTenant(tenant)"
-                                        />
-                                        <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="removeTenant(tenant)" />
-                                    </div>
-                                </td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
-                </div>
+                    <ng-template #body let-tenant>
+                        <tr>
+                            <td style="width: 3rem">
+                                <p-tableCheckbox [value]="tenant" />
+                            </td>
+                            <td>
+                                <div class="flex flex-col">
+                                    <span class="font-medium text-surface-900 dark:text-surface-0">{{ tenant.name }}</span>
+                                    <span class="text-xs text-slate-500 dark:text-slate-400">{{ formatDate(tenant.createdAt) }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="flex flex-col">
+                                    <span class="font-medium text-surface-900 dark:text-surface-0">{{ tenant.adminName }}</span>
+                                    <span class="text-sm text-slate-500 dark:text-slate-400">{{ tenant.adminEmail }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="flex flex-col">
+                                    <span class="text-surface-900 dark:text-surface-0">{{ tenant.city }}</span>
+                                    <span class="text-sm text-slate-500 dark:text-slate-400">{{ tenant.department }}, {{ tenant.country }}</span>
+                                </div>
+                            </td>
+                            <td class="text-surface-900 dark:text-surface-0">{{ tenant.phone }}</td>
+                            <td>
+                                <p-tag [value]="getStatusLabel(tenant.status)" [severity]="getSeverity(tenant.status)" />
+                            </td>
+                            <td>
+                                <div class="flex items-center justify-end gap-2">
+                                    <p-button icon="pi pi-pencil" [rounded]="true" [outlined]="true" [routerLink]="['/tenants', tenant.id, 'edit']" />
+                                    <p-button
+                                        *ngIf="tenant.status === 'ACTIVE'"
+                                        icon="pi pi-pause"
+                                        severity="warn"
+                                        [rounded]="true"
+                                        [outlined]="true"
+                                        (click)="suspendTenant(tenant)"
+                                    />
+                                    <p-button
+                                        *ngIf="tenant.status === 'SUSPENDED'"
+                                        icon="pi pi-play"
+                                        severity="success"
+                                        [rounded]="true"
+                                        [outlined]="true"
+                                        (click)="reactivateTenant(tenant)"
+                                    />
+                                    <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="removeTenant(tenant)" />
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
             </div>
         </div>
     `
@@ -260,10 +227,11 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
 export class Tenants implements OnInit {
     @ViewChild('dt') dt!: Table;
 
+    readonly breadcrumbs: PageHeaderBreadcrumb[] = [{ label: 'Inicio', routerLink: '/' }, { label: 'Academias' }];
+
     tenants = signal<TenantListItem[]>([]);
     selectedTenants: TenantListItem[] | null = null;
     filtersPanelOpen = false;
-    activeHeaderSection = signal<'listado' | 'alta' | 'estado' | 'actividad'>('listado');
 
     searchTerm = signal('');
     filterStatus = signal<TenantStatus | ''>('');
@@ -274,13 +242,6 @@ export class Tenants implements OnInit {
     readonly statusFilterOptions = [
         { label: 'Activas', value: 'ACTIVE' },
         { label: 'Suspendidas', value: 'SUSPENDED' }
-    ];
-
-    readonly headerSections = [
-        { key: 'listado' as const, label: 'Listado', icon: 'pi pi-list' },
-        { key: 'alta' as const, label: 'Alta de academia', icon: 'pi pi-plus-circle' },
-        { key: 'estado' as const, label: 'Estado', icon: 'pi pi-chart-bar' },
-        { key: 'actividad' as const, label: 'Actividad', icon: 'pi pi-clock' }
     ];
 
     actionsMenuItems = [

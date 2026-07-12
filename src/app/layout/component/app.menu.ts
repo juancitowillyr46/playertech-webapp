@@ -85,7 +85,7 @@ export class AppMenu {
                         routerLink: ['/pages/crud']
                     },
                     {
-                        label: 'Tenants',
+                        label: 'Academies',
                         icon: 'pi pi-fw pi-building',
                         routerLink: ['/tenants']
                     },

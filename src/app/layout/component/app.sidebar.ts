@@ -92,6 +92,8 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 
             .layout-sidebar {
                 overflow: visible;
+                border: 1px solid var(--surface-border);
+                border-radius: 0.75rem;
             }
 
             .layout-sidebar-shell {
@@ -105,15 +107,14 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 flex: 1 1 auto;
                 min-height: 0;
                 overflow-y: auto;
-                padding-right: 0.25rem;
-                scroll-behavior: smooth;
+                padding-right: .25rem;
                 scrollbar-width: thin;
                 scrollbar-color: color-mix(in srgb, var(--primary-color) 22%, transparent) transparent;
                 transition: padding-right 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
             }
 
             .layout-sidebar-nav::-webkit-scrollbar {
-                width: 0.5rem;
+                width: .5rem;
             }
 
             .layout-sidebar-nav::-webkit-scrollbar-track {
@@ -132,7 +133,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
             .layout-sidebar-user {
                 position: relative;
                 flex: 0 0 auto;
-                padding: 0.85rem;
+                padding: .85rem;
                 margin-top: 1rem;
                 border: 1px solid var(--surface-border);
                 border-radius: var(--content-border-radius);
@@ -144,17 +145,14 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 align-items: center;
                 gap: 0.75rem;
                 width: 100%;
-                padding: 0.85rem 0.9rem;
+                padding: .85rem .9rem;
                 background: transparent;
                 border: 0;
                 border-radius: calc(var(--content-border-radius) - 2px);
                 color: var(--text-color);
                 cursor: pointer;
                 text-align: left;
-                transition:
-                    background-color var(--element-transition-duration),
-                    border-color var(--element-transition-duration),
-                    box-shadow var(--element-transition-duration);
+                transition: background-color var(--element-transition-duration), border-color var(--element-transition-duration), box-shadow var(--element-transition-duration);
             }
 
             .layout-user-trigger:hover {
@@ -162,7 +160,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
             }
 
             :host-context(.layout-static-inactive) .layout-sidebar-user {
-                padding: 0.5rem;
+                padding: .5rem;
             }
 
             :host-context(.layout-static-inactive) .layout-sidebar-nav {
@@ -180,7 +178,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
             }
 
             :host-context(.layout-static-inactive) .layout-user-panel {
-                left: calc(100% + 0.75rem);
+                left: calc(100% + .75rem);
                 right: auto;
                 bottom: 0;
                 width: 16rem;
@@ -200,8 +198,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 color: var(--primary-color);
             }
 
-            .layout-user-meta,
-            .layout-user-popup-meta {
+            .layout-user-meta,.layout-user-popup-meta {
                 display: flex;
                 flex-direction: column;
                 min-width: 0;
@@ -221,9 +218,8 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 color: var(--text-color);
             }
 
-            .layout-user-email,
-            .layout-user-plan {
-                margin-top: 0.15rem;
+            .layout-user-email,.layout-user-plan {
+                margin-top: .15rem;
                 font-size: 0.8rem;
                 line-height: 1.2;
                 white-space: nowrap;
@@ -254,8 +250,8 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 position: absolute;
                 left: 0;
                 right: 0;
-                bottom: calc(100% + 0.75rem);
-                padding: 0.7rem;
+                bottom: calc(100% + .75rem);
+                padding: .7rem;
                 border: 1px solid var(--surface-border);
                 border-radius: var(--content-border-radius);
                 background: var(--surface-overlay);
@@ -289,7 +285,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 
             .layout-user-panel-divider {
                 height: 1px;
-                margin: 0.45rem 0;
+                margin: .45rem 0;
                 background: var(--surface-border);
             }
 

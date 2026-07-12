@@ -9,6 +9,7 @@ import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
+import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
 import { TenantForm } from '../models/tenant.model';
 import { TenantManagementService } from '../data-access/tenant-management.service';
 
@@ -35,28 +36,16 @@ interface LocationDepartment {
 @Component({
     selector: 'app-tenant-wizard',
     standalone: true,
-    imports: [ButtonModule, CommonModule, ConfirmDialogModule, FormsModule, InputTextModule, MessageModule, RouterModule, SelectModule, ToastModule],
+    imports: [ButtonModule, CommonModule, ConfirmDialogModule, FormsModule, InputTextModule, MessageModule, PageHeader, RouterModule, SelectModule, ToastModule],
     providers: [ConfirmationService, MessageService, TenantManagementService],
     template: `
         <p-toast />
         <p-confirmdialog />
 
         <div class="space-y-4">
-            <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-5 sm:py-5">
-                <div class="flex items-start justify-between gap-4">
-                    <div class="min-w-0">
-                        <p class="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-sky-700 dark:text-sky-400">Alta de academia</p>
-                        <h2 class="mt-1 text-lg font-semibold tracking-tight text-surface-900 dark:text-surface-0">
-                            {{ form.id ? 'Editar academia' : 'Crear academia' }}
-                        </h2>
-                        <p class="mt-1 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
-                            Completa la información de la academia, el usuario inicial y el primer equipo en un solo flujo.
-                        </p>
-                    </div>
-
-                    <p-button label="Volver" severity="secondary" outlined routerLink="/tenants" />
-                </div>
-            </div>
+            <app-page-header [breadcrumbs]="headerBreadcrumbs" title="Academias" [subtitle]="headerSubtitle">
+                <p-button headerActions label="Volver" severity="secondary" outlined routerLink="/tenants" />
+            </app-page-header>
 
             <div class="rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                 <div class="border-b border-slate-200 px-4 py-4 dark:border-surface-800">
@@ -256,6 +245,8 @@ export class TenantWizard implements OnInit {
     stepSubmitted: boolean[] = [false, false, false];
     form: TenantForm = this.emptyForm();
 
+    headerBreadcrumbs: PageHeaderBreadcrumb[] = [];
+
     readonly fallbackFlag = 'assets/flags/pe.svg';
 
     readonly wizardSteps: WizardStep[] = [
@@ -364,6 +355,12 @@ export class TenantWizard implements OnInit {
                 this.form = existing;
             }
         }
+
+        this.syncHeaderState();
+    }
+
+    get headerSubtitle(): string {
+        return this.form.id ? 'Actualiza la información principal de la academia.' : 'Completa la información para registrar una nueva academia.';
     }
 
     get locationCountryOptions(): CountryOption[] {
@@ -640,5 +637,13 @@ export class TenantWizard implements OnInit {
             categoryId: '',
             teamName: ''
         };
+    }
+
+    private syncHeaderState() {
+        this.headerBreadcrumbs = [
+            { label: 'Inicio', routerLink: '/' },
+            { label: 'Academias', routerLink: '/tenants' },
+            { label: this.form.id ? 'Editar academia' : 'Nueva academia' }
+        ];
     }
 }
