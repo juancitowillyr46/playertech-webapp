@@ -41,10 +41,17 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
         <p-toast />
         <p-confirmdialog />
 
-        <div class="space-y-3">
-            <div class="space-y-1">
-                <h2 class="m-0 text-base font-semibold tracking-tight text-surface-900 dark:text-surface-0 sm:text-lg">Academias</h2>
-                <p class="m-0 max-w-2xl text-sm text-slate-500 dark:text-slate-400">Administra el estado y los datos principales de cada academia.</p>
+        <div class="space-y-4">
+            <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:px-5 sm:py-5">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="min-w-0">
+                        <p class="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-sky-700 dark:text-sky-400">Academias</p>
+                        <h2 class="mt-1 text-lg font-semibold tracking-tight text-surface-900 dark:text-surface-0">Gestión de academias</h2>
+                        <p class="mt-1 max-w-2xl text-sm text-slate-500 dark:text-slate-400">Administra el estado y los datos principales de cada academia desde un solo lugar.</p>
+                    </div>
+
+                    <p-button label="Nuevo" icon="pi pi-plus" severity="primary" (onClick)="openNew()" />
+                </div>
             </div>
 
             <div class="grid gap-2 md:grid-cols-3">
@@ -77,7 +84,6 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
                     </p-iconfield>
 
                     <div class="flex flex-wrap items-center gap-2 lg:justify-end">
-                        <p-button label="Nuevo" icon="pi pi-plus" severity="primary" (onClick)="openNew()" />
                         <p-menu #actionsMenu [popup]="true" appendTo="body" [model]="actionsMenuItems" />
                         <p-button label="Acciones" icon="pi pi-chevron-down" severity="secondary" outlined (click)="actionsMenu.toggle($event)" />
 
