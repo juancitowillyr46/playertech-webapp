@@ -4,7 +4,8 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AvatarModule } from 'primeng/avatar';
 import { TooltipModule } from 'primeng/tooltip';
 import { filter, Subject, takeUntil } from 'rxjs';
-import { MockAuthService, MockUserRole } from '@/app/core/auth/mock-auth.service';
+import { MockAuthService } from '@/app/core/auth/mock-auth.service';
+import { ProfileService } from '@/app/features/account/data-access/profile.service';
 import { AppMenu } from './app.menu';
 import { LayoutService } from '@/app/layout/service/layout.service';
 
@@ -326,6 +327,8 @@ export class AppSidebar implements OnInit, OnDestroy {
 
     auth = inject(MockAuthService);
 
+    profileService = inject(ProfileService);
+
     private outsideClickListener: ((event: MouseEvent) => void) | null = null;
 
     private destroy$ = new Subject<void>();
@@ -334,34 +337,11 @@ export class AppSidebar implements OnInit, OnDestroy {
 
     readonly desktopCollapsed = computed(() => this.layoutService.isDesktop() && this.layoutService.layoutState().staticMenuDesktopInactive);
 
-    readonly profileByRole: Record<MockUserRole, { name: string; email: string; plan: string }> = {
-        super_admin: {
-            name: 'Administrador Plataforma',
-            email: 'admin@playertech.com',
-            plan: 'Plataforma'
-        },
-        tenant_owner: {
-            name: 'Juan Rodas',
-            email: 'juan.rodas@playertech.com',
-            plan: 'Gratis'
-        },
-        academy_admin: {
-            name: 'María Pérez',
-            email: 'maria.perez@playertech.com',
-            plan: 'Administrador'
-        },
-        staff: {
-            name: 'Carlos Gómez',
-            email: 'carlos.gomez@playertech.com',
-            plan: 'Equipo'
-        }
-    };
+    readonly userName = computed(() => this.profileService.currentProfile().fullName);
 
-    readonly userName = computed(() => this.profileByRole[this.auth.getRole()].name);
+    readonly userEmail = computed(() => this.profileService.currentProfile().email);
 
-    readonly userEmail = computed(() => this.profileByRole[this.auth.getRole()].email);
-
-    readonly userPlan = computed(() => this.profileByRole[this.auth.getRole()].plan);
+    readonly userPlan = computed(() => this.profileService.currentProfile().roleLabel);
 
     readonly userInitials = computed(() =>
         this.userName()
@@ -424,7 +404,7 @@ export class AppSidebar implements OnInit, OnDestroy {
     }
 
     goToProfile() {
-        this.navigateTo('/pages/empty');
+        this.navigateTo('/account/profile');
     }
 
     goToSettings() {

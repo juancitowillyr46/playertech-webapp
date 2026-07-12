@@ -33,6 +33,7 @@ Habilita el uso seguro de la plataforma y la entrada a los flujos de negocio.
 * HU-004 Redirigir según rol y contexto.
 * HU-005 Mostrar una pantalla de ingreso clara y consistente con el signup.
 * HU-006 Recuperar contraseña con una pantalla consistente con el SignIn y una página de confirmación.
+* HU-007 Consultar y actualizar el perfil del usuario autenticado.
 
 ## Reglas de UX Relacionadas
 
@@ -43,6 +44,8 @@ Habilita el uso seguro de la plataforma y la entrada a los flujos de negocio.
 * Guiar al usuario no técnico con etiquetas y mensajes simples.
 * Reutilizar la estructura visual del SignIn para recuperación de contraseña cuando aplique.
 * Mostrar una página de confirmación tipo thank-you después de solicitar la recuperación.
+* Mostrar el perfil con una estructura clara, editable y consistente con el resto de formularios principales.
+* Separar la información editable del usuario de la acción de restablecer contraseña.
 
 ## Detalle de HU-006
 
@@ -67,6 +70,32 @@ Como usuario autenticado o no autenticado que olvidó su contraseña, quiero sol
 * Mantener una jerarquía visual clara: título, ayuda breve, campo, acción principal y cierre.
 * Evitar elementos de navegación innecesarios.
 * Reutilizar componentes y patrones ya usados en SignIn y signup-success siempre que sea posible.
+
+## Detalle de HU-007
+
+### HU-007 Consultar y actualizar el perfil del usuario autenticado
+
+Como usuario autenticado de la plataforma, quiero ver y actualizar mi información personal y de contacto desde una pantalla clara, para mantener mis datos al día sin depender de un flujo técnico o confuso.
+
+#### Criterios de aceptación
+
+* La pantalla debe mostrar la información del usuario autenticado con una estructura de formulario simple.
+* El formulario debe reutilizar el lenguaje visual de los formularios principales ya definidos en la aplicación.
+* Deben mostrarse campos personales y de contacto como nombre, teléfono, país, departamento, ciudad y dirección.
+* El correo principal puede mostrarse como dato de cuenta si no forma parte del alcance editable.
+* Debe existir una sección separada para seguridad con una acción de `Restablecer contraseña`.
+* La acción de restablecer contraseña no debe pedir la contraseña actual ni mostrar un formulario de cambio inline.
+* Al activar `Restablecer contraseña`, el sistema debe comunicar que se enviará un enlace al correo registrado.
+* La pantalla debe permitir guardar cambios y mostrar confirmación visual al completar la acción.
+* La pantalla debe usar datos mock mientras se define la integración real con `GET /api/v1/auth/me`, `POST /api/v1/academy/me` y `PUT /api/v1/academy/me`.
+
+#### Reglas de UX
+
+* Mantener la pantalla enfocada en edición de datos y no en métricas o resúmenes innecesarios.
+* Usar etiquetas simples para usuarios no técnicos.
+* Mostrar la seguridad como una acción independiente del formulario principal.
+* Mantener jerarquía visual clara entre datos personales, datos de cuenta y seguridad.
+* Aplicar las mismas reglas de validación y consistencia visual usadas en signup y formularios de academia.
 
 ## Fuera de Alcance
 
