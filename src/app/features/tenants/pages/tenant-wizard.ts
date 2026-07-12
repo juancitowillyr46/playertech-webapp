@@ -44,16 +44,16 @@ interface LocationDepartment {
 
         <div class="space-y-4">
             <app-page-header [breadcrumbs]="headerBreadcrumbs" title="Academias" [subtitle]="headerSubtitle">
-                <p-button headerActions label="Volver" severity="secondary" outlined routerLink="/tenants" />
+                <p-button headerActions label="Volver" severity="secondary" outlined styleClass="w-full sm:w-auto" routerLink="/tenants" />
             </app-page-header>
 
-            <div class="rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
+            <div class="mx-auto mt-4 w-full max-w-5xl overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                 <div class="border-b border-slate-200 px-4 py-4 dark:border-surface-800">
-                    <div class="grid gap-2 md:grid-cols-3">
+                    <div class="grid gap-2 sm:grid-cols-3">
                         @for (step of wizardSteps; track step.key; let index = $index) {
                             <button
                                 type="button"
-                                class="flex items-start gap-3 rounded-[0.8rem] border px-4 py-3 text-left transition"
+                                class="flex items-start gap-3 rounded-[0.8rem] border px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-100"
                                 [class.border-sky-300]="index === currentStep"
                                 [class.bg-sky-50]="index === currentStep"
                                 [class.border-emerald-300]="index < currentStep"
@@ -87,7 +87,7 @@ interface LocationDepartment {
                     </div>
                 </div>
 
-                <div class="space-y-6 px-4 py-5 sm:px-5 sm:py-6">
+                <div class="mx-auto w-full max-w-4xl space-y-6 px-4 py-5 sm:px-5 sm:py-6">
                     @if (currentStep === 0) {
                         <div class="grid grid-cols-12 gap-4">
                             <div class="col-span-12 flex flex-col gap-2">
@@ -227,13 +227,21 @@ interface LocationDepartment {
                     }
                 </div>
 
-                <div class="flex flex-col gap-3 border-t border-slate-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-surface-800">
-                    <p-button label="Cancelar" severity="secondary" text routerLink="/tenants" />
-                    <div class="flex items-center gap-2 sm:ml-auto">
+                <div class="border-t border-slate-200 px-4 py-4 dark:border-surface-800">
+                    <div class="mx-auto flex w-full max-w-4xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                        <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" routerLink="/tenants" />
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                         @if (currentStep > 0) {
-                            <p-button label="Anterior" severity="secondary" outlined (onClick)="prevStep()" />
+                            <p-button label="Anterior" severity="secondary" outlined styleClass="w-full sm:w-auto" (onClick)="prevStep()" />
                         }
-                        <p-button [label]="currentStep < 2 ? 'Continuar' : (form.id ? 'Guardar cambios' : 'Crear academia')" [icon]="currentStep < 2 ? 'pi pi-arrow-right' : 'pi pi-check'" [iconPos]="currentStep < 2 ? 'right' : 'left'" (onClick)="currentStep < 2 ? nextStep() : saveTenant()" />
+                        <p-button
+                            [label]="currentStep < 2 ? 'Continuar' : (form.id ? 'Guardar cambios' : 'Crear academia')"
+                            [icon]="currentStep < 2 ? 'pi pi-arrow-right' : 'pi pi-check'"
+                            [iconPos]="currentStep < 2 ? 'right' : 'left'"
+                            styleClass="w-full sm:w-auto"
+                            (onClick)="currentStep < 2 ? nextStep() : saveTenant()"
+                        />
+                    </div>
                     </div>
                 </div>
             </div>

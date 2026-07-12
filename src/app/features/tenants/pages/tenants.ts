@@ -46,7 +46,7 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
         <div class="space-y-4">
             <app-page-header [breadcrumbs]="breadcrumbs" title="Academias" subtitle="Consulta el estado, filtra los registros y administra cada academia." />
 
-            <div class="grid gap-2 md:grid-cols-3">
+            <div class="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 <div class="rounded-[0.75rem] border border-slate-200 bg-white px-4 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:border-surface-800 dark:bg-surface-900">
                     <p class="m-0 text-[0.68rem] font-semibold uppercase text-slate-500 dark:text-slate-400">Total</p>
                     <p class="mt-1 text-lg font-semibold tracking-tight text-surface-900 dark:text-surface-0">{{ tenants().length }}</p>
@@ -75,15 +75,15 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
                         />
                     </p-iconfield>
 
-                    <div class="flex flex-wrap items-center gap-2 lg:justify-end">
-                        <p-button label="Nuevo" icon="pi pi-plus" severity="primary" (onClick)="openNew()" />
+                    <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:justify-end">
+                        <p-button label="Nuevo" icon="pi pi-plus" severity="primary" styleClass="w-full sm:w-auto" (onClick)="openNew()" />
                         <p-menu #actionsMenu [popup]="true" appendTo="body" [model]="actionsMenuItems" />
-                        <p-button label="Acciones" icon="pi pi-chevron-down" severity="secondary" outlined (click)="actionsMenu.toggle($event)" />
+                        <p-button label="Acciones" icon="pi pi-chevron-down" severity="secondary" outlined styleClass="w-full sm:w-auto" (click)="actionsMenu.toggle($event)" />
 
-                        <div class="relative">
-                            <p-button label="Filtrar" icon="pi pi-filter" severity="secondary" outlined (click)="filtersPanelOpen = !filtersPanelOpen" />
+                        <div class="relative w-full sm:w-auto">
+                            <p-button label="Filtrar" icon="pi pi-filter" severity="secondary" outlined styleClass="w-full sm:w-auto" (click)="filtersPanelOpen = !filtersPanelOpen" />
                             @if (filtersPanelOpen) {
-                                <div class="absolute right-0 top-full z-50 mt-2 w-80 overflow-visible rounded-[0.75rem] border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.12)] dark:border-surface-700 dark:bg-surface-900">
+                                <div class="absolute left-0 right-0 top-full z-50 mt-2 w-full overflow-visible rounded-[0.75rem] border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.12)] dark:border-surface-700 dark:bg-surface-900 sm:left-auto sm:right-0 sm:w-80">
                                     <div class="border-b border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 dark:border-surface-700 dark:text-slate-200">Filtrar academias</div>
                                     <div class="space-y-4 px-4 py-4">
                                         <div class="flex flex-col gap-2">
@@ -153,6 +153,8 @@ import { TenantManagementService } from '../data-access/tenant-management.servic
                     currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} academias"
                     [showCurrentPageReport]="true"
                     [rowsPerPageOptions]="[10, 20, 30]"
+                    responsiveLayout="scroll"
+                    styleClass="text-sm"
                 >
                     <ng-template #header>
                         <tr>
