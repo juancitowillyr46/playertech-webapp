@@ -31,7 +31,7 @@ export interface PageHeaderBreadcrumb {
                         </div>
                     }
 
-                    <div class="my-1">
+                    <div class="mt-4">
                         <p class="!m-0 text-[1.15rem] font-semibold leading-[1.2] text-surface-900 dark:text-surface-0 sm:text-[1.25rem]">{{ title }}</p>
                     </div>
 

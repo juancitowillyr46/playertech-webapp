@@ -23,9 +23,9 @@ import { UserProfile } from '../models/profile.model';
         <div class="space-y-4">
             <app-page-header [breadcrumbs]="breadcrumbs" title="Perfil" subtitle="Consulta tu información de acceso y actualiza tu nombre."></app-page-header>
 
-            <div class="mt-4 mx-auto w-full max-w-5xl space-y-4">
+            <div class="mt-4 mx-auto w-full max-w-4xl space-y-3">
                 <div class="rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                    <div class="mx-auto w-full max-w-3xl space-y-5 px-4 py-4 sm:px-5 sm:py-5">
+                    <div class="form-width-2col mx-auto space-y-4 p-4">
                         <div class="grid grid-cols-12 gap-4">
                             <div class="col-span-12">
                                 <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información de acceso</p>
@@ -42,7 +42,7 @@ import { UserProfile } from '../models/profile.model';
 
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                 <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo electrónico</label>
-                                <input pInputText id="email" type="text" [ngModel]="profile.email" name="email" class="w-full" readonly />
+                                <input pInputText id="email" type="text" [ngModel]="profile.email" name="email" class="w-full" [disabled]="true" />
                             </div>
 
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -51,17 +51,12 @@ import { UserProfile } from '../models/profile.model';
                             </div>
 
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="academy" class="text-sm font-medium text-surface-700 dark:text-surface-200">Academia asociada</label>
-                                <input pInputText id="academy" type="text" [ngModel]="academyDisplay" name="academy" class="w-full" readonly />
-                            </div>
-
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                 <label for="status" class="text-sm font-medium text-surface-700 dark:text-surface-200">Estado</label>
-                                <input pInputText id="status" type="text" [ngModel]="profile.statusLabel" name="status" class="w-full" readonly />
+                                <p-select id="status" [options]="statusOptions" optionLabel="label" optionValue="value" [ngModel]="profile.status" name="status" class="w-full" [disabled]="true" />
                             </div>
                         </div>
 
-                        <div class="rounded-[0.9rem] border border-slate-200 bg-white px-4 py-4 dark:border-surface-700 dark:bg-surface-900">
+                        <div class="rounded-[0.9rem] border border-slate-200 bg-white p-4 dark:border-surface-700 dark:bg-surface-900">
                             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Seguridad</p>
@@ -72,8 +67,8 @@ import { UserProfile } from '../models/profile.model';
                         </div>
                     </div>
 
-                    <div class="border-t border-slate-200 px-4 py-4 dark:border-surface-800">
-                        <div class="mx-auto flex w-full max-w-3xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                    <div class="border-t border-slate-200 p-4 dark:border-surface-800">
+                        <div class="form-width-2col mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
                             <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" routerLink="/" />
                             <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full sm:w-auto" (onClick)="saveProfile()" />
                         </div>
@@ -98,15 +93,20 @@ export class Profile {
         this.editableFullName = this.profile.fullName;
     }
 
-    get academyDisplay(): string {
-        return this.profile.academyId && this.profile.academyName ? this.profile.academyName : 'Sin academia asociada';
-    }
-
     get roleOptions() {
         return this.profile.roles.map((role) => ({
-            label: role,
+            label: this.getRoleDisplayName(role),
             value: role
         }));
+    }
+
+    get statusOptions() {
+        return [
+            {
+                label: this.profile.statusLabel,
+                value: this.profile.status
+            }
+        ];
     }
 
     saveProfile() {
@@ -181,5 +181,20 @@ export class Profile {
 
     private isAllowedNameText(text: string): boolean {
         return /^[\p{L}\p{N}][\p{L}\p{N}\s]*$/u.test(text);
+    }
+
+    private getRoleDisplayName(role: string): string {
+        switch (role) {
+            case 'ROLE_ROOT':
+                return 'Root admin';
+            case 'ROLE_OWNER':
+                return 'Administrador';
+            case 'ROLE_ACADEMY_ADMIN':
+                return 'Administrador de academia';
+            case 'ROLE_STAFF':
+                return 'Staff';
+            default:
+                return role;
+        }
     }
 }

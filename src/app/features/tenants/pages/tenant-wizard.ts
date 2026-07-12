@@ -47,7 +47,7 @@ interface LocationDepartment {
                 <p-button headerActions label="Volver" severity="secondary" outlined styleClass="w-full sm:w-auto" routerLink="/tenants" />
             </app-page-header>
 
-            <div class="mx-auto mt-4 w-full max-w-5xl overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
+            <div class="mx-auto mt-4 w-full max-w-4xl overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                 <div class="border-b border-slate-200 px-4 py-4 dark:border-surface-800">
                     <div class="grid gap-2 sm:grid-cols-3">
                         @for (step of wizardSteps; track step.key; let index = $index) {
@@ -87,7 +87,7 @@ interface LocationDepartment {
                     </div>
                 </div>
 
-                <div class="mx-auto w-full max-w-4xl space-y-6 px-4 py-5 sm:px-5 sm:py-6">
+                <div class="form-width-2col mx-auto space-y-5 px-3 py-4 sm:px-4 sm:py-5">
                     @if (currentStep === 0) {
                         <div class="grid grid-cols-12 gap-4">
                             <div class="col-span-12 flex flex-col gap-2">
@@ -227,8 +227,8 @@ interface LocationDepartment {
                     }
                 </div>
 
-                <div class="border-t border-slate-200 px-4 py-4 dark:border-surface-800">
-                    <div class="mx-auto flex w-full max-w-4xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                <div class="border-t border-slate-200 px-3 py-3 dark:border-surface-800 sm:px-4 sm:py-4">
+                    <div class="form-width-2col mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
                         <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" routerLink="/tenants" />
                         <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                         @if (currentStep > 0) {
