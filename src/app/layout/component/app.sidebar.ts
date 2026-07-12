@@ -102,9 +102,11 @@ import { LayoutService } from '@/app/layout/service/layout.service';
             .layout-sidebar-user {
                 position: relative;
                 flex: 0 0 auto;
-                padding-top: 1rem;
+                padding: 0.85rem;
                 margin-top: 1rem;
-                border-top: 1px solid var(--surface-border);
+                border: 1px solid var(--surface-border);
+                border-radius: var(--content-border-radius);
+                background: white;
             }
 
             .layout-user-trigger {
@@ -113,9 +115,9 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 gap: 0.75rem;
                 width: 100%;
                 padding: 0.85rem 0.9rem;
-                background: var(--surface-ground);
-                border: 1px solid var(--surface-border);
-                border-radius: 0.9rem;
+                background: transparent;
+                border: 0;
+                border-radius: calc(var(--content-border-radius) - 2px);
                 color: var(--text-color);
                 cursor: pointer;
                 text-align: left;
@@ -127,7 +129,6 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 
             .layout-user-trigger:hover {
                 background: var(--surface-hover);
-                border-color: color-mix(in srgb, var(--primary-color) 18%, var(--surface-border));
             }
 
             .layout-user-avatar {
