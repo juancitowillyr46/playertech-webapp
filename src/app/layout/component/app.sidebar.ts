@@ -21,28 +21,16 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 <div class="layout-sidebar-user">
                     @if (isUserMenuOpen) {
                         <div class="layout-user-panel" role="menu">
-                            <button type="button" class="layout-user-panel-account" (click)="goToProfile()">
+                            <div class="layout-user-panel-account">
                                 <p-avatar [label]="userInitials()" shape="circle" styleClass="layout-user-avatar layout-user-avatar-light" />
 
                                 <div class="layout-user-popup-meta">
                                     <span class="layout-user-name layout-user-name-light">{{ userName() }}</span>
-                                    <span class="layout-user-plan">{{ userPlan() }}</span>
+                                    <span class="layout-user-plan">{{ userEmail() }}</span>
                                 </div>
-
-                                <i class="pi pi-angle-right"></i>
-                            </button>
+                            </div>
 
                             <div class="layout-user-panel-divider"></div>
-
-                            <button type="button" class="layout-user-panel-item" (click)="goToUpgrade()">
-                                <i class="pi pi-sparkles"></i>
-                                <span>Mejorar plan</span>
-                            </button>
-
-                            <button type="button" class="layout-user-panel-item" (click)="goToPreferences()">
-                                <i class="pi pi-clock"></i>
-                                <span>Personalización</span>
-                            </button>
 
                             <button type="button" class="layout-user-panel-item" (click)="goToProfile()">
                                 <i class="pi pi-user"></i>
@@ -228,23 +216,19 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 gap: 0.75rem;
                 width: 100%;
                 padding: 0.8rem 0.85rem;
-                border: 0;
                 border-radius: calc(var(--content-border-radius) - 2px);
                 background: transparent;
                 color: var(--text-color);
-                cursor: pointer;
                 text-align: left;
-                transition: background-color var(--element-transition-duration);
             }
 
-            .layout-user-panel-account:hover,
             .layout-user-panel-item:hover {
                 background: var(--surface-hover);
             }
 
-            .layout-user-panel-account i {
-                margin-left: auto;
-                color: var(--text-color-secondary);
+            .layout-user-panel-account {
+                border: 0;
+                cursor: default;
             }
 
             .layout-user-panel-divider {
@@ -255,17 +239,20 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 
             .layout-user-panel-item {
                 font-size: 0.98rem;
+                cursor: pointer;
             }
 
             .layout-user-panel-item i,
             .layout-user-panel-item span {
                 color: inherit;
+                cursor: pointer;
             }
 
             .layout-user-panel-item-content {
                 display: flex;
                 align-items: center;
                 gap: 0.75rem;
+                cursor: pointer;
             }
 
             .layout-user-panel-item-between {
@@ -380,14 +367,6 @@ export class AppSidebar implements OnInit, OnDestroy {
         this.isUserMenuOpen = false;
         this.auth.logout();
         void this.router.navigate(['/auth/login']);
-    }
-
-    goToUpgrade() {
-        this.navigateTo('/pages/empty');
-    }
-
-    goToPreferences() {
-        this.navigateTo('/pages/empty');
     }
 
     goToProfile() {
