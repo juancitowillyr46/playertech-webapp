@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, effect, ElementRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AvatarModule } from 'primeng/avatar';
+import { TooltipModule } from 'primeng/tooltip';
 import { filter, Subject, takeUntil } from 'rxjs';
 import { MockAuthService, MockUserRole } from '@/app/core/auth/mock-auth.service';
 import { AppMenu } from './app.menu';
@@ -10,7 +11,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 @Component({
     selector: 'app-sidebar',
     standalone: true,
-    imports: [AppMenu, RouterModule, CommonModule, AvatarModule],
+    imports: [AppMenu, RouterModule, CommonModule, AvatarModule, TooltipModule],
     template: `
         <div class="layout-sidebar">
             <div class="layout-sidebar-shell">
@@ -60,7 +61,15 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                         </div>
                     }
 
-                    <button type="button" class="layout-user-trigger" (click)="toggleUserMenu($event)" aria-haspopup="menu" [attr.aria-expanded]="isUserMenuOpen">
+                    <button
+                        type="button"
+                        class="layout-user-trigger"
+                        (click)="toggleUserMenu($event)"
+                        aria-haspopup="menu"
+                        [attr.aria-expanded]="isUserMenuOpen"
+                        [pTooltip]="desktopCollapsed() ? userName() : undefined"
+                        tooltipPosition="right"
+                    >
                         <p-avatar [label]="userInitials()" shape="circle" styleClass="layout-user-avatar" />
 
                         <div class="layout-user-meta">
@@ -82,7 +91,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
             }
 
             .layout-sidebar {
-                overflow: hidden;
+                overflow: visible;
             }
 
             .layout-sidebar-shell {
@@ -97,6 +106,27 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 min-height: 0;
                 overflow-y: auto;
                 padding-right: 0.25rem;
+                scroll-behavior: smooth;
+                scrollbar-width: thin;
+                scrollbar-color: color-mix(in srgb, var(--primary-color) 22%, transparent) transparent;
+                transition: padding-right 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+
+            .layout-sidebar-nav::-webkit-scrollbar {
+                width: 0.5rem;
+            }
+
+            .layout-sidebar-nav::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            .layout-sidebar-nav::-webkit-scrollbar-thumb {
+                background: color-mix(in srgb, var(--primary-color) 18%, transparent);
+                border-radius: 999px;
+            }
+
+            .layout-sidebar-nav::-webkit-scrollbar-thumb:hover {
+                background: color-mix(in srgb, var(--primary-color) 28%, transparent);
             }
 
             .layout-sidebar-user {
@@ -129,6 +159,31 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 
             .layout-user-trigger:hover {
                 background: var(--surface-hover);
+            }
+
+            :host-context(.layout-static-inactive) .layout-sidebar-user {
+                padding: 0.5rem;
+            }
+
+            :host-context(.layout-static-inactive) .layout-sidebar-nav {
+                padding-right: 0;
+            }
+
+            :host-context(.layout-static-inactive) .layout-user-trigger {
+                justify-content: center;
+                padding: 0.7rem;
+            }
+
+            :host-context(.layout-static-inactive) .layout-user-meta,
+            :host-context(.layout-static-inactive) .layout-user-chevron {
+                display: none;
+            }
+
+            :host-context(.layout-static-inactive) .layout-user-panel {
+                left: calc(100% + 0.75rem);
+                right: auto;
+                bottom: 0;
+                width: 16rem;
             }
 
             .layout-user-avatar {
@@ -207,7 +262,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 box-shadow:
                     0 18px 40px rgba(15, 23, 42, 0.18),
                     0 8px 18px rgba(15, 23, 42, 0.12);
-                z-index: 5;
+                z-index: 1200;
             }
 
             .layout-user-panel-account,
@@ -280,6 +335,8 @@ export class AppSidebar implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     isUserMenuOpen = false;
+
+    readonly desktopCollapsed = computed(() => this.layoutService.isDesktop() && this.layoutService.layoutState().staticMenuDesktopInactive);
 
     readonly profileByRole: Record<MockUserRole, { name: string; email: string; plan: string }> = {
         super_admin: {

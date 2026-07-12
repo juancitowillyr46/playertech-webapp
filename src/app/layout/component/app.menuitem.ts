@@ -2,18 +2,28 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RippleModule } from 'primeng/ripple';
+import { TooltipModule } from 'primeng/tooltip';
 import { LayoutService } from '@/app/layout/service/layout.service';
 import { filter } from 'rxjs/operators';
 
 @Component({
     selector: '[app-menuitem]',
-    imports: [CommonModule, RouterModule, RippleModule],
+    imports: [CommonModule, RouterModule, RippleModule, TooltipModule],
     template: `
         @if (root() && isVisible()) {
             <div class="layout-menuitem-root-text">{{ item().label }}</div>
         }
         @if ((!hasRouterLink() || hasChildren()) && isVisible()) {
-            <a [attr.href]="item().url" (click)="itemClick($event)" [ngClass]="item().class" [attr.target]="item().target" tabindex="0" pRipple>
+            <a
+                [attr.href]="item().url"
+                (click)="itemClick($event)"
+                [ngClass]="item().class"
+                [attr.target]="item().target"
+                tabindex="0"
+                pRipple
+                [pTooltip]="desktopCollapsed() ? item().label : undefined"
+                tooltipPosition="right"
+            >
                 <i [ngClass]="item().icon" class="layout-menuitem-icon"></i>
                 <span class="layout-menuitem-text">{{ item().label }}</span>
                 @if (hasChildren()) {
@@ -38,6 +48,8 @@ import { filter } from 'rxjs/operators';
                 [attr.target]="item().target"
                 tabindex="0"
                 pRipple
+                [pTooltip]="desktopCollapsed() ? item().label : undefined"
+                tooltipPosition="right"
             >
                 <i [ngClass]="item().icon" class="layout-menuitem-icon"></i>
                 <span class="layout-menuitem-text">{{ item().label }}</span>
@@ -60,6 +72,22 @@ import { filter } from 'rxjs/operators';
     },
     styles: [
         `
+            :host-context(.layout-static-inactive) .layout-menuitem-root-text,
+            :host-context(.layout-static-inactive) .layout-menuitem-text,
+            :host-context(.layout-static-inactive) .layout-submenu-toggler {
+                display: none !important;
+            }
+
+            :host-context(.layout-static-inactive) a {
+                justify-content: center;
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+            }
+
+            :host-context(.layout-static-inactive) .layout-menuitem-icon {
+                margin-right: 0 !important;
+            }
+
             .p-submenu-enter {
                 animation: p-animate-submenu-expand 450ms cubic-bezier(0.86, 0, 0.07, 1) forwards;
             }
@@ -128,6 +156,8 @@ export class AppMenuitem {
     });
 
     initialized = signal<boolean>(false);
+
+    desktopCollapsed = computed(() => this.layoutService.isDesktop() && this.layoutService.layoutState().staticMenuDesktopInactive);
 
     constructor() {
         this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
