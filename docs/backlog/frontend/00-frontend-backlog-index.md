@@ -91,7 +91,7 @@ Cobertura de invitación, activación y relación del staff con equipos.
 * HU-002 Cerrar sesión → `Done` → `src/app/layout/component/app.sidebar.ts`
 * HU-005 Pantalla de ingreso consistente → `Done` → `src/app/features/auth/pages/login.ts`
 * HU-006 Recuperar contraseña pública → `In Progress` → `src/app/features/auth/pages/forgot-password.ts`, `src/app/features/auth/pages/forgot-password-success.ts`, `src/app/features/auth/pages/reset-password.ts`
-* HU-007 Perfil del usuario autenticado → `In Progress` → `src/app/features/account/pages/profile.ts`, `src/app/features/account/data-access/profile.service.ts`
+* HU-007 Perfil del usuario autenticado → `In Progress (Mock UI)` → `src/app/features/account/pages/profile.ts`, `src/app/features/account/data-access/profile.service.ts`
 
 ## EF-002 Tenant Onboarding
 
@@ -101,6 +101,9 @@ Cobertura de invitación, activación y relación del staff con equipos.
 
 ## EF-003 Academy Management
 
+* HU-001 Consultar academia propia → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/academy-profile.service.ts`
+* HU-002 Actualizar academia propia → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/academy-profile.service.ts`
 * HU-003 Consultar academias desde plataforma → `Done` → `src/app/features/tenants/pages/tenants.ts`
 * HU-004 Ver detalle o edición de academia → `Partial` → `src/app/features/tenants/pages/tenant-wizard.ts`
 * HU-005 Suspender o reactivar academia → `Done` → `src/app/features/tenants/pages/tenants.ts`
+* HU-006 Subir escudo institucional → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`

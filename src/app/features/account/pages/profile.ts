@@ -23,9 +23,9 @@ import { UserProfile } from '../models/profile.model';
         <div class="space-y-4">
             <app-page-header [breadcrumbs]="breadcrumbs" title="Perfil" subtitle="Consulta tu información de acceso y actualiza tu nombre."></app-page-header>
 
-            <div class="mt-4 mx-auto w-full max-w-4xl space-y-3">
+            <div class="form-width-2col mx-auto mt-4 w-full space-y-3">
                 <div class="rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                    <div class="form-width-2col mx-auto space-y-4 p-4">
+                    <div class="space-y-4 p-4">
                         <div class="grid grid-cols-12 gap-4">
                             <div class="col-span-12">
                                 <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información de acceso</p>
@@ -68,7 +68,7 @@ import { UserProfile } from '../models/profile.model';
                     </div>
 
                     <div class="border-t border-slate-200 p-4 dark:border-surface-800">
-                        <div class="form-width-2col mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
                             <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" routerLink="/" />
                             <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full sm:w-auto" (onClick)="saveProfile()" />
                         </div>
