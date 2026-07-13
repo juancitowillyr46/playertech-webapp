@@ -25,18 +25,33 @@ Soporta el vínculo legal y operativo entre familia y jugador.
 
 ## Historias de Usuario
 
-* HU-001 Registrar acudiente.
-* HU-002 Asociar acudiente a jugador.
-* HU-003 Cambiar acudiente principal.
-* HU-004 Eliminar asociación jugador-acudiente.
+* HU-001 Listar acudientes asociados a un jugador.
+* HU-002 Asociar acudiente existente a jugador.
+* HU-003 Crear acudiente y asociarlo a jugador.
+* HU-004 Cambiar acudiente principal.
+* HU-005 Eliminar asociación jugador-acudiente.
+* HU-006 Preparar módulo independiente de acudientes.
 
 ## Reglas de UX Relacionadas
 
 * Identificar claramente el acudiente principal.
 * Mostrar múltiples relaciones sin confusión.
 * Confirmar cambios de principal.
+* En bloques de acciones superiores, evitar grillas fijas para CTAs largos.
+* Las acciones como `Asociar acudiente` y `Nuevo acudiente` deben:
+  * apilarse en mobile;
+  * usar ancho completo en resoluciones reducidas;
+  * pasar a fila flexible con `wrap` cuando el espacio horizontal sea intermedio;
+  * conservar un ancho mínimo uniforme en desktop.
 
 ## Estado
 
-Draft.
+In Progress.
 
+## Trazabilidad Actual
+
+* HU-001 Listar acudientes asociados a un jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-002 Asociar acudiente existente a jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-003 Crear acudiente y asociarlo a jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-004 Cambiar acudiente principal → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-005 Eliminar asociación jugador-acudiente → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`

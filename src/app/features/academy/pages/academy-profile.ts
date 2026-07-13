@@ -325,8 +325,8 @@ interface AcademyTeamStaffForm {
                                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Sedes</p>
                                                     <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Administra las sedes donde opera la academia.</p>
                                                 </div>
-                                                <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-                                                    <p-button label="Agregar sede" icon="pi pi-plus" styleClass="w-full sm:w-auto" (onClick)="openVenueDialog()" />
+                                                <div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:justify-end">
+                                                    <p-button label="Agregar sede" icon="pi pi-plus" styleClass="w-full md:min-w-[11.5rem] md:w-auto" (onClick)="openVenueDialog()" />
                                                 </div>
                                             </div>
                                         </div>
@@ -414,8 +414,8 @@ interface AcademyTeamStaffForm {
                                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Categorías</p>
                                                     <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Organiza jugadores y equipos según las edades que manejará la academia.</p>
                                                 </div>
-                                                <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-                                                    <p-button label="Nueva categoría" icon="pi pi-plus" styleClass="w-full sm:w-auto" (onClick)="openCategoryDialog()" />
+                                                <div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:justify-end">
+                                                    <p-button label="Nueva categoría" icon="pi pi-plus" styleClass="w-full md:min-w-[11.5rem] md:w-auto" (onClick)="openCategoryDialog()" />
                                                 </div>
                                             </div>
                                         </div>
@@ -496,8 +496,8 @@ interface AcademyTeamStaffForm {
                                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Equipos</p>
                                                     <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Crea y organiza los equipos que participarán en cada categoría de la academia.</p>
                                                 </div>
-                                                <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-                                                    <p-button label="Nuevo equipo" icon="pi pi-plus" styleClass="w-full sm:w-auto" (onClick)="openTeamDialog()" />
+                                                <div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:justify-end">
+                                                    <p-button label="Nuevo equipo" icon="pi pi-plus" styleClass="w-full md:min-w-[11.5rem] md:w-auto" (onClick)="openTeamDialog()" />
                                                 </div>
                                             </div>
                                         </div>
@@ -572,8 +572,8 @@ interface AcademyTeamStaffForm {
                                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Staff</p>
                                                     <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Registra entrenadores y administradores deportivos con acceso a la plataforma antes de asignarlos a equipos.</p>
                                                 </div>
-                                                <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-                                                    <p-button label="Agregar staff" icon="pi pi-plus" styleClass="w-full sm:w-auto" (onClick)="openStaffDialog()" />
+                                                <div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:justify-end">
+                                                    <p-button label="Agregar staff" icon="pi pi-plus" styleClass="w-full md:min-w-[11.5rem] md:w-auto" (onClick)="openStaffDialog()" />
                                                 </div>
                                             </div>
                                         </div>
@@ -689,11 +689,9 @@ interface AcademyTeamStaffForm {
                     </div>
 
                     <ng-template pTemplate="footer">
-                        <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
-                            <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                                <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetVenueDialog()" />
-                                <p-button [label]="venueDialogMode === 'create' ? 'Crear sede' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveVenue()" />
-                            </div>
+                        <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                            <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetVenueDialog()" />
+                            <p-button [label]="venueDialogMode === 'create' ? 'Crear sede' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveVenue()" />
                         </div>
                     </ng-template>
                 </p-dialog>
@@ -746,11 +744,9 @@ interface AcademyTeamStaffForm {
                     </div>
 
                     <ng-template pTemplate="footer">
-                        <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
-                            <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                                <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetCategoryDialog()" />
-                                <p-button [label]="categoryDialogMode === 'create' ? 'Crear categoría' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveCategory()" />
-                            </div>
+                        <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                            <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetCategoryDialog()" />
+                            <p-button [label]="categoryDialogMode === 'create' ? 'Crear categoría' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveCategory()" />
                         </div>
                     </ng-template>
                 </p-dialog>
@@ -790,6 +786,8 @@ interface AcademyTeamStaffForm {
                                         filterBy="name"
                                         placeholder="Selecciona una categoría"
                                         class="w-full"
+                                        appendTo="body"
+                                        [scrollHeight]="'16rem'"
                                     />
                                     @if (showTeamError('categoryId')) {
                                         <p-message severity="error" size="small">Selecciona una categoría.</p-message>
@@ -863,11 +861,9 @@ interface AcademyTeamStaffForm {
                     </div>
 
                     <ng-template pTemplate="footer">
-                        <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
-                            <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                                <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetTeamDialog()" />
-                                <p-button [label]="teamDialogMode === 'create' ? 'Crear equipo' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveTeam()" />
-                            </div>
+                        <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                            <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetTeamDialog()" />
+                            <p-button [label]="teamDialogMode === 'create' ? 'Crear equipo' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveTeam()" />
                         </div>
                     </ng-template>
                 </p-dialog>
@@ -906,6 +902,8 @@ interface AcademyTeamStaffForm {
                                         placeholder="Selecciona un miembro disponible"
                                         class="w-full"
                                         [disabled]="teamStaffDialogMode === 'edit'"
+                                        appendTo="body"
+                                        [scrollHeight]="'16rem'"
                                     >
                                         <ng-template #item let-option>
                                             <div class="flex flex-col">
@@ -921,7 +919,7 @@ interface AcademyTeamStaffForm {
 
                                 <div class="col-span-12 flex flex-col gap-2">
                                     <label for="teamStaffRole" class="text-sm font-medium text-surface-700 dark:text-surface-200">Rol técnico <span class="text-rose-500">*</span></label>
-                                    <p-select id="teamStaffRole" [(ngModel)]="teamStaffForm.role" [options]="technicalRoleOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un rol técnico" class="w-full" />
+                                    <p-select id="teamStaffRole" [(ngModel)]="teamStaffForm.role" [options]="technicalRoleOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un rol técnico" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
                                     @if (showTeamStaffError('role')) {
                                         <p-message severity="error" size="small">Selecciona el rol técnico.</p-message>
                                     }
@@ -931,11 +929,9 @@ interface AcademyTeamStaffForm {
                     </div>
 
                     <ng-template pTemplate="footer">
-                        <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
-                            <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                                <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetTeamStaffDialog()" />
-                                <p-button [label]="teamStaffDialogMode === 'create' ? 'Asignar' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveTeamStaffAssignment()" />
-                            </div>
+                        <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                            <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetTeamStaffDialog()" />
+                            <p-button [label]="teamStaffDialogMode === 'create' ? 'Asignar' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveTeamStaffAssignment()" />
                         </div>
                     </ng-template>
                 </p-dialog>
@@ -979,7 +975,7 @@ interface AcademyTeamStaffForm {
 
                                 <div class="col-span-12 flex flex-col gap-2">
                                     <label for="staffRole" class="text-sm font-medium text-surface-700 dark:text-surface-200">Rol funcional del sistema <span class="text-rose-500">*</span></label>
-                                    <p-select id="staffRole" [(ngModel)]="staffForm.role" [options]="systemRoleOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un rol" class="w-full" />
+                                    <p-select id="staffRole" [(ngModel)]="staffForm.role" [options]="systemRoleOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un rol" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
                                     @if (showStaffError('role')) {
                                         <p-message severity="error" size="small">Selecciona el rol funcional.</p-message>
                                     }
@@ -988,7 +984,7 @@ interface AcademyTeamStaffForm {
                                 @if (staffDialogMode === 'edit') {
                                     <div class="col-span-12 flex flex-col gap-2">
                                         <label for="staffStatus" class="text-sm font-medium text-surface-700 dark:text-surface-200">Estado de acceso <span class="text-rose-500">*</span></label>
-                                        <p-select id="staffStatus" [(ngModel)]="staffForm.status" [options]="staffStatusOptions" optionLabel="label" optionValue="value" class="w-full" />
+                                        <p-select id="staffStatus" [(ngModel)]="staffForm.status" [options]="staffStatusOptions" optionLabel="label" optionValue="value" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
                                     </div>
                                 }
 
@@ -1069,11 +1065,9 @@ interface AcademyTeamStaffForm {
                     </div>
 
                     <ng-template pTemplate="footer">
-                        <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
-                            <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                                <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetStaffDialog()" />
-                                <p-button [label]="staffDialogMode === 'create' ? 'Crear miembro' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveStaff()" />
-                            </div>
+                        <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                            <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetStaffDialog()" />
+                            <p-button [label]="staffDialogMode === 'create' ? 'Crear miembro' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveStaff()" />
                         </div>
                     </ng-template>
                 </p-dialog>
