@@ -1,16 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
-import { SliderModule } from 'primeng/slider';
 import { ToastModule } from 'primeng/toast';
 import { MockAuthService } from '@/app/core/auth/mock-auth.service';
+import { ImageCropperComponent, ImageCropperFileError, ImageCropperResult } from '@/app/shared/ui/image-cropper/image-cropper';
 import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
 import { AcademyProfileService } from '../data-access/academy-profile.service';
 import { AcademyProfile } from '../models/academy.model';
@@ -26,90 +25,22 @@ interface LocationDepartment {
     cities: string[];
 }
 
-interface ShieldFocusOption {
-    label: string;
-    value: string;
-}
-
 @Component({
     selector: 'app-academy-profile-page',
     standalone: true,
-    imports: [ButtonModule, CommonModule, DialogModule, FormsModule, InputTextModule, MessageModule, PageHeader, RouterModule, SelectModule, SliderModule, ToastModule],
+    imports: [ButtonModule, CommonModule, FormsModule, ImageCropperComponent, InputTextModule, MessageModule, PageHeader, RouterModule, SelectModule, ToastModule],
     providers: [MessageService],
     template: `
         <p-toast />
-        <p-dialog
-            [(visible)]="showShieldDialog"
-            header="Ajustar escudo institucional"
-            [modal]="true"
-            [draggable]="false"
-            [resizable]="false"
-            [style]="{ width: '42rem' }"
-            [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
-            (onHide)="cancelShieldDialog()"
-        >
-            <div class="space-y-4">
-                <div>
-                    <p class="m-0 text-sm font-medium text-surface-900 dark:text-surface-0">{{ pendingShieldFileName || 'Nuevo archivo' }}</p>
-                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Revisa el encuadre antes de aplicarlo al formulario. El cambio seguirá siendo local hasta guardar.</p>
-                </div>
-
-                <div class="rounded-[1rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/50">
-                    <div class="mx-auto flex aspect-square w-full max-w-[18rem] items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
-                        @if (pendingShieldPreviewUrl) {
-                            <img
-                                [src]="pendingShieldPreviewUrl"
-                                alt="Vista previa del escudo"
-                                class="h-full w-full transition-transform duration-200"
-                                [style.object-fit]="'cover'"
-                                [style.object-position]="pendingShieldFocus"
-                                [style.transform]="'scale(' + pendingShieldZoom + ')'"
-                            />
-                        } @else {
-                            <span class="text-xl font-semibold text-sky-700 dark:text-sky-300">{{ academyInitials }}</span>
-                        }
-                    </div>
-                </div>
-
-                <div class="grid gap-4 md:grid-cols-2">
-                    <div class="space-y-2">
-                        <label class="text-sm font-medium text-surface-700 dark:text-surface-200">Zoom</label>
-                        <p-slider [(ngModel)]="pendingShieldZoom" [min]="1" [max]="2" [step]="0.05" />
-                        <div class="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
-                            <span>Ajustado</span>
-                            <span>{{ pendingShieldZoom.toFixed(2) }}x</span>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-sm font-medium text-surface-700 dark:text-surface-200">Encuadre</label>
-                        <div class="grid grid-cols-3 gap-2">
-                            @for (option of shieldFocusOptions; track option.value) {
-                                <button
-                                    type="button"
-                                    class="rounded-[0.75rem] border px-3 py-2 text-sm transition"
-                                    [class.border-sky-300]="pendingShieldFocus === option.value"
-                                    [class.bg-sky-50]="pendingShieldFocus === option.value"
-                                    [class.text-sky-700]="pendingShieldFocus === option.value"
-                                    [class.border-slate-200]="pendingShieldFocus !== option.value"
-                                    [class.text-slate-600]="pendingShieldFocus !== option.value"
-                                    (click)="pendingShieldFocus = option.value"
-                                >
-                                    {{ option.label }}
-                                </button>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <ng-template pTemplate="footer">
-                <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                    <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="cancelShieldDialog()" />
-                    <p-button label="Aplicar imagen" styleClass="w-full sm:w-auto" (onClick)="applyShieldChanges()" />
-                </div>
-            </ng-template>
-        </p-dialog>
+        <app-image-cropper
+            #shieldCropper
+            title="Ajustar escudo institucional"
+            subtitle="Ajusta el encuadre y confirma la imagen que se mostrará en tu academia."
+            [maxFileSizeMb]="3"
+            [allowedFileExtensions]="['png', 'jpg', 'jpeg', 'svg']"
+            (applied)="onShieldApplied($event)"
+            (fileError)="onShieldFileError($event)"
+        />
 
         <div class="space-y-4">
             <app-page-header [breadcrumbs]="breadcrumbs" title="Academia" subtitle="Actualiza la información principal y los datos de contacto de tu academia."></app-page-header>
@@ -208,14 +139,14 @@ interface ShieldFocusOption {
                             <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/40">
                                 <div class="flex flex-col gap-2">
                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Escudo institucional</p>
-                                    <p class="text-sm leading-6 text-slate-500 dark:text-slate-400">Selecciona la imagen principal de tu academia.</p>
+                                    <p class="text-sm leading-6 text-slate-500 dark:text-slate-400">Elige una imagen clara y ajústala antes de guardarla.</p>
                                 </div>
 
                                 <div class="mt-4 flex flex-col gap-4 rounded-[0.85rem] border border-dashed border-slate-300 bg-white p-4 dark:border-surface-600 dark:bg-surface-900">
                                     <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
                                         <div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 dark:border-surface-700 dark:bg-surface-900/60">
                                             @if (shieldPreviewUrl) {
-                                                <img [src]="shieldPreviewUrl" alt="Escudo institucional" class="h-full w-full object-cover" [style.object-position]="shieldFocus" />
+                                                <img [src]="shieldPreviewUrl" alt="Escudo institucional" class="h-full w-full object-cover" />
                                             } @else {
                                                 <span class="text-xl font-semibold text-sky-700 dark:text-sky-300">{{ academyInitials }}</span>
                                             }
@@ -225,11 +156,12 @@ interface ShieldFocusOption {
                                             <p class="m-0 text-sm font-medium text-surface-900 dark:text-surface-0">{{ shieldFileName }}</p>
                                             <p class="mt-1 text-xs leading-5 text-slate-400 dark:text-slate-500">
                                                 @if (hasPendingShieldChanges) {
-                                                    Vista previa lista. Se aplicará cuando guardes los cambios.
+                                                    Imagen lista para guardarse.
                                                 } @else {
-                                                    Formato recomendado: PNG o SVG.
+                                                    Formatos recomendados: PNG o SVG.
                                                 }
                                             </p>
+                                            <p class="mt-1 text-xs leading-5 text-slate-400 dark:text-slate-500">Tamaño máximo: 3 MB.</p>
                                         </div>
                                     </div>
 
@@ -245,7 +177,7 @@ interface ShieldFocusOption {
                         </div>
 
                         <div class="border-t border-slate-200 p-4 dark:border-surface-800">
-                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
                                 <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" routerLink="/" />
                                 <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full sm:w-auto" (onClick)="save()" />
                             </div>
@@ -257,14 +189,10 @@ interface ShieldFocusOption {
     `
 })
 export class AcademyProfilePage {
+    @ViewChild('shieldCropper') shieldCropper?: ImageCropperComponent;
+
     readonly breadcrumbs: PageHeaderBreadcrumb[] = [{ label: 'Inicio', routerLink: '/' }, { label: 'Academia' }];
     readonly fallbackFlag = 'assets/flags/pe.svg';
-    readonly shieldFocusOptions: ShieldFocusOption[] = [
-        { label: 'Arriba', value: 'center top' },
-        { label: 'Centro', value: 'center center' },
-        { label: 'Abajo', value: 'center bottom' }
-    ];
-
     readonly countryOptions: CountryOption[] = [
         { name: 'Colombia', dialCode: '+57', flagFile: 'assets/flags/co.svg' },
         { name: 'Perú', dialCode: '+51', flagFile: 'assets/flags/pe.svg' },
@@ -310,13 +238,8 @@ export class AcademyProfilePage {
     form: AcademyProfile;
     shieldFileName = 'escudo-academia-demo.svg';
     shieldPreviewUrl: string | null = null;
-    shieldFocus = 'center center';
     hasPendingShieldChanges = false;
-    showShieldDialog = false;
-    pendingShieldPreviewUrl: string | null = null;
-    pendingShieldFileName = '';
-    pendingShieldZoom = 1;
-    pendingShieldFocus = 'center center';
+    shieldCroppedBlob: Blob | null = null;
 
     constructor(
         private readonly academyService: AcademyProfileService,
@@ -364,7 +287,7 @@ export class AcademyProfilePage {
         this.messageService.add({
             severity: 'success',
             summary: 'Academia actualizada',
-            detail: this.hasPendingShieldChanges ? 'Los datos generales y la vista previa del escudo quedaron actualizados en esta iteración mock.' : 'Los datos generales de la academia fueron actualizados.'
+            detail: this.hasPendingShieldChanges ? 'Los datos y la nueva imagen quedaron listos en esta iteración mock.' : 'Los datos generales de la academia fueron actualizados.'
         });
 
         this.hasPendingShieldChanges = false;
@@ -378,47 +301,47 @@ export class AcademyProfilePage {
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = () => {
-            this.pendingShieldPreviewUrl = reader.result as string;
-            this.pendingShieldFileName = file.name;
-            this.pendingShieldZoom = 1;
-            this.pendingShieldFocus = 'center center';
-            this.showShieldDialog = true;
-        };
-        reader.readAsDataURL(file);
-
+        this.shieldCropper?.openWithFile(file);
         input.value = '';
     }
 
-    reopenShieldDialog() {
-        this.pendingShieldPreviewUrl = this.shieldPreviewUrl;
-        this.pendingShieldFileName = this.shieldFileName;
-        this.pendingShieldZoom = 1;
-        this.pendingShieldFocus = this.shieldFocus;
-        this.showShieldDialog = true;
-    }
-
-    cancelShieldDialog() {
-        this.showShieldDialog = false;
-    }
-
-    applyShieldChanges() {
-        if (!this.pendingShieldPreviewUrl) {
-            this.showShieldDialog = false;
+    onShieldFileError(error: ImageCropperFileError) {
+        if (error.reason === 'file-too-large') {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Archivo demasiado pesado',
+                detail: `Selecciona una imagen de hasta ${error.maxFileSizeMb} MB.`
+            });
             return;
         }
 
-        this.shieldPreviewUrl = this.pendingShieldPreviewUrl;
-        this.shieldFileName = this.pendingShieldFileName;
-        this.shieldFocus = this.pendingShieldFocus;
+        if (error.reason === 'invalid-file-type') {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Formato no permitido',
+                detail: `Usa un archivo ${error.allowedFileExtensions.map((item) => item.toUpperCase()).join(', ')}.`
+            });
+        }
+    }
+
+    reopenShieldDialog() {
+        if (!this.shieldPreviewUrl) {
+            return;
+        }
+
+        this.shieldCropper?.openWithPreview(this.shieldPreviewUrl, this.shieldFileName);
+    }
+
+    onShieldApplied(result: ImageCropperResult) {
+        this.shieldPreviewUrl = result.dataUrl;
+        this.shieldFileName = result.fileName;
+        this.shieldCroppedBlob = result.blob;
         this.hasPendingShieldChanges = true;
-        this.showShieldDialog = false;
 
         this.messageService.add({
             severity: 'info',
             summary: 'Vista previa actualizada',
-            detail: 'El nuevo escudo quedó listo en el formulario y se confirmará al guardar.'
+            detail: 'La nueva imagen quedó lista para guardarse con el formulario.'
         });
     }
 
