@@ -42,12 +42,12 @@ interface LocationDepartment {
         <p-toast />
         <p-confirmdialog />
 
-        <div class="space-y-4">
+        <div class="space-y-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0">
             <app-page-header [breadcrumbs]="headerBreadcrumbs" title="Academias" [subtitle]="headerSubtitle">
                 <p-button headerActions label="Volver" severity="secondary" outlined styleClass="w-full sm:w-auto" routerLink="/tenants" />
             </app-page-header>
 
-            <div class="mx-auto mt-4 w-full max-w-4xl overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
+            <div class="mx-auto mt-4 w-full max-w-4xl overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
                 <div class="border-b border-slate-200 px-4 py-4 dark:border-surface-800">
                     <div class="grid gap-2 sm:grid-cols-3">
                         @for (step of wizardSteps; track step.key; let index = $index) {
@@ -87,7 +87,7 @@ interface LocationDepartment {
                     </div>
                 </div>
 
-                <div class="form-width-2col mx-auto space-y-5 px-3 py-4 sm:px-4 sm:py-5">
+                <div class="form-width-2col mx-auto space-y-5 px-3 py-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-4 sm:py-5 sm:pb-5">
                     @if (currentStep === 0) {
                         <div class="grid grid-cols-12 gap-4">
                             <div class="col-span-12 flex flex-col gap-2">
@@ -227,21 +227,21 @@ interface LocationDepartment {
                     }
                 </div>
 
-                <div class="border-t border-slate-200 px-3 py-3 dark:border-surface-800 sm:px-4 sm:py-4">
+                <div class="sticky bottom-0 z-10 border-t border-slate-200 bg-white/95 px-3 py-3 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:border-surface-800 dark:bg-surface-900/95 sm:static sm:bg-transparent sm:px-4 sm:py-4 sm:backdrop-blur-0">
                     <div class="form-width-2col mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-                        <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" routerLink="/tenants" />
-                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center">
+                        <p-button label="Cancelar" severity="secondary" text styleClass="w-full" routerLink="/tenants" />
                         @if (currentStep > 0) {
-                            <p-button label="Anterior" severity="secondary" outlined styleClass="w-full sm:w-auto" (onClick)="prevStep()" />
+                            <p-button label="Anterior" severity="secondary" outlined styleClass="w-full" (onClick)="prevStep()" />
                         }
                         <p-button
                             [label]="currentStep < 2 ? 'Continuar' : (form.id ? 'Guardar cambios' : 'Crear academia')"
                             [icon]="currentStep < 2 ? 'pi pi-arrow-right' : 'pi pi-check'"
                             [iconPos]="currentStep < 2 ? 'right' : 'left'"
-                            styleClass="w-full sm:w-auto"
+                            styleClass="w-full"
                             (onClick)="currentStep < 2 ? nextStep() : saveTenant()"
                         />
-                    </div>
+                        </div>
                     </div>
                 </div>
             </div>

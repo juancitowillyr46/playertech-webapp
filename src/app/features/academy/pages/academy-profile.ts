@@ -65,7 +65,7 @@ interface AcademyVenueForm {
             (fileError)="onShieldFileError($event)"
         />
 
-        <div class="space-y-4">
+        <div class="space-y-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0">
             <app-page-header [breadcrumbs]="breadcrumbs" title="Academia" subtitle="Actualiza la información principal y los datos de contacto de tu academia."></app-page-header>
 
             @if (!academy) {
@@ -74,7 +74,7 @@ interface AcademyVenueForm {
                     <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Este usuario no tiene una academia vinculada. Este panel aplica para owner o administrador de academia.</p>
                 </div>
             } @else {
-                <div class="form-width-2col mx-auto mt-4 w-full space-y-3">
+                <div class="form-width-2col mx-auto mt-4 w-full space-y-3 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
                     <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                         <p-tabs [value]="activeTab">
                             <p-tablist class="overflow-x-auto">
@@ -83,7 +83,7 @@ interface AcademyVenueForm {
                             </p-tablist>
                             <p-tabpanels>
                                 <p-tabpanel value="information">
-                                    <div class="space-y-4 p-3 sm:p-4">
+                                    <div class="space-y-4 p-3 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:p-4 sm:pb-4">
                                         <div class="grid grid-cols-12 gap-4">
                                             <div class="col-span-12">
                                                 <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información general</p>
@@ -207,10 +207,10 @@ interface AcademyVenueForm {
                                         </div>
                                     </div>
 
-                                    <div class="border-t border-slate-200 p-4 dark:border-surface-800">
-                                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-                                            <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" routerLink="/" />
-                                            <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full sm:w-auto" (onClick)="save()" />
+                                    <div class="sticky bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:border-surface-800 dark:bg-surface-900/95 sm:static sm:bg-transparent sm:p-4 sm:backdrop-blur-0">
+                                        <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center sm:justify-end">
+                                            <p-button label="Cancelar" severity="secondary" text styleClass="w-full" routerLink="/" />
+                                            <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full" (onClick)="save()" />
                                         </div>
                                     </div>
                                 </p-tabpanel>
