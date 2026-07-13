@@ -166,10 +166,11 @@ interface LocationDepartment {
                                     </div>
 
                                     <div class="flex flex-col gap-2 sm:flex-row">
-                                        <input #shieldInput type="file" class="hidden" accept=".png,.svg,image/png,image/svg+xml" (change)="onShieldSelected($event)" />
+                                        <input #shieldInput type="file" class="hidden" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml" (change)="onShieldSelected($event)" />
                                         <p-button label="Seleccionar archivo" severity="secondary" outlined styleClass="w-full sm:w-auto" (onClick)="shieldInput.click()" />
                                         @if (shieldPreviewUrl) {
                                             <p-button label="Ajustar imagen" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="reopenShieldDialog()" />
+                                            <p-button label="Quitar imagen" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="removeShield()" />
                                         }
                                     </div>
                                 </div>
@@ -236,7 +237,7 @@ export class AcademyProfilePage {
     submitted = false;
     academy: AcademyProfile | null;
     form: AcademyProfile;
-    shieldFileName = 'escudo-academia-demo.svg';
+    shieldFileName = 'Sin imagen seleccionada';
     shieldPreviewUrl: string | null = null;
     hasPendingShieldChanges = false;
     shieldCroppedBlob: Blob | null = null;
@@ -342,6 +343,19 @@ export class AcademyProfilePage {
             severity: 'info',
             summary: 'Vista previa actualizada',
             detail: 'La nueva imagen quedó lista para guardarse con el formulario.'
+        });
+    }
+
+    removeShield() {
+        this.shieldPreviewUrl = null;
+        this.shieldFileName = 'Sin imagen seleccionada';
+        this.shieldCroppedBlob = null;
+        this.hasPendingShieldChanges = true;
+
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Imagen quitada',
+            detail: 'El cambio quedó listo para guardarse con el formulario.'
         });
     }
 
