@@ -30,6 +30,7 @@ Centraliza la operación institucional y el control del entorno multi-tenant.
 * HU-004 Ver detalle de academia. `Partial`
 * HU-005 Suspender o reactivar academia. `Done`
 * HU-006 Subir escudo institucional. `In Progress`
+* HU-007 Navegar submódulos de academia desde tabs. `Draft`
 
 ## Reglas de UX Relacionadas
 
@@ -38,6 +39,8 @@ Centraliza la operación institucional y el control del entorno multi-tenant.
 * Mantener separados los datos del usuario autenticado y los datos de la academia.
 * Mantener separado el guardado de datos textuales y la carga del escudo institucional aunque el usuario perciba una sola acción final.
 * Evitar exponer estados internos de la academia dentro del formulario principal del owner/admin.
+* Usar a `Academia` como contenedor padre de submódulos como `Información` y `Sedes`.
+* Evitar pantallas excesivamente largas apilando bloques heterogéneos cuando tabs simples resuelven mejor la navegación.
 
 ## Detalle de HU-001
 
@@ -107,6 +110,31 @@ Como owner o administrador de academia, quiero seleccionar, previsualizar y ajus
 * El usuario debe sentir que confirma todos sus cambios en una sola acción final.
 * La previsualización local debe dejar claro que la nueva imagen aún no ha sido guardada definitivamente.
 * El bloque debe ser simple: vista previa, nombre de archivo y acción principal de selección.
+
+## Detalle de HU-007
+
+### HU-007 Navegar submódulos de academia desde tabs
+
+Como owner o administrador de academia, quiero navegar la gestión de mi academia mediante tabs claros dentro de la misma pantalla, para moverme entre información general y sedes sin sentir que cambio de módulo o pierdo contexto.
+
+#### Criterios de aceptación
+
+* La pantalla de academia debe mantener a `Academia` como contenedor padre.
+* Debe existir una navegación interna por tabs, al menos con:
+  * `Información`
+  * `Sedes`
+* El tab `Información` debe concentrar los datos institucionales y el escudo.
+* El tab `Sedes` debe concentrar la mini gestión CRUD mock de sedes.
+* Cambiar de tab no debe sacar al usuario de la ruta principal de academia.
+* El header de academia debe mantenerse estable mientras cambia el contenido del tab.
+* La navegación por tabs debe funcionar correctamente en desktop y mobile.
+
+#### Reglas de UX
+
+* Los tabs deben ser cortos, legibles y claramente activos.
+* La tab activa debe ser muy evidente visualmente.
+* No mezclar en un mismo submit los cambios de `Información` con la gestión operativa de `Sedes`.
+* Si el número de tabs crece, en mobile deben poder desplazarse horizontalmente o transformarse en un selector compacto.
 
 ## Escenarios de Guardado
 
