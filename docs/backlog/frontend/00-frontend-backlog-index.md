@@ -62,7 +62,7 @@ Cobertura de la visión operativa principal del tenant.
 
 ## EF-012 Staff Management
 
-Cobertura de invitación, activación y relación del staff con equipos.
+Cobertura de alta unificada del staff, acceso y relación del staff con equipos.
 
 ---
 
@@ -107,3 +107,36 @@ Cobertura de invitación, activación y relación del staff con equipos.
 * HU-004 Ver detalle o edición de academia → `Partial` → `src/app/features/tenants/pages/tenant-wizard.ts`
 * HU-005 Suspender o reactivar academia → `Done` → `src/app/features/tenants/pages/tenants.ts`
 * HU-006 Subir escudo institucional → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+
+## EF-005 Sports Configuration
+
+* HU-001 Crear sede → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-002 Listar sedes → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-003 Ver detalle de sede → `Pending`
+* HU-004 Actualizar sede → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-005 Activar o inactivar sede → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-006 Crear categoría → `Draft`
+* HU-007 Listar categorías → `Draft`
+* HU-008 Actualizar categoría → `Draft`
+* HU-009 Activar o inactivar categoría → `Draft`
+
+## EF-008 Team Management
+
+* HU-001 Crear equipo → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-002 Listar equipos → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-003 Ver detalle de equipo → `Pending`
+* HU-004 Actualizar equipo → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-005 Desactivar equipo → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-006 Reactivar equipo → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-007 Preparar asignación de jugadores a equipo → `In Progress (Estructura UX)` → `src/app/features/academy/pages/academy-profile.ts`, `docs/backlog/frontend/EF-008-team-management.md`
+
+## EF-012 Staff Management
+
+* HU-001 Dar de alta miembro del staff → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-002 Elegir modo de acceso para el staff → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-003 Listar directorio de staff de la academia → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-004 Asignar miembro del staff a un equipo → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-005 Definir rol técnico por asignación → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-006 Cambiar rol técnico → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-007 Retirar miembro del cuerpo técnico → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-008 Consultar cuerpo técnico de un equipo → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`

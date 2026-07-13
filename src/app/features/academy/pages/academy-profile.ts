@@ -86,7 +86,18 @@ interface AcademyStaffMember {
     userId: string;
     fullName: string;
     email: string;
-    status: 'ACTIVE' | 'INACTIVE';
+    role: 'ROLE_ACADEMY_ADMIN' | 'ROLE_COACH';
+    accessMode: 'INVITATION' | 'PASSWORD';
+    status: 'ACTIVE' | 'PENDING_ACTIVATION' | 'INACTIVE';
+}
+
+interface AcademyStaffForm {
+    fullName: string;
+    email: string;
+    role: AcademyStaffMember['role'] | '';
+    sendInvitation: boolean;
+    password: string;
+    passwordConfirmation: string;
 }
 
 interface AcademyTeamStaffAssignment {
@@ -157,6 +168,12 @@ interface AcademyTeamStaffForm {
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-users text-sm"></i>
                                         <span>Equipos</span>
+                                    </span>
+                                </p-tab>
+                                <p-tab value="staff" (click)="activeTab = 'staff'">
+                                    <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                                        <i class="pi pi-id-card text-sm"></i>
+                                        <span>Staff</span>
                                     </span>
                                 </p-tab>
                             </p-tablist>
@@ -540,6 +557,92 @@ interface AcademyTeamStaffForm {
                                         </div>
                                     </div>
                                 </p-tabpanel>
+
+                                <p-tabpanel value="staff">
+                                    <div class="space-y-4 p-3 sm:p-4">
+                                        <div class="rounded-[0.75rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900 sm:px-4">
+                                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                                <div class="space-y-1">
+                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Staff</p>
+                                                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Registra entrenadores y administradores deportivos con acceso a la plataforma antes de asignarlos a equipos.</p>
+                                                </div>
+                                                <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                                                    <p-button label="Nuevo miembro del staff" icon="pi pi-plus" styleClass="w-full sm:w-auto" (onClick)="openStaffDialog()" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
+                                            <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
+                                                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                                    <p-iconfield iconPosition="left" class="w-full sm:max-w-md">
+                                                        <p-inputicon styleClass="pi pi-search" />
+                                                        <input pInputText type="text" [(ngModel)]="staffSearch" placeholder="Buscar por nombre o correo" class="w-full" />
+                                                    </p-iconfield>
+                                                    <div class="flex items-center gap-2 self-start sm:self-auto">
+                                                        <button
+                                                            type="button"
+                                                            class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-surface-700 dark:text-slate-400 dark:hover:border-surface-500 dark:hover:text-slate-200"
+                                                            pTooltip="Desde aquí registras el staff. La asignación a equipos se hace dentro del detalle de cada equipo."
+                                                            tooltipPosition="left"
+                                                            aria-label="Ayuda de staff"
+                                                        >
+                                                            <i class="pi pi-info-circle text-sm"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <p-table [value]="filteredStaffMembers" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
+                                                <ng-template pTemplate="header">
+                                                    <tr>
+                                                        <th>Nombre</th>
+                                                        <th>Correo</th>
+                                                        <th>Rol del sistema</th>
+                                                        <th>Acceso</th>
+                                                        <th>Estado</th>
+                                                        <th class="text-right">Acciones</th>
+                                                    </tr>
+                                                </ng-template>
+                                                <ng-template pTemplate="body" let-staff>
+                                                    <tr>
+                                                        <td>
+                                                            <span class="font-medium text-surface-900 dark:text-surface-0">{{ staff.fullName }}</span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="text-surface-900 dark:text-surface-0">{{ staff.email }}</span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="text-surface-900 dark:text-surface-0">{{ getSystemRoleLabel(staff.role) }}</span>
+                                                        </td>
+                                                        <td>
+                                                            <p-tag [value]="getStaffAccessModeLabel(staff.accessMode)" severity="info" />
+                                                        </td>
+                                                        <td>
+                                                            <p-tag [value]="getStaffStatusLabel(staff.status)" [severity]="getStaffStatusSeverity(staff.status)" />
+                                                        </td>
+                                                        <td>
+                                                            <div class="flex justify-end">
+                                                                <p-menu #staffActionsMenu [popup]="true" appendTo="body" [model]="staffActionItems"></p-menu>
+                                                                <p-button icon="pi pi-ellipsis-h" [text]="true" rounded severity="secondary" (onClick)="openStaffActionsMenu($event, staffActionsMenu, staff)" />
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </ng-template>
+                                                <ng-template pTemplate="emptymessage">
+                                                    <tr>
+                                                        <td colspan="6" class="py-10 text-center">
+                                                            <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                                                <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay staff registrado</span>
+                                                                <span>Crea el primer miembro del staff para luego asignarlo a uno o varios equipos.</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </ng-template>
+                                            </p-table>
+                                        </div>
+                                    </div>
+                                </p-tabpanel>
                             </p-tabpanels>
                         </p-tabs>
                     </div>
@@ -835,6 +938,115 @@ interface AcademyTeamStaffForm {
                         </div>
                     </ng-template>
                 </p-dialog>
+
+                <p-dialog
+                    [(visible)]="staffDialogVisible"
+                    [modal]="true"
+                    [draggable]="false"
+                    [resizable]="false"
+                    [style]="{ width: '38rem' }"
+                    [breakpoints]="{ '960px': '42rem', '640px': '96vw' }"
+                    header="Nuevo miembro del staff"
+                    (onHide)="resetStaffDialog()"
+                >
+                    <div class="space-y-4">
+                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Registra el acceso de un nuevo integrante y luego asígnalo a equipos desde el módulo de equipos.</p>
+
+                        <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900 sm:p-4">
+                            <div class="grid grid-cols-12 gap-4">
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="staffFullName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre completo <span class="text-rose-500">*</span></label>
+                                    <input pInputText id="staffFullName" type="text" [(ngModel)]="staffForm.fullName" placeholder="Ej. Juan Pérez" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onStaffNameInput($event)" />
+                                    @if (showStaffError('fullName')) {
+                                        <p-message severity="error" size="small">Ingresa el nombre completo.</p-message>
+                                    }
+                                </div>
+
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="staffEmail" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo electrónico <span class="text-rose-500">*</span></label>
+                                    <input pInputText id="staffEmail" type="text" [(ngModel)]="staffForm.email" placeholder="Ej. entrenador@academia.com" class="w-full" (keydown)="onEmailKeydown($event)" (paste)="onEmailPaste($event)" (input)="onStaffEmailInput($event)" />
+                                    @if (showStaffError('email')) {
+                                        <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
+                                    }
+                                </div>
+
+                                <div class="col-span-12 flex flex-col gap-2">
+                                    <label for="staffRole" class="text-sm font-medium text-surface-700 dark:text-surface-200">Rol funcional del sistema <span class="text-rose-500">*</span></label>
+                                    <p-select id="staffRole" [(ngModel)]="staffForm.role" [options]="systemRoleOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un rol" class="w-full" />
+                                    @if (showStaffError('role')) {
+                                        <p-message severity="error" size="small">Selecciona el rol funcional.</p-message>
+                                    }
+                                </div>
+
+                                <div class="col-span-12 flex flex-col gap-3">
+                                    <div class="flex flex-col gap-1">
+                                        <p class="m-0 text-sm font-medium text-surface-700 dark:text-surface-200">Modo de acceso <span class="text-rose-500">*</span></p>
+                                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Define si la persona activará su cuenta por correo o si dejarás lista una contraseña desde la plataforma.</p>
+                                    </div>
+
+                                    <div class="grid gap-3 md:grid-cols-2">
+                                        <button
+                                            type="button"
+                                            class="rounded-[0.75rem] border px-4 py-3 text-left transition"
+                                            [class.border-sky-500]="staffForm.sendInvitation"
+                                            [class.bg-sky-50]="staffForm.sendInvitation"
+                                            [class.text-sky-900]="staffForm.sendInvitation"
+                                            [class.border-slate-200]="!staffForm.sendInvitation"
+                                            [class.bg-white]="!staffForm.sendInvitation"
+                                            [class.text-surface-900]="!staffForm.sendInvitation"
+                                            (click)="setStaffAccessMode(true)"
+                                        >
+                                            <span class="block text-sm font-semibold">Enviar invitación</span>
+                                            <span class="mt-1 block text-sm leading-6 text-slate-500 dark:text-slate-400">La persona recibirá un correo para activar su acceso.</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="rounded-[0.75rem] border px-4 py-3 text-left transition"
+                                            [class.border-sky-500]="!staffForm.sendInvitation"
+                                            [class.bg-sky-50]="!staffForm.sendInvitation"
+                                            [class.text-sky-900]="!staffForm.sendInvitation"
+                                            [class.border-slate-200]="staffForm.sendInvitation"
+                                            [class.bg-white]="staffForm.sendInvitation"
+                                            [class.text-surface-900]="staffForm.sendInvitation"
+                                            (click)="setStaffAccessMode(false)"
+                                        >
+                                            <span class="block text-sm font-semibold">Crear contraseña manualmente</span>
+                                            <span class="mt-1 block text-sm leading-6 text-slate-500 dark:text-slate-400">Dejarás lista la contraseña inicial desde la plataforma.</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                @if (!staffForm.sendInvitation) {
+                                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                        <label for="staffPassword" class="text-sm font-medium text-surface-700 dark:text-surface-200">Contraseña <span class="text-rose-500">*</span></label>
+                                        <input pInputText id="staffPassword" type="password" [(ngModel)]="staffForm.password" placeholder="Mínimo 8 caracteres" class="w-full" />
+                                        @if (showStaffError('password')) {
+                                            <p-message severity="error" size="small">Ingresa una contraseña válida.</p-message>
+                                        }
+                                    </div>
+
+                                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                        <label for="staffPasswordConfirmation" class="text-sm font-medium text-surface-700 dark:text-surface-200">Confirmar contraseña <span class="text-rose-500">*</span></label>
+                                        <input pInputText id="staffPasswordConfirmation" type="password" [(ngModel)]="staffForm.passwordConfirmation" placeholder="Confirma la contraseña" class="w-full" />
+                                        @if (showStaffError('passwordConfirmation')) {
+                                            <p-message severity="error" size="small">Las contraseñas deben coincidir.</p-message>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <ng-template pTemplate="footer">
+                        <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetStaffDialog()" />
+                                <p-button label="Crear miembro del staff" styleClass="w-full sm:w-auto" (onClick)="saveStaff()" />
+                            </div>
+                        </div>
+                    </ng-template>
+                </p-dialog>
             }
         </div>
     `
@@ -885,7 +1097,7 @@ export class AcademyProfilePage {
     };
 
     submitted = false;
-    activeTab: 'information' | 'venues' | 'categories' | 'teams' = 'information';
+    activeTab: 'information' | 'venues' | 'categories' | 'teams' | 'staff' = 'information';
     academy: AcademyProfile | null;
     form: AcademyProfile;
     shieldFileName = 'Sin imagen seleccionada';
@@ -919,6 +1131,11 @@ export class AcademyProfilePage {
     teamStaffSubmitted = false;
     editingTeamStaffAssignmentId: string | null = null;
     teamStaffForm: AcademyTeamStaffForm = this.emptyTeamStaffForm();
+    selectedStaffMember: AcademyStaffMember | null = null;
+    staffSearch = '';
+    staffSubmitted = false;
+    staffDialogVisible = false;
+    staffForm: AcademyStaffForm = this.emptyStaffForm();
     venues: AcademyVenue[] = [
         {
             id: 'venue-001',
@@ -1076,6 +1293,8 @@ export class AcademyProfilePage {
             userId: 'user-201',
             fullName: 'Juan Pérez',
             email: 'juan.perez@academia.com',
+            role: 'ROLE_COACH',
+            accessMode: 'PASSWORD',
             status: 'ACTIVE'
         },
         {
@@ -1083,6 +1302,8 @@ export class AcademyProfilePage {
             userId: 'user-202',
             fullName: 'María Gómez',
             email: 'maria.gomez@academia.com',
+            role: 'ROLE_COACH',
+            accessMode: 'PASSWORD',
             status: 'ACTIVE'
         },
         {
@@ -1090,14 +1311,27 @@ export class AcademyProfilePage {
             userId: 'user-203',
             fullName: 'Carlos Rojas',
             email: 'carlos.rojas@academia.com',
-            status: 'ACTIVE'
+            role: 'ROLE_ACADEMY_ADMIN',
+            accessMode: 'INVITATION',
+            status: 'PENDING_ACTIVATION'
         },
         {
             id: 'staff-004',
             userId: 'user-204',
             fullName: 'Sandra León',
             email: 'sandra.leon@academia.com',
+            role: 'ROLE_COACH',
+            accessMode: 'PASSWORD',
             status: 'ACTIVE'
+        },
+        {
+            id: 'staff-005',
+            userId: 'user-205',
+            fullName: 'Felipe Castro',
+            email: 'felipe.castro@academia.com',
+            role: 'ROLE_ACADEMY_ADMIN',
+            accessMode: 'PASSWORD',
+            status: 'INACTIVE'
         }
     ];
     teamStaffAssignments: AcademyTeamStaffAssignment[] = [
@@ -1180,6 +1414,11 @@ export class AcademyProfilePage {
         { label: 'Nutricionista', value: 'NUTRITIONIST' },
         { label: 'Fisioterapia', value: 'PHYSIOTHERAPIST' }
     ];
+    systemRoleOptions: { label: string; value: AcademyStaffMember['role'] }[] = [
+        { label: 'Administrador de academia', value: 'ROLE_ACADEMY_ADMIN' },
+        { label: 'Entrenador', value: 'ROLE_COACH' }
+    ];
+    staffActionItems: MenuItem[] = [];
 
     constructor(
         private readonly academyService: AcademyProfileService,
@@ -1234,6 +1473,15 @@ export class AcademyProfilePage {
         }
 
         return this.teams.filter((team) => [team.name, team.categoryName].some((value) => value.toLowerCase().includes(query)));
+    }
+
+    get filteredStaffMembers(): AcademyStaffMember[] {
+        const query = this.staffSearch.trim().toLowerCase();
+        if (!query) {
+            return this.staffMembers;
+        }
+
+        return this.staffMembers.filter((staff) => [staff.fullName, staff.email, this.getSystemRoleLabel(staff.role)].some((value) => value.toLowerCase().includes(query)));
     }
 
     get activeCategoryOptions(): Pick<AcademyCategory, 'id' | 'name'>[] {
@@ -1440,6 +1688,37 @@ export class AcademyProfilePage {
         menu.toggle(event);
     }
 
+    openStaffActionsMenu(event: Event, menu: Menu, staff: AcademyStaffMember) {
+        this.selectedStaffMember = staff;
+        this.staffActionItems = [
+            {
+                label: 'Ir a equipos',
+                icon: 'pi pi-users',
+                command: () => {
+                    this.activeTab = 'teams';
+                    this.messageService.add({
+                        severity: 'info',
+                        summary: 'Continúa desde equipos',
+                        detail: `Ahora puedes asignar a ${staff.fullName} desde el detalle del equipo que corresponda.`
+                    });
+                }
+            },
+            {
+                label: staff.accessMode === 'INVITATION' ? 'Acceso por invitación' : 'Acceso con contraseña',
+                icon: staff.accessMode === 'INVITATION' ? 'pi pi-envelope' : 'pi pi-key',
+                command: () => {
+                    this.messageService.add({
+                        severity: 'info',
+                        summary: 'Modo de acceso',
+                        detail: staff.accessMode === 'INVITATION' ? 'Este integrante activará su cuenta por correo.' : 'Este integrante quedó con contraseña creada desde la plataforma.'
+                    });
+                }
+            }
+        ];
+
+        menu.toggle(event);
+    }
+
     removeShield() {
         this.shieldPreviewUrl = null;
         this.shieldFileName = 'Sin imagen seleccionada';
@@ -1543,6 +1822,27 @@ export class AcademyProfilePage {
         this.teamStaffDialogMode = 'create';
         this.teamStaffForm = this.emptyTeamStaffForm();
         this.selectedTeamStaffAssignment = null;
+    }
+
+    openStaffDialog() {
+        this.staffSubmitted = false;
+        this.staffForm = this.emptyStaffForm();
+        this.staffDialogVisible = true;
+    }
+
+    resetStaffDialog() {
+        this.staffDialogVisible = false;
+        this.staffSubmitted = false;
+        this.staffForm = this.emptyStaffForm();
+        this.selectedStaffMember = null;
+    }
+
+    setStaffAccessMode(sendInvitation: boolean) {
+        this.staffForm.sendInvitation = sendInvitation;
+        if (sendInvitation) {
+            this.staffForm.password = '';
+            this.staffForm.passwordConfirmation = '';
+        }
     }
 
     saveVenue() {
@@ -1785,6 +2085,45 @@ export class AcademyProfilePage {
         this.resetTeamStaffDialog();
     }
 
+    saveStaff() {
+        this.staffSubmitted = true;
+
+        if (!this.isStaffFormValid()) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Revisa el staff',
+                detail: 'Completa correctamente los campos obligatorios antes de guardar.'
+            });
+            return;
+        }
+
+        const accessMode: AcademyStaffMember['accessMode'] = this.staffForm.sendInvitation ? 'INVITATION' : 'PASSWORD';
+        const status: AcademyStaffMember['status'] = this.staffForm.sendInvitation ? 'PENDING_ACTIVATION' : 'ACTIVE';
+        const trimmedName = this.staffForm.fullName.trim();
+        const normalizedEmail = this.staffForm.email.trim().toLowerCase();
+
+        this.staffMembers = [
+            {
+                id: `staff-${Date.now()}`,
+                userId: `user-${Date.now()}`,
+                fullName: trimmedName,
+                email: normalizedEmail,
+                role: this.staffForm.role as AcademyStaffMember['role'],
+                accessMode,
+                status
+            },
+            ...this.staffMembers
+        ];
+
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Staff creado',
+            detail: accessMode === 'INVITATION' ? 'El alta quedó lista en modo INVITATION.' : 'El alta quedó lista en modo PASSWORD.'
+        });
+
+        this.resetStaffDialog();
+    }
+
     toggleVenueStatus(venue: AcademyVenue) {
         const nextStatus = venue.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
         this.venues = this.venues.map((item) => (item.id === venue.id ? { ...item, status: nextStatus } : item));
@@ -1844,6 +2183,10 @@ export class AcademyProfilePage {
         return this.teamStaffSubmitted && !this.isTeamStaffFieldValid(field);
     }
 
+    showStaffError(field: keyof AcademyStaffForm): boolean {
+        return this.staffSubmitted && !this.isStaffFieldValid(field);
+    }
+
     onVenueNameInput(event: Event) {
         this.venueForm.name = this.sanitizeNameInput((event.target as HTMLInputElement).value);
     }
@@ -1870,6 +2213,14 @@ export class AcademyProfilePage {
 
     onTeamNameInput(event: Event) {
         this.teamForm.name = this.sanitizeNameInput((event.target as HTMLInputElement).value);
+    }
+
+    onStaffNameInput(event: Event) {
+        this.staffForm.fullName = this.sanitizeNameInput((event.target as HTMLInputElement).value);
+    }
+
+    onStaffEmailInput(event: Event) {
+        this.staffForm.email = this.sanitizeEmailInput((event.target as HTMLInputElement).value);
     }
 
     showError(field: string): boolean {
@@ -1972,6 +2323,15 @@ export class AcademyProfilePage {
         return ['staffId', 'role'].every((field) => this.isTeamStaffFieldValid(field as keyof AcademyTeamStaffForm));
     }
 
+    private isStaffFormValid(): boolean {
+        const requiredFields: (keyof AcademyStaffForm)[] = ['fullName', 'email', 'role'];
+        if (!this.staffForm.sendInvitation) {
+            requiredFields.push('password', 'passwordConfirmation');
+        }
+
+        return requiredFields.every((field) => this.isStaffFieldValid(field));
+    }
+
     private isFieldValid(field: string): boolean {
         switch (field) {
             case 'name':
@@ -2043,6 +2403,24 @@ export class AcademyProfilePage {
                 return !!this.teamStaffForm.staffId;
             case 'role':
                 return !!this.teamStaffForm.role;
+            default:
+                return true;
+        }
+    }
+
+    private isStaffFieldValid(field: keyof AcademyStaffForm): boolean {
+        switch (field) {
+            case 'fullName':
+                return this.hasValidText(this.staffForm.fullName, 2);
+            case 'email':
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.staffForm.email.trim()) && !this.isDuplicateStaffEmail(this.staffForm.email);
+            case 'role':
+                return !!this.staffForm.role;
+            case 'password':
+                return this.staffForm.sendInvitation || this.staffForm.password.trim().length >= 8;
+            case 'passwordConfirmation':
+                return this.staffForm.sendInvitation || (!!this.staffForm.passwordConfirmation.trim() && this.staffForm.password === this.staffForm.passwordConfirmation);
+            case 'sendInvitation':
             default:
                 return true;
         }
@@ -2149,6 +2527,15 @@ export class AcademyProfilePage {
             .replace(/^-+|-+$/g, '');
     }
 
+    private isDuplicateStaffEmail(email: string): boolean {
+        const normalizedEmail = email.trim().toLowerCase();
+        if (!normalizedEmail) {
+            return false;
+        }
+
+        return this.staffMembers.some((staff) => staff.email.trim().toLowerCase() === normalizedEmail);
+    }
+
     getCategoryAgeRangeLabel(category: AcademyCategory): string {
         return `${category.minAge} a ${category.maxAge} años`;
     }
@@ -2211,6 +2598,53 @@ export class AcademyProfilePage {
                 return 'Fisioterapia';
             default:
                 return role;
+        }
+    }
+
+    getSystemRoleLabel(role: AcademyStaffMember['role']): string {
+        switch (role) {
+            case 'ROLE_ACADEMY_ADMIN':
+                return 'Administrador de academia';
+            case 'ROLE_COACH':
+                return 'Entrenador';
+            default:
+                return role;
+        }
+    }
+
+    getStaffAccessModeLabel(accessMode: AcademyStaffMember['accessMode']): string {
+        switch (accessMode) {
+            case 'INVITATION':
+                return 'Invitación';
+            case 'PASSWORD':
+                return 'Contraseña';
+            default:
+                return accessMode;
+        }
+    }
+
+    getStaffStatusLabel(status: AcademyStaffMember['status']): string {
+        switch (status) {
+            case 'ACTIVE':
+                return 'Activo';
+            case 'PENDING_ACTIVATION':
+                return 'Pendiente';
+            case 'INACTIVE':
+                return 'Inactivo';
+            default:
+                return status;
+        }
+    }
+
+    getStaffStatusSeverity(status: AcademyStaffMember['status']): 'success' | 'warn' | 'danger' {
+        switch (status) {
+            case 'ACTIVE':
+                return 'success';
+            case 'PENDING_ACTIVATION':
+                return 'warn';
+            case 'INACTIVE':
+            default:
+                return 'danger';
         }
     }
 
@@ -2302,6 +2736,17 @@ export class AcademyProfilePage {
         return {
             staffId: '',
             role: ''
+        };
+    }
+
+    private emptyStaffForm(): AcademyStaffForm {
+        return {
+            fullName: '',
+            email: '',
+            role: '',
+            sendInvitation: true,
+            password: '',
+            passwordConfirmation: ''
         };
     }
 }
