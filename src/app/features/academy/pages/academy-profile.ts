@@ -10,6 +10,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MenuModule } from 'primeng/menu';
 import { MessageModule } from 'primeng/message';
+import { RadioButtonModule } from 'primeng/radiobutton';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
@@ -119,7 +120,7 @@ interface AcademyTeamStaffForm {
 @Component({
     selector: 'app-academy-profile-page',
     standalone: true,
-    imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, ImageCropperComponent, InputIconModule, InputTextModule, MenuModule, MessageModule, PageHeader, RouterModule, SelectModule, TableModule, TabsModule, TagModule, TextareaModule, ToastModule, TooltipModule],
+    imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, ImageCropperComponent, InputIconModule, InputTextModule, MenuModule, MessageModule, PageHeader, RadioButtonModule, RouterModule, SelectModule, TableModule, TabsModule, TagModule, TextareaModule, ToastModule, TooltipModule],
     providers: [MessageService],
     template: `
         <p-toast />
@@ -142,7 +143,11 @@ interface AcademyTeamStaffForm {
                     <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Este usuario no tiene una academia vinculada. Este panel aplica para owner o administrador de academia.</p>
                 </div>
             } @else {
-                <div class="form-width-2col mx-auto mt-4 w-full space-y-3 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+                <div
+                    class="mx-auto mt-4 w-full space-y-3 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"
+                    [class.content-width-compact]="activeTab === 'information' || activeTab === 'venues' || activeTab === 'categories' || activeTab === 'teams'"
+                    [class.content-width-full]="activeTab === 'staff'"
+                >
                     <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                         <p-tabs [value]="activeTab">
                             <p-tablist class="overflow-x-auto">
@@ -567,7 +572,7 @@ interface AcademyTeamStaffForm {
                                                     <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Registra entrenadores y administradores deportivos con acceso a la plataforma antes de asignarlos a equipos.</p>
                                                 </div>
                                                 <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-                                                    <p-button label="Nuevo miembro del staff" icon="pi pi-plus" styleClass="w-full sm:w-auto" (onClick)="openStaffDialog()" />
+                                                    <p-button label="Agregar staff" icon="pi pi-plus" styleClass="w-full sm:w-auto" (onClick)="openStaffDialog()" />
                                                 </div>
                                             </div>
                                         </div>
@@ -690,7 +695,7 @@ interface AcademyTeamStaffForm {
                         <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
                             <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                                 <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetVenueDialog()" />
-                                <p-button [label]="venueDialogMode === 'create' ? 'Guardar sede' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveVenue()" />
+                                <p-button [label]="venueDialogMode === 'create' ? 'Crear sede' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveVenue()" />
                             </div>
                         </div>
                     </ng-template>
@@ -747,7 +752,7 @@ interface AcademyTeamStaffForm {
                         <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
                             <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                                 <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetCategoryDialog()" />
-                                <p-button [label]="categoryDialogMode === 'create' ? 'Guardar categoría' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveCategory()" />
+                                <p-button [label]="categoryDialogMode === 'create' ? 'Crear categoría' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveCategory()" />
                             </div>
                         </div>
                     </ng-template>
@@ -865,7 +870,7 @@ interface AcademyTeamStaffForm {
                         <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
                             <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                                 <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetTeamDialog()" />
-                                <p-button [label]="teamDialogMode === 'create' ? 'Guardar equipo' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveTeam()" />
+                                <p-button [label]="teamDialogMode === 'create' ? 'Crear equipo' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveTeam()" />
                             </div>
                         </div>
                     </ng-template>
@@ -933,7 +938,7 @@ interface AcademyTeamStaffForm {
                         <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
                             <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                                 <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetTeamStaffDialog()" />
-                                <p-button [label]="teamStaffDialogMode === 'create' ? 'Guardar integrante' : 'Guardar rol'" styleClass="w-full sm:w-auto" (onClick)="saveTeamStaffAssignment()" />
+                                <p-button [label]="teamStaffDialogMode === 'create' ? 'Asignar integrante' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveTeamStaffAssignment()" />
                             </div>
                         </div>
                     </ng-template>
@@ -946,7 +951,7 @@ interface AcademyTeamStaffForm {
                     [resizable]="false"
                     [style]="{ width: '38rem' }"
                     [breakpoints]="{ '960px': '42rem', '640px': '96vw' }"
-                    header="Nuevo miembro del staff"
+                    header="Nuevo staff"
                     (onHide)="resetStaffDialog()"
                 >
                     <div class="space-y-4">
@@ -985,35 +990,39 @@ interface AcademyTeamStaffForm {
                                     </div>
 
                                     <div class="grid gap-3 md:grid-cols-2">
-                                        <button
-                                            type="button"
-                                            class="rounded-[0.75rem] border px-4 py-3 text-left transition"
+                                        <label
+                                            class="flex cursor-pointer items-start gap-3 rounded-[0.75rem] border px-4 py-3 transition"
                                             [class.border-sky-500]="staffForm.sendInvitation"
                                             [class.bg-sky-50]="staffForm.sendInvitation"
-                                            [class.text-sky-900]="staffForm.sendInvitation"
                                             [class.border-slate-200]="!staffForm.sendInvitation"
                                             [class.bg-white]="!staffForm.sendInvitation"
-                                            [class.text-surface-900]="!staffForm.sendInvitation"
-                                            (click)="setStaffAccessMode(true)"
                                         >
-                                            <span class="block text-sm font-semibold">Enviar invitación</span>
-                                            <span class="mt-1 block text-sm leading-6 text-slate-500 dark:text-slate-400">La persona recibirá un correo para activar su acceso.</span>
-                                        </button>
+                                            <p-radiobutton [(ngModel)]="staffForm.sendInvitation" [value]="true" inputId="staffInvitationMode" />
+                                            <span class="min-w-0">
+                                                <span class="flex items-center gap-2 text-sm font-semibold text-surface-900 dark:text-surface-0">
+                                                    Invitación por correo
+                                                    <i class="pi pi-info-circle text-xs text-slate-400" pTooltip="El sistema enviará un correo para que la persona active su acceso." tooltipPosition="top"></i>
+                                                </span>
+                                                <span class="mt-1 block text-sm leading-6 text-slate-500 dark:text-slate-400">La persona define su acceso desde el enlace recibido.</span>
+                                            </span>
+                                        </label>
 
-                                        <button
-                                            type="button"
-                                            class="rounded-[0.75rem] border px-4 py-3 text-left transition"
+                                        <label
+                                            class="flex cursor-pointer items-start gap-3 rounded-[0.75rem] border px-4 py-3 transition"
                                             [class.border-sky-500]="!staffForm.sendInvitation"
                                             [class.bg-sky-50]="!staffForm.sendInvitation"
-                                            [class.text-sky-900]="!staffForm.sendInvitation"
                                             [class.border-slate-200]="staffForm.sendInvitation"
                                             [class.bg-white]="staffForm.sendInvitation"
-                                            [class.text-surface-900]="staffForm.sendInvitation"
-                                            (click)="setStaffAccessMode(false)"
                                         >
-                                            <span class="block text-sm font-semibold">Crear contraseña manualmente</span>
-                                            <span class="mt-1 block text-sm leading-6 text-slate-500 dark:text-slate-400">Dejarás lista la contraseña inicial desde la plataforma.</span>
-                                        </button>
+                                            <p-radiobutton [(ngModel)]="staffForm.sendInvitation" [value]="false" inputId="staffPasswordMode" />
+                                            <span class="min-w-0">
+                                                <span class="flex items-center gap-2 text-sm font-semibold text-surface-900 dark:text-surface-0">
+                                                    Contraseña manual
+                                                    <i class="pi pi-info-circle text-xs text-slate-400" pTooltip="La cuenta queda creada con una contraseña inicial definida desde la plataforma." tooltipPosition="top"></i>
+                                                </span>
+                                                <span class="mt-1 block text-sm leading-6 text-slate-500 dark:text-slate-400">La cuenta queda lista al guardar este formulario.</span>
+                                            </span>
+                                        </label>
                                     </div>
                                 </div>
 
@@ -1042,7 +1051,7 @@ interface AcademyTeamStaffForm {
                         <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
                             <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                                 <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetStaffDialog()" />
-                                <p-button label="Crear miembro del staff" styleClass="w-full sm:w-auto" (onClick)="saveStaff()" />
+                                <p-button label="Crear miembro" styleClass="w-full sm:w-auto" (onClick)="saveStaff()" />
                             </div>
                         </div>
                     </ng-template>

@@ -4,6 +4,10 @@ Este índice organiza las épicas y historias de usuario del frontend de PlayerT
 
 El backlog frontend refleja los flujos visibles para el usuario a partir de las épicas y HUs ya trabajadas en el backend.
 
+Convención visual vigente:
+
+* `docs/backlog/frontend/01-layout-width-conventions.md`
+
 ---
 
 # Criterio de Mapeo
