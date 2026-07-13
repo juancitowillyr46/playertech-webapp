@@ -96,6 +96,7 @@ interface AcademyStaffForm {
     fullName: string;
     email: string;
     role: AcademyStaffMember['role'] | '';
+    status: AcademyStaffMember['status'];
     sendInvitation: boolean;
     password: string;
     passwordConfirmation: string;
@@ -604,7 +605,6 @@ interface AcademyTeamStaffForm {
                                                         <th>Nombre</th>
                                                         <th>Correo</th>
                                                         <th>Rol del sistema</th>
-                                                        <th>Acceso</th>
                                                         <th>Estado</th>
                                                         <th class="text-right">Acciones</th>
                                                     </tr>
@@ -621,13 +621,10 @@ interface AcademyTeamStaffForm {
                                                             <span class="text-surface-900 dark:text-surface-0">{{ getSystemRoleLabel(staff.role) }}</span>
                                                         </td>
                                                         <td>
-                                                            <p-tag [value]="getStaffAccessModeLabel(staff.accessMode)" severity="info" />
-                                                        </td>
-                                                        <td>
                                                             <p-tag [value]="getStaffStatusLabel(staff.status)" [severity]="getStaffStatusSeverity(staff.status)" />
                                                         </td>
                                                         <td>
-                                                            <div class="flex justify-end">
+                                                            <div class="flex justify-end gap-2">
                                                                 <p-menu #staffActionsMenu [popup]="true" appendTo="body" [model]="staffActionItems"></p-menu>
                                                                 <p-button icon="pi pi-ellipsis-h" [text]="true" rounded severity="secondary" (onClick)="openStaffActionsMenu($event, staffActionsMenu, staff)" />
                                                             </div>
@@ -636,7 +633,7 @@ interface AcademyTeamStaffForm {
                                                 </ng-template>
                                                 <ng-template pTemplate="emptymessage">
                                                     <tr>
-                                                        <td colspan="6" class="py-10 text-center">
+                                                        <td colspan="5" class="py-10 text-center">
                                                             <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                                                                 <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay staff registrado</span>
                                                                 <span>Crea el primer miembro del staff para luego asignarlo a uno o varios equipos.</span>
@@ -808,10 +805,9 @@ interface AcademyTeamStaffForm {
                                         <div class="space-y-1.5">
                                             <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Cuerpo técnico</p>
                                             <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Asigna y organiza las personas que acompañan la operación técnica de este equipo.</p>
-                                            <p class="m-0 text-xs text-slate-400 dark:text-slate-500">{{ selectedTeamStaffAssignments.length }} integrante(s) registrados en esta iteración.</p>
                                         </div>
                                         <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-                                            <p-button label="Asignar integrante" icon="pi pi-plus" severity="secondary" [outlined]="true" styleClass="w-full sm:w-auto" (onClick)="openTeamStaffDialog()" />
+                                            <p-button label="Asignar" icon="pi pi-plus" severity="secondary" [outlined]="true" styleClass="w-full sm:w-auto" (onClick)="openTeamStaffDialog()" />
                                         </div>
                                     </div>
                                 </div>
@@ -883,7 +879,7 @@ interface AcademyTeamStaffForm {
                     [resizable]="false"
                     [style]="{ width: '34rem' }"
                     [breakpoints]="{ '960px': '42rem', '640px': '96vw' }"
-                    [header]="teamStaffDialogMode === 'create' ? 'Asignar integrante' : 'Editar rol técnico'"
+                    [header]="teamStaffDialogMode === 'create' ? 'Asignar staff' : 'Editar rol técnico'"
                     (onHide)="resetTeamStaffDialog()"
                 >
                     <div class="space-y-3">
@@ -938,7 +934,7 @@ interface AcademyTeamStaffForm {
                         <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
                             <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                                 <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetTeamStaffDialog()" />
-                                <p-button [label]="teamStaffDialogMode === 'create' ? 'Asignar integrante' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveTeamStaffAssignment()" />
+                                <p-button [label]="teamStaffDialogMode === 'create' ? 'Asignar' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveTeamStaffAssignment()" />
                             </div>
                         </div>
                     </ng-template>
@@ -951,11 +947,17 @@ interface AcademyTeamStaffForm {
                     [resizable]="false"
                     [style]="{ width: '38rem' }"
                     [breakpoints]="{ '960px': '42rem', '640px': '96vw' }"
-                    header="Nuevo staff"
+                    [header]="staffDialogMode === 'create' ? 'Nuevo staff' : 'Editar staff'"
                     (onHide)="resetStaffDialog()"
                 >
                     <div class="space-y-4">
-                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Registra el acceso de un nuevo integrante y luego asígnalo a equipos desde el módulo de equipos.</p>
+                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                            @if (staffDialogMode === 'create') {
+                                Registra un nuevo integrante del staff y deja listo su acceso a la plataforma.
+                            } @else {
+                                Actualiza los datos del integrante y gestiona su acceso desde un solo lugar.
+                            }
+                        </p>
 
                         <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900 sm:p-4">
                             <div class="grid grid-cols-12 gap-4">
@@ -983,10 +985,17 @@ interface AcademyTeamStaffForm {
                                     }
                                 </div>
 
+                                @if (staffDialogMode === 'edit') {
+                                    <div class="col-span-12 flex flex-col gap-2">
+                                        <label for="staffStatus" class="text-sm font-medium text-surface-700 dark:text-surface-200">Estado de acceso <span class="text-rose-500">*</span></label>
+                                        <p-select id="staffStatus" [(ngModel)]="staffForm.status" [options]="staffStatusOptions" optionLabel="label" optionValue="value" class="w-full" />
+                                    </div>
+                                }
+
                                 <div class="col-span-12 flex flex-col gap-3">
                                     <div class="flex flex-col gap-1">
                                         <p class="m-0 text-sm font-medium text-surface-700 dark:text-surface-200">Modo de acceso <span class="text-rose-500">*</span></p>
-                                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Define si la persona activará su cuenta por correo o si dejarás lista una contraseña desde la plataforma.</p>
+                                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Define cómo se entregará el acceso inicial.</p>
                                     </div>
 
                                     <div class="grid gap-3 md:grid-cols-2">
@@ -1003,7 +1012,6 @@ interface AcademyTeamStaffForm {
                                                     Invitación por correo
                                                     <i class="pi pi-info-circle text-xs text-slate-400" pTooltip="El sistema enviará un correo para que la persona active su acceso." tooltipPosition="top"></i>
                                                 </span>
-                                                <span class="mt-1 block text-sm leading-6 text-slate-500 dark:text-slate-400">La persona define su acceso desde el enlace recibido.</span>
                                             </span>
                                         </label>
 
@@ -1020,13 +1028,12 @@ interface AcademyTeamStaffForm {
                                                     Contraseña manual
                                                     <i class="pi pi-info-circle text-xs text-slate-400" pTooltip="La cuenta queda creada con una contraseña inicial definida desde la plataforma." tooltipPosition="top"></i>
                                                 </span>
-                                                <span class="mt-1 block text-sm leading-6 text-slate-500 dark:text-slate-400">La cuenta queda lista al guardar este formulario.</span>
                                             </span>
                                         </label>
                                     </div>
                                 </div>
 
-                                @if (!staffForm.sendInvitation) {
+                                @if (shouldShowStaffPasswordFields()) {
                                     <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                         <label for="staffPassword" class="text-sm font-medium text-surface-700 dark:text-surface-200">Contraseña <span class="text-rose-500">*</span></label>
                                         <input pInputText id="staffPassword" type="password" [(ngModel)]="staffForm.password" placeholder="Mínimo 8 caracteres" class="w-full" />
@@ -1045,13 +1052,27 @@ interface AcademyTeamStaffForm {
                                 }
                             </div>
                         </div>
+
+                        @if (staffDialogMode === 'edit' && selectedStaffMember && selectedStaffMember.accessMode === 'INVITATION' && selectedStaffMember.status === 'PENDING_ACTIVATION') {
+                            <div class="rounded-[0.75rem] border border-slate-200 bg-slate-50 p-3 dark:border-surface-700 dark:bg-surface-900/60 sm:p-4">
+                                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                        <p class="m-0 text-sm font-semibold text-surface-900 dark:text-surface-0">Invitación pendiente</p>
+                                        <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Puedes reenviar el correo de activación si la persona todavía no completa su acceso.</p>
+                                    </div>
+                                    <div class="flex flex-wrap gap-2">
+                                        <p-button label="Reenviar invitación" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resendStaffInvitation(selectedStaffMember!)" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     </div>
 
                     <ng-template pTemplate="footer">
                         <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
                             <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                                 <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetStaffDialog()" />
-                                <p-button label="Crear miembro" styleClass="w-full sm:w-auto" (onClick)="saveStaff()" />
+                                <p-button [label]="staffDialogMode === 'create' ? 'Crear miembro' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveStaff()" />
                             </div>
                         </div>
                     </ng-template>
@@ -1144,6 +1165,8 @@ export class AcademyProfilePage {
     staffSearch = '';
     staffSubmitted = false;
     staffDialogVisible = false;
+    staffDialogMode: 'create' | 'edit' = 'create';
+    editingStaffId: string | null = null;
     staffForm: AcademyStaffForm = this.emptyStaffForm();
     venues: AcademyVenue[] = [
         {
@@ -1241,7 +1264,7 @@ export class AcademyProfilePage {
     ];
     categoryActionItems: MenuItem[] = [
         {
-            label: 'Editar categoría',
+            label: 'Editar',
             icon: 'pi pi-pencil',
             command: () => {
                 if (this.selectedCategory) {
@@ -1377,7 +1400,7 @@ export class AcademyProfilePage {
     ];
     teamActionItems: MenuItem[] = [
         {
-            label: 'Editar equipo',
+            label: 'Editar',
             icon: 'pi pi-pencil',
             command: () => {
                 if (this.selectedTeam) {
@@ -1426,6 +1449,11 @@ export class AcademyProfilePage {
     systemRoleOptions: { label: string; value: AcademyStaffMember['role'] }[] = [
         { label: 'Administrador de academia', value: 'ROLE_ACADEMY_ADMIN' },
         { label: 'Entrenador', value: 'ROLE_COACH' }
+    ];
+    staffStatusOptions: { label: string; value: AcademyStaffMember['status'] }[] = [
+        { label: 'Activo', value: 'ACTIVE' },
+        { label: 'Inactivo', value: 'INACTIVE' },
+        { label: 'Pendiente de activación', value: 'PENDING_ACTIVATION' }
     ];
     staffActionItems: MenuItem[] = [];
 
@@ -1597,7 +1625,7 @@ export class AcademyProfilePage {
         this.selectedVenue = venue;
         this.venueActionItems = [
             {
-                label: 'Editar sede',
+                label: 'Editar',
                 icon: 'pi pi-pencil',
                 command: () => {
                     if (this.selectedVenue) {
@@ -1606,8 +1634,8 @@ export class AcademyProfilePage {
                 }
             },
             {
-                label: venue.status === 'ACTIVE' ? 'Marcar como inactiva' : 'Marcar como activa',
-                icon: venue.status === 'ACTIVE' ? 'pi pi-pause' : 'pi pi-play',
+                label: venue.status === 'ACTIVE' ? 'Desactivar' : 'Reactivar',
+                icon: venue.status === 'ACTIVE' ? 'pi pi-ban' : 'pi pi-refresh',
                 command: () => {
                     if (this.selectedVenue) {
                         this.toggleVenueStatus(this.selectedVenue);
@@ -1623,7 +1651,7 @@ export class AcademyProfilePage {
         this.selectedCategory = category;
         this.categoryActionItems = [
             {
-                label: 'Editar categoría',
+                label: 'Editar',
                 icon: 'pi pi-pencil',
                 command: () => {
                     if (this.selectedCategory) {
@@ -1632,8 +1660,8 @@ export class AcademyProfilePage {
                 }
             },
             {
-                label: category.status === 'ACTIVE' ? 'Marcar como inactiva' : 'Marcar como activa',
-                icon: category.status === 'ACTIVE' ? 'pi pi-pause' : 'pi pi-play',
+                label: category.status === 'ACTIVE' ? 'Desactivar' : 'Reactivar',
+                icon: category.status === 'ACTIVE' ? 'pi pi-ban' : 'pi pi-refresh',
                 command: () => {
                     if (this.selectedCategory) {
                         this.toggleCategoryStatus(this.selectedCategory);
@@ -1649,7 +1677,7 @@ export class AcademyProfilePage {
         this.selectedTeam = team;
         this.teamActionItems = [
             {
-                label: 'Editar equipo',
+                label: 'Editar',
                 icon: 'pi pi-pencil',
                 command: () => {
                     if (this.selectedTeam) {
@@ -1658,8 +1686,8 @@ export class AcademyProfilePage {
                 }
             },
             {
-                label: team.status === 'ACTIVE' ? 'Marcar como inactivo' : 'Marcar como activo',
-                icon: team.status === 'ACTIVE' ? 'pi pi-pause' : 'pi pi-play',
+                label: team.status === 'ACTIVE' ? 'Desactivar' : 'Reactivar',
+                icon: team.status === 'ACTIVE' ? 'pi pi-ban' : 'pi pi-refresh',
                 command: () => {
                     if (this.selectedTeam) {
                         this.toggleTeamStatus(this.selectedTeam);
@@ -1701,29 +1729,30 @@ export class AcademyProfilePage {
         this.selectedStaffMember = staff;
         this.staffActionItems = [
             {
-                label: 'Ir a equipos',
-                icon: 'pi pi-users',
+                label: 'Editar',
+                icon: 'pi pi-pencil',
                 command: () => {
-                    this.activeTab = 'teams';
-                    this.messageService.add({
-                        severity: 'info',
-                        summary: 'Continúa desde equipos',
-                        detail: `Ahora puedes asignar a ${staff.fullName} desde el detalle del equipo que corresponda.`
-                    });
+                    this.openStaffDialog(staff);
                 }
             },
             {
-                label: staff.accessMode === 'INVITATION' ? 'Acceso por invitación' : 'Acceso con contraseña',
-                icon: staff.accessMode === 'INVITATION' ? 'pi pi-envelope' : 'pi pi-key',
+                label: staff.status === 'ACTIVE' ? 'Desactivar' : 'Reactivar',
+                icon: staff.status === 'ACTIVE' ? 'pi pi-ban' : 'pi pi-refresh',
                 command: () => {
-                    this.messageService.add({
-                        severity: 'info',
-                        summary: 'Modo de acceso',
-                        detail: staff.accessMode === 'INVITATION' ? 'Este integrante activará su cuenta por correo.' : 'Este integrante quedó con contraseña creada desde la plataforma.'
-                    });
+                    this.toggleStaffStatus(staff);
                 }
             }
         ];
+
+        if (staff.accessMode === 'INVITATION' && staff.status === 'PENDING_ACTIVATION') {
+            this.staffActionItems.splice(2, 0, {
+                label: 'Reenviar invitación',
+                icon: 'pi pi-envelope',
+                command: () => {
+                    this.resendStaffInvitation(staff);
+                }
+            });
+        }
 
         menu.toggle(event);
     }
@@ -1833,15 +1862,30 @@ export class AcademyProfilePage {
         this.selectedTeamStaffAssignment = null;
     }
 
-    openStaffDialog() {
+    openStaffDialog(staff?: AcademyStaffMember) {
         this.staffSubmitted = false;
-        this.staffForm = this.emptyStaffForm();
+        this.staffDialogMode = staff ? 'edit' : 'create';
+        this.editingStaffId = staff?.id ?? null;
+        this.selectedStaffMember = staff ?? null;
+        this.staffForm = staff
+            ? {
+                  fullName: staff.fullName,
+                  email: staff.email,
+                  role: staff.role,
+                  status: staff.status,
+                  sendInvitation: staff.accessMode === 'INVITATION',
+                  password: '',
+                  passwordConfirmation: ''
+              }
+            : this.emptyStaffForm();
         this.staffDialogVisible = true;
     }
 
     resetStaffDialog() {
         this.staffDialogVisible = false;
         this.staffSubmitted = false;
+        this.staffDialogMode = 'create';
+        this.editingStaffId = null;
         this.staffForm = this.emptyStaffForm();
         this.selectedStaffMember = null;
     }
@@ -2107,30 +2151,81 @@ export class AcademyProfilePage {
         }
 
         const accessMode: AcademyStaffMember['accessMode'] = this.staffForm.sendInvitation ? 'INVITATION' : 'PASSWORD';
-        const status: AcademyStaffMember['status'] = this.staffForm.sendInvitation ? 'PENDING_ACTIVATION' : 'ACTIVE';
         const trimmedName = this.staffForm.fullName.trim();
         const normalizedEmail = this.staffForm.email.trim().toLowerCase();
 
-        this.staffMembers = [
-            {
-                id: `staff-${Date.now()}`,
-                userId: `user-${Date.now()}`,
-                fullName: trimmedName,
-                email: normalizedEmail,
-                role: this.staffForm.role as AcademyStaffMember['role'],
-                accessMode,
-                status
-            },
-            ...this.staffMembers
-        ];
+        if (this.staffDialogMode === 'create') {
+            const status: AcademyStaffMember['status'] = this.staffForm.sendInvitation ? 'PENDING_ACTIVATION' : 'ACTIVE';
 
-        this.messageService.add({
-            severity: 'success',
-            summary: 'Staff creado',
-            detail: accessMode === 'INVITATION' ? 'El alta quedó lista en modo INVITATION.' : 'El alta quedó lista en modo PASSWORD.'
-        });
+            this.staffMembers = [
+                {
+                    id: `staff-${Date.now()}`,
+                    userId: `user-${Date.now()}`,
+                    fullName: trimmedName,
+                    email: normalizedEmail,
+                    role: this.staffForm.role as AcademyStaffMember['role'],
+                    accessMode,
+                    status
+                },
+                ...this.staffMembers
+            ];
+
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Staff creado',
+                detail: accessMode === 'INVITATION' ? 'La invitación quedó lista para enviarse al nuevo integrante.' : 'El integrante quedó creado con acceso inicial desde la plataforma.'
+            });
+        } else if (this.editingStaffId) {
+            this.staffMembers = this.staffMembers.map((item) =>
+                item.id === this.editingStaffId
+                    ? {
+                          ...item,
+                          fullName: trimmedName,
+                          email: normalizedEmail,
+                          role: this.staffForm.role as AcademyStaffMember['role'],
+                          status: this.staffForm.status,
+                          accessMode
+                      }
+                    : item
+            );
+
+            this.teamStaffAssignments = this.teamStaffAssignments.map((assignment) =>
+                assignment.staffId === this.editingStaffId
+                    ? {
+                          ...assignment,
+                          fullName: trimmedName,
+                          email: normalizedEmail
+                      }
+                    : assignment
+            );
+
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Staff actualizado',
+                detail: 'Los cambios del integrante quedaron listos en esta iteración mock.'
+            });
+        }
 
         this.resetStaffDialog();
+    }
+
+    toggleStaffStatus(staff: AcademyStaffMember) {
+        const nextStatus: AcademyStaffMember['status'] = staff.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+        this.staffMembers = this.staffMembers.map((item) => (item.id === staff.id ? { ...item, status: nextStatus } : item));
+
+        this.messageService.add({
+            severity: 'info',
+            summary: nextStatus === 'ACTIVE' ? 'Staff reactivado' : 'Staff desactivado',
+            detail: nextStatus === 'ACTIVE' ? 'El integrante volvió a quedar disponible.' : 'El integrante dejó de tener acceso activo.'
+        });
+    }
+
+    resendStaffInvitation(staff: AcademyStaffMember) {
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Invitación reenviada',
+            detail: `La invitación de acceso para ${staff.fullName} quedó lista en esta iteración mock.`
+        });
     }
 
     toggleVenueStatus(venue: AcademyVenue) {
@@ -2334,7 +2429,10 @@ export class AcademyProfilePage {
 
     private isStaffFormValid(): boolean {
         const requiredFields: (keyof AcademyStaffForm)[] = ['fullName', 'email', 'role'];
-        if (!this.staffForm.sendInvitation) {
+        if (this.staffDialogMode === 'edit') {
+            requiredFields.push('status');
+        }
+        if (this.requiresStaffPasswordFields()) {
             requiredFields.push('password', 'passwordConfirmation');
         }
 
@@ -2425,14 +2523,36 @@ export class AcademyProfilePage {
                 return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.staffForm.email.trim()) && !this.isDuplicateStaffEmail(this.staffForm.email);
             case 'role':
                 return !!this.staffForm.role;
+            case 'status':
+                return ['ACTIVE', 'INACTIVE', 'PENDING_ACTIVATION'].includes(this.staffForm.status);
             case 'password':
-                return this.staffForm.sendInvitation || this.staffForm.password.trim().length >= 8;
+                return !this.requiresStaffPasswordFields() || this.staffForm.password.trim().length >= 8;
             case 'passwordConfirmation':
-                return this.staffForm.sendInvitation || (!!this.staffForm.passwordConfirmation.trim() && this.staffForm.password === this.staffForm.passwordConfirmation);
+                return !this.requiresStaffPasswordFields() || (!!this.staffForm.passwordConfirmation.trim() && this.staffForm.password === this.staffForm.passwordConfirmation);
             case 'sendInvitation':
             default:
                 return true;
         }
+    }
+
+    shouldShowStaffPasswordFields(): boolean {
+        return this.requiresStaffPasswordFields() || (!this.staffForm.sendInvitation && this.staffDialogMode === 'create');
+    }
+
+    private requiresStaffPasswordFields(): boolean {
+        if (this.staffForm.sendInvitation) {
+            return false;
+        }
+
+        if (this.staffDialogMode === 'create') {
+            return true;
+        }
+
+        if (this.selectedStaffMember?.accessMode === 'INVITATION') {
+            return true;
+        }
+
+        return !!this.staffForm.password.trim() || !!this.staffForm.passwordConfirmation.trim();
     }
 
     private hasValidText(value: string, minLength: number): boolean {
@@ -2542,7 +2662,7 @@ export class AcademyProfilePage {
             return false;
         }
 
-        return this.staffMembers.some((staff) => staff.email.trim().toLowerCase() === normalizedEmail);
+        return this.staffMembers.some((staff) => staff.id !== this.editingStaffId && staff.email.trim().toLowerCase() === normalizedEmail);
     }
 
     getCategoryAgeRangeLabel(category: AcademyCategory): string {
@@ -2637,7 +2757,7 @@ export class AcademyProfilePage {
             case 'ACTIVE':
                 return 'Activo';
             case 'PENDING_ACTIVATION':
-                return 'Pendiente';
+                return 'Pendiente de activación';
             case 'INACTIVE':
                 return 'Inactivo';
             default:
@@ -2753,6 +2873,7 @@ export class AcademyProfilePage {
             fullName: '',
             email: '',
             role: '',
+            status: 'PENDING_ACTIVATION',
             sendInvitation: true,
             password: '',
             passwordConfirmation: ''
