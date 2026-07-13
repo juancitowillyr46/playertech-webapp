@@ -5,6 +5,8 @@ import { RouterModule } from '@angular/router';
 import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MenuModule } from 'primeng/menu';
 import { MessageModule } from 'primeng/message';
@@ -14,6 +16,7 @@ import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { MockAuthService } from '@/app/core/auth/mock-auth.service';
 import { ImageCropperComponent, ImageCropperFileError, ImageCropperResult } from '@/app/shared/ui/image-cropper/image-cropper';
 import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
@@ -48,10 +51,64 @@ interface AcademyVenueForm {
     phone: string;
 }
 
+interface AcademyCategory {
+    id: string;
+    categoryKey: string;
+    name: string;
+    minAge: number;
+    maxAge: number;
+    description: string;
+    status: 'ACTIVE' | 'INACTIVE';
+}
+
+interface AcademyCategoryForm {
+    name: string;
+    minAge: string;
+    maxAge: string;
+    description: string;
+}
+
+interface AcademyTeam {
+    id: string;
+    name: string;
+    categoryId: string;
+    categoryName: string;
+    status: 'ACTIVE' | 'INACTIVE';
+}
+
+interface AcademyTeamForm {
+    name: string;
+    categoryId: string;
+}
+
+interface AcademyStaffMember {
+    id: string;
+    userId: string;
+    fullName: string;
+    email: string;
+    status: 'ACTIVE' | 'INACTIVE';
+}
+
+interface AcademyTeamStaffAssignment {
+    assignmentId: string;
+    staffId: string;
+    userId: string;
+    teamId: string;
+    fullName: string;
+    email: string;
+    role: 'HEAD_COACH' | 'ASSISTANT_COACH' | 'GOALKEEPER_COACH' | 'FITNESS_COACH' | 'NUTRITIONIST' | 'PHYSIOTHERAPIST';
+    status: 'ACTIVE' | 'INACTIVE';
+}
+
+interface AcademyTeamStaffForm {
+    staffId: string;
+    role: AcademyTeamStaffAssignment['role'] | '';
+}
+
 @Component({
     selector: 'app-academy-profile-page',
     standalone: true,
-    imports: [ButtonModule, CommonModule, DialogModule, FormsModule, ImageCropperComponent, InputTextModule, MenuModule, MessageModule, PageHeader, RouterModule, SelectModule, TableModule, TabsModule, TagModule, TextareaModule, ToastModule],
+    imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, ImageCropperComponent, InputIconModule, InputTextModule, MenuModule, MessageModule, PageHeader, RouterModule, SelectModule, TableModule, TabsModule, TagModule, TextareaModule, ToastModule, TooltipModule],
     providers: [MessageService],
     template: `
         <p-toast />
@@ -78,8 +135,30 @@ interface AcademyVenueForm {
                     <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                         <p-tabs [value]="activeTab">
                             <p-tablist class="overflow-x-auto">
-                                <p-tab value="information" (click)="activeTab = 'information'">Información</p-tab>
-                                <p-tab value="venues" (click)="activeTab = 'venues'">Sedes</p-tab>
+                                <p-tab value="information" (click)="activeTab = 'information'">
+                                    <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                                        <i class="pi pi-building text-sm"></i>
+                                        <span>Información</span>
+                                    </span>
+                                </p-tab>
+                                <p-tab value="venues" (click)="activeTab = 'venues'">
+                                    <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                                        <i class="pi pi-map-marker text-sm"></i>
+                                        <span>Sedes</span>
+                                    </span>
+                                </p-tab>
+                                <p-tab value="categories" (click)="activeTab = 'categories'">
+                                    <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                                        <i class="pi pi-tag text-sm"></i>
+                                        <span>Categorías</span>
+                                    </span>
+                                </p-tab>
+                                <p-tab value="teams" (click)="activeTab = 'teams'">
+                                    <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                                        <i class="pi pi-users text-sm"></i>
+                                        <span>Equipos</span>
+                                    </span>
+                                </p-tab>
                             </p-tablist>
                             <p-tabpanels>
                                 <p-tabpanel value="information">
@@ -231,9 +310,20 @@ interface AcademyVenueForm {
 
                                         <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
                                             <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
-                                                <div class="grid gap-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-3">
-                                                    <input pInputText type="text" [(ngModel)]="venueSearch" placeholder="Buscar sede por nombre, ciudad o dirección" class="w-full lg:max-w-md" />
-                                                    <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400 lg:text-right">Actualiza la información y el estado de cada sede.</p>
+                                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                                                    <p-iconfield iconPosition="left" class="w-full sm:max-w-md">
+                                                        <p-inputicon styleClass="pi pi-search" />
+                                                        <input pInputText type="text" [(ngModel)]="venueSearch" placeholder="Buscar por nombre o descripción" class="w-full" />
+                                                    </p-iconfield>
+                                                    <button
+                                                        type="button"
+                                                        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-surface-700 dark:text-slate-400 dark:hover:border-surface-500 dark:hover:text-slate-200"
+                                                        pTooltip="Busca por nombre o descripción."
+                                                        tooltipPosition="left"
+                                                        aria-label="Ayuda de búsqueda"
+                                                    >
+                                                        <i class="pi pi-info-circle text-sm"></i>
+                                                    </button>
                                                 </div>
                                             </div>
 
@@ -292,13 +382,171 @@ interface AcademyVenueForm {
                                         </div>
                                     </div>
                                 </p-tabpanel>
+
+                                <p-tabpanel value="categories">
+                                    <div class="space-y-4 p-3 sm:p-4">
+                                        <div class="rounded-[0.75rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900 sm:px-4">
+                                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                                <div class="space-y-1">
+                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Categorías</p>
+                                                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Organiza jugadores y equipos según las edades que manejará la academia.</p>
+                                                </div>
+                                                <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                                                    <p-button label="Nueva categoría" icon="pi pi-plus" styleClass="w-full sm:w-auto" (onClick)="openCategoryDialog()" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
+                                            <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
+                                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                                                    <p-iconfield iconPosition="left" class="w-full sm:max-w-md">
+                                                        <p-inputicon styleClass="pi pi-search" />
+                                                        <input pInputText type="text" [(ngModel)]="categorySearch" placeholder="Buscar por nombre o descripción" class="w-full" />
+                                                    </p-iconfield>
+                                                    <button
+                                                        type="button"
+                                                        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-surface-700 dark:text-slate-400 dark:hover:border-surface-500 dark:hover:text-slate-200"
+                                                        pTooltip="Busca por nombre o descripción."
+                                                        tooltipPosition="left"
+                                                        aria-label="Ayuda de búsqueda"
+                                                    >
+                                                        <i class="pi pi-info-circle text-sm"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <p-table [value]="filteredCategories" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
+                                                <ng-template pTemplate="header">
+                                                    <tr>
+                                                        <th>Nombre</th>
+                                                        <th>Rango de edad</th>
+                                                        <th>Estado</th>
+                                                        <th class="text-right">Acciones</th>
+                                                    </tr>
+                                                </ng-template>
+                                                <ng-template pTemplate="body" let-category>
+                                                    <tr>
+                                                        <td>
+                                                            <span class="font-medium text-surface-900 dark:text-surface-0">{{ category.name }}</span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="text-surface-900 dark:text-surface-0">{{ getCategoryAgeRangeLabel(category) }}</span>
+                                                        </td>
+                                                        <td>
+                                                            <p-tag [value]="getCategoryStatusLabel(category.status)" [severity]="getCategoryStatusSeverity(category.status)" />
+                                                        </td>
+                                                        <td>
+                                                            <div class="flex justify-end">
+                                                                <p-menu #categoryActionsMenu [popup]="true" appendTo="body" [model]="categoryActionItems"></p-menu>
+                                                                <p-button
+                                                                    icon="pi pi-ellipsis-h"
+                                                                    [text]="true"
+                                                                    rounded
+                                                                    severity="secondary"
+                                                                    (onClick)="openCategoryActionsMenu($event, categoryActionsMenu, category)"
+                                                                />
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </ng-template>
+                                                <ng-template pTemplate="emptymessage">
+                                                    <tr>
+                                                        <td colspan="4" class="py-10 text-center">
+                                                            <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                                                <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay categorías registradas</span>
+                                                                <span>Crea la primera categoría para empezar a ordenar jugadores y equipos por edad.</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </ng-template>
+                                            </p-table>
+                                        </div>
+                                    </div>
+                                </p-tabpanel>
+
+                                <p-tabpanel value="teams">
+                                    <div class="space-y-4 p-3 sm:p-4">
+                                        <div class="rounded-[0.75rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900 sm:px-4">
+                                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                                <div class="space-y-1">
+                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Equipos</p>
+                                                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Crea y organiza los equipos que participarán en cada categoría de la academia.</p>
+                                                </div>
+                                                <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                                                    <p-button label="Nuevo equipo" icon="pi pi-plus" styleClass="w-full sm:w-auto" (onClick)="openTeamDialog()" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
+                                            <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
+                                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                                                    <p-iconfield iconPosition="left" class="w-full sm:max-w-md">
+                                                        <p-inputicon styleClass="pi pi-search" />
+                                                        <input pInputText type="text" [(ngModel)]="teamSearch" placeholder="Buscar por nombre o categoría" class="w-full" />
+                                                    </p-iconfield>
+                                                    <button
+                                                        type="button"
+                                                        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-surface-700 dark:text-slate-400 dark:hover:border-surface-500 dark:hover:text-slate-200"
+                                                        pTooltip="Busca por nombre o categoría."
+                                                        tooltipPosition="left"
+                                                        aria-label="Ayuda de búsqueda"
+                                                    >
+                                                        <i class="pi pi-info-circle text-sm"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <p-table [value]="filteredTeams" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
+                                                <ng-template pTemplate="header">
+                                                    <tr>
+                                                        <th>Nombre</th>
+                                                        <th>Categoría</th>
+                                                        <th>Estado</th>
+                                                        <th class="text-right">Acciones</th>
+                                                    </tr>
+                                                </ng-template>
+                                                <ng-template pTemplate="body" let-team>
+                                                    <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-surface-800/70" (click)="openTeamDialog(team)">
+                                                        <td>
+                                                            <span class="font-medium text-surface-900 dark:text-surface-0">{{ team.name }}</span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="text-surface-900 dark:text-surface-0">{{ team.categoryName }}</span>
+                                                        </td>
+                                                        <td>
+                                                            <p-tag [value]="getTeamStatusLabel(team.status)" [severity]="getTeamStatusSeverity(team.status)" />
+                                                        </td>
+                                                        <td>
+                                                            <div class="flex justify-end" (click)="$event.stopPropagation()">
+                                                                <p-menu #teamActionsMenu [popup]="true" appendTo="body" [model]="teamActionItems"></p-menu>
+                                                                <p-button icon="pi pi-ellipsis-h" [text]="true" rounded severity="secondary" (onClick)="openTeamActionsMenu($event, teamActionsMenu, team)" />
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </ng-template>
+                                                <ng-template pTemplate="emptymessage">
+                                                    <tr>
+                                                        <td colspan="4" class="py-10 text-center">
+                                                            <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                                                <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay equipos registrados</span>
+                                                                <span>Crea el primer equipo para empezar a ordenar la operación deportiva por categoría.</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </ng-template>
+                                            </p-table>
+                                        </div>
+                                    </div>
+                                </p-tabpanel>
                             </p-tabpanels>
                         </p-tabs>
                     </div>
                 </div>
 
                 <p-dialog [(visible)]="venueDialogVisible" [modal]="true" [draggable]="false" [resizable]="false" [style]="{ width: '34rem' }" [breakpoints]="{ '960px': '42rem', '640px': '96vw' }" [header]="venueDialogMode === 'create' ? 'Agregar sede' : 'Editar sede'" (onHide)="resetVenueDialog()">
-                    <div class="space-y-3">
+                    <div class="space-y-4">
                         <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Completa la información principal para registrar esta sede.</p>
 
                         <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900 sm:p-4">
@@ -340,6 +588,249 @@ interface AcademyVenueForm {
                             <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                                 <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetVenueDialog()" />
                                 <p-button [label]="venueDialogMode === 'create' ? 'Guardar sede' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveVenue()" />
+                            </div>
+                        </div>
+                    </ng-template>
+                </p-dialog>
+
+                <p-dialog
+                    [(visible)]="categoryDialogVisible"
+                    [modal]="true"
+                    [draggable]="false"
+                    [resizable]="false"
+                    [style]="{ width: '34rem' }"
+                    [breakpoints]="{ '960px': '42rem', '640px': '96vw' }"
+                    [header]="categoryDialogMode === 'create' ? 'Nueva categoría' : 'Editar categoría'"
+                    (onHide)="resetCategoryDialog()"
+                >
+                    <div class="space-y-3">
+                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Completa el nombre y el rango de edad para dejar lista esta categoría.</p>
+
+                        <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900 sm:p-4">
+                            <div class="grid grid-cols-12 gap-4">
+                                <div class="col-span-12 flex flex-col gap-2">
+                                    <label for="categoryName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre de la categoría <span class="text-rose-500">*</span></label>
+                                    <input pInputText id="categoryName" type="text" [(ngModel)]="categoryForm.name" placeholder="Ej. Sub 12" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onCategoryNameInput($event)" />
+                                    @if (showCategoryError('name')) {
+                                        <p-message severity="error" size="small">Ingresa el nombre de la categoría.</p-message>
+                                    }
+                                </div>
+
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="minAge" class="text-sm font-medium text-surface-700 dark:text-surface-200">Edad mínima <span class="text-rose-500">*</span></label>
+                                    <input pInputText id="minAge" type="text" [(ngModel)]="categoryForm.minAge" placeholder="Ej. 11" class="w-full" (input)="onCategoryAgeInput('minAge', $event)" />
+                                    @if (showCategoryError('minAge')) {
+                                        <p-message severity="error" size="small">Ingresa una edad mínima válida.</p-message>
+                                    }
+                                </div>
+
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="maxAge" class="text-sm font-medium text-surface-700 dark:text-surface-200">Edad máxima <span class="text-rose-500">*</span></label>
+                                    <input pInputText id="maxAge" type="text" [(ngModel)]="categoryForm.maxAge" placeholder="Ej. 12" class="w-full" (input)="onCategoryAgeInput('maxAge', $event)" />
+                                    @if (showCategoryError('maxAge')) {
+                                        <p-message severity="error" size="small">Ingresa una edad máxima válida.</p-message>
+                                    }
+                                </div>
+
+                                <div class="col-span-12 flex flex-col gap-2">
+                                    <label for="categoryDescription" class="text-sm font-medium text-surface-700 dark:text-surface-200">Descripción</label>
+                                    <textarea pTextarea id="categoryDescription" [(ngModel)]="categoryForm.description" rows="3" placeholder="Opcional" class="w-full resize-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <ng-template pTemplate="footer">
+                        <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetCategoryDialog()" />
+                                <p-button [label]="categoryDialogMode === 'create' ? 'Guardar categoría' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveCategory()" />
+                            </div>
+                        </div>
+                    </ng-template>
+                </p-dialog>
+
+                <p-dialog
+                    [(visible)]="teamDialogVisible"
+                    [modal]="true"
+                    [draggable]="false"
+                    [resizable]="false"
+                    [style]="{ width: '34rem' }"
+                    [breakpoints]="{ '960px': '42rem', '640px': '96vw' }"
+                    [header]="teamDialogMode === 'create' ? 'Nuevo equipo' : 'Editar equipo'"
+                    (onHide)="resetTeamDialog()"
+                >
+                    <div class="space-y-3">
+                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Completa el nombre y selecciona la categoría a la que pertenece este equipo.</p>
+
+                        <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900 sm:p-4">
+                            <div class="grid grid-cols-12 gap-4">
+                                <div class="col-span-12 flex flex-col gap-2">
+                                    <label for="teamName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre del equipo <span class="text-rose-500">*</span></label>
+                                    <input pInputText id="teamName" type="text" [(ngModel)]="teamForm.name" placeholder="Ej. Sub 12 A" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onTeamNameInput($event)" />
+                                    @if (showTeamError('name')) {
+                                        <p-message severity="error" size="small">Ingresa el nombre del equipo.</p-message>
+                                    }
+                                </div>
+
+                                <div class="col-span-12 flex flex-col gap-2">
+                                    <label for="teamCategoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categoría <span class="text-rose-500">*</span></label>
+                                    <p-select
+                                        id="teamCategoryId"
+                                        [(ngModel)]="teamForm.categoryId"
+                                        [options]="activeCategoryOptions"
+                                        optionLabel="name"
+                                        optionValue="id"
+                                        [filter]="true"
+                                        filterBy="name"
+                                        placeholder="Selecciona una categoría"
+                                        class="w-full"
+                                    />
+                                    @if (showTeamError('categoryId')) {
+                                        <p-message severity="error" size="small">Selecciona una categoría.</p-message>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (teamDialogMode === 'edit' && selectedTeam) {
+                            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
+                                <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4 sm:py-4">
+                                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                        <div class="space-y-1.5">
+                                            <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Cuerpo técnico</p>
+                                            <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Asigna y organiza las personas que acompañan la operación técnica de este equipo.</p>
+                                            <p class="m-0 text-xs text-slate-400 dark:text-slate-500">{{ selectedTeamStaffAssignments.length }} integrante(s) registrados en esta iteración.</p>
+                                        </div>
+                                        <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                                            <p-button label="Asignar integrante" icon="pi pi-plus" severity="secondary" [outlined]="true" styleClass="w-full sm:w-auto" (onClick)="openTeamStaffDialog()" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p-table [value]="selectedTeamStaffAssignments" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
+                                    <ng-template pTemplate="header">
+                                        <tr>
+                                            <th>Miembro</th>
+                                            <th>Rol técnico</th>
+                                            <th>Estado</th>
+                                            <th class="text-right">Acciones</th>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="body" let-assignment>
+                                        <tr>
+                                            <td>
+                                                <div class="flex flex-col gap-1">
+                                                    <span class="font-medium text-surface-900 dark:text-surface-0">{{ assignment.fullName }}</span>
+                                                    <span class="text-sm text-slate-500 dark:text-slate-400">{{ assignment.email }}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="text-surface-900 dark:text-surface-0">{{ getTechnicalRoleLabel(assignment.role) }}</span>
+                                            </td>
+                                            <td>
+                                                <p-tag [value]="getStaffAssignmentStatusLabel(assignment.status)" [severity]="getStaffAssignmentStatusSeverity(assignment.status)" />
+                                            </td>
+                                            <td>
+                                                <div class="flex justify-end">
+                                                    <p-menu #teamStaffActionsMenu [popup]="true" appendTo="body" [model]="teamStaffActionItems"></p-menu>
+                                                    <p-button icon="pi pi-ellipsis-h" [text]="true" rounded severity="secondary" (onClick)="openTeamStaffActionsMenu($event, teamStaffActionsMenu, assignment)" />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="emptymessage">
+                                        <tr>
+                                            <td colspan="4" class="py-10 text-center">
+                                                <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                                    <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay integrantes asignados</span>
+                                                    <span>Asigna el primer integrante del cuerpo técnico para este equipo.</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </div>
+                        } @else if (teamDialogMode === 'create') {
+                            <div class="rounded-[0.75rem] border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-500 dark:border-surface-700 dark:bg-surface-900/50 dark:text-slate-400">
+                                Guarda primero el equipo para luego asignar su cuerpo técnico desde este mismo detalle.
+                            </div>
+                        }
+                    </div>
+
+                    <ng-template pTemplate="footer">
+                        <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetTeamDialog()" />
+                                <p-button [label]="teamDialogMode === 'create' ? 'Guardar equipo' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveTeam()" />
+                            </div>
+                        </div>
+                    </ng-template>
+                </p-dialog>
+
+                <p-dialog
+                    [(visible)]="teamStaffDialogVisible"
+                    [modal]="true"
+                    [draggable]="false"
+                    [resizable]="false"
+                    [style]="{ width: '34rem' }"
+                    [breakpoints]="{ '960px': '42rem', '640px': '96vw' }"
+                    [header]="teamStaffDialogMode === 'create' ? 'Asignar integrante' : 'Editar rol técnico'"
+                    (onHide)="resetTeamStaffDialog()"
+                >
+                    <div class="space-y-3">
+                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                            @if (selectedTeam) {
+                                Asigna un integrante del cuerpo técnico a {{ selectedTeam.name }} y define su rol operativo.
+                            } @else {
+                                Selecciona primero un equipo para continuar.
+                            }
+                        </p>
+
+                        <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900 sm:p-4">
+                            <div class="grid grid-cols-12 gap-4">
+                                <div class="col-span-12 flex flex-col gap-2">
+                                    <label for="teamStaffMember" class="text-sm font-medium text-surface-700 dark:text-surface-200">Integrante <span class="text-rose-500">*</span></label>
+                                    <p-select
+                                        id="teamStaffMember"
+                                        [(ngModel)]="teamStaffForm.staffId"
+                                        [options]="availableStaffOptions"
+                                        optionLabel="fullName"
+                                        optionValue="id"
+                                        [filter]="true"
+                                        filterBy="fullName,email"
+                                        placeholder="Selecciona un miembro disponible"
+                                        class="w-full"
+                                        [disabled]="teamStaffDialogMode === 'edit'"
+                                    >
+                                        <ng-template #item let-option>
+                                            <div class="flex flex-col">
+                                                <span>{{ option.fullName }}</span>
+                                                <span class="text-xs text-slate-500 dark:text-slate-400">{{ option.email }}</span>
+                                            </div>
+                                        </ng-template>
+                                    </p-select>
+                                    @if (showTeamStaffError('staffId')) {
+                                        <p-message severity="error" size="small">Selecciona un integrante.</p-message>
+                                    }
+                                </div>
+
+                                <div class="col-span-12 flex flex-col gap-2">
+                                    <label for="teamStaffRole" class="text-sm font-medium text-surface-700 dark:text-surface-200">Rol técnico <span class="text-rose-500">*</span></label>
+                                    <p-select id="teamStaffRole" [(ngModel)]="teamStaffForm.role" [options]="technicalRoleOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un rol técnico" class="w-full" />
+                                    @if (showTeamStaffError('role')) {
+                                        <p-message severity="error" size="small">Selecciona el rol técnico.</p-message>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <ng-template pTemplate="footer">
+                        <div class="border-t border-slate-200 pt-3 dark:border-surface-700">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetTeamStaffDialog()" />
+                                <p-button [label]="teamStaffDialogMode === 'create' ? 'Guardar integrante' : 'Guardar rol'" styleClass="w-full sm:w-auto" (onClick)="saveTeamStaffAssignment()" />
                             </div>
                         </div>
                     </ng-template>
@@ -394,7 +885,7 @@ export class AcademyProfilePage {
     };
 
     submitted = false;
-    activeTab: 'information' | 'venues' = 'information';
+    activeTab: 'information' | 'venues' | 'categories' | 'teams' = 'information';
     academy: AcademyProfile | null;
     form: AcademyProfile;
     shieldFileName = 'Sin imagen seleccionada';
@@ -408,6 +899,26 @@ export class AcademyProfilePage {
     venueDialogMode: 'create' | 'edit' = 'create';
     editingVenueId: string | null = null;
     venueForm: AcademyVenueForm = this.emptyVenueForm();
+    selectedCategory: AcademyCategory | null = null;
+    categorySearch = '';
+    categorySubmitted = false;
+    categoryDialogVisible = false;
+    categoryDialogMode: 'create' | 'edit' = 'create';
+    editingCategoryId: string | null = null;
+    categoryForm: AcademyCategoryForm = this.emptyCategoryForm();
+    selectedTeam: AcademyTeam | null = null;
+    teamSearch = '';
+    teamSubmitted = false;
+    teamDialogVisible = false;
+    teamDialogMode: 'create' | 'edit' = 'create';
+    editingTeamId: string | null = null;
+    teamForm: AcademyTeamForm = this.emptyTeamForm();
+    selectedTeamStaffAssignment: AcademyTeamStaffAssignment | null = null;
+    teamStaffDialogVisible = false;
+    teamStaffDialogMode: 'create' | 'edit' = 'create';
+    teamStaffSubmitted = false;
+    editingTeamStaffAssignmentId: string | null = null;
+    teamStaffForm: AcademyTeamStaffForm = this.emptyTeamStaffForm();
     venues: AcademyVenue[] = [
         {
             id: 'venue-001',
@@ -446,6 +957,229 @@ export class AcademyProfilePage {
             }
         }
     ];
+    categories: AcademyCategory[] = [
+        {
+            id: 'category-001',
+            categoryKey: 'sub-12',
+            name: 'Sub 12',
+            minAge: 11,
+            maxAge: 12,
+            description: 'Categoría formativa para el primer bloque competitivo.',
+            status: 'ACTIVE'
+        },
+        {
+            id: 'category-002',
+            categoryKey: 'sub-14',
+            name: 'Sub 14',
+            minAge: 13,
+            maxAge: 14,
+            description: 'Categoría de transición para procesos formativos avanzados.',
+            status: 'ACTIVE'
+        },
+        {
+            id: 'category-003',
+            categoryKey: 'sub-8',
+            name: 'Sub 8',
+            minAge: 7,
+            maxAge: 8,
+            description: 'Categoría inicial para etapas tempranas de formación.',
+            status: 'ACTIVE'
+        },
+        {
+            id: 'category-004',
+            categoryKey: 'sub-10',
+            name: 'Sub 10',
+            minAge: 9,
+            maxAge: 10,
+            description: 'Categoría intermedia para consolidar fundamentos técnicos.',
+            status: 'ACTIVE'
+        },
+        {
+            id: 'category-005',
+            categoryKey: 'sub-16',
+            name: 'Sub 16',
+            minAge: 15,
+            maxAge: 16,
+            description: 'Categoría competitiva para procesos avanzados.',
+            status: 'INACTIVE'
+        },
+        {
+            id: 'category-006',
+            categoryKey: 'juvenil',
+            name: 'Juvenil',
+            minAge: 17,
+            maxAge: 18,
+            description: 'Última etapa formativa previa a transición competitiva mayor.',
+            status: 'ACTIVE'
+        }
+    ];
+    categoryActionItems: MenuItem[] = [
+        {
+            label: 'Editar categoría',
+            icon: 'pi pi-pencil',
+            command: () => {
+                if (this.selectedCategory) {
+                    this.openCategoryDialog(this.selectedCategory);
+                }
+            }
+        },
+        {
+            label: 'Cambiar estado',
+            icon: 'pi pi-refresh',
+            command: () => {
+                if (this.selectedCategory) {
+                    this.toggleCategoryStatus(this.selectedCategory);
+                }
+            }
+        }
+    ];
+    teams: AcademyTeam[] = [
+        {
+            id: 'team-001',
+            name: 'Sub 12 A',
+            categoryId: 'category-001',
+            categoryName: 'Sub 12',
+            status: 'ACTIVE'
+        },
+        {
+            id: 'team-002',
+            name: 'Sub 14 Proyección',
+            categoryId: 'category-002',
+            categoryName: 'Sub 14',
+            status: 'INACTIVE'
+        },
+        {
+            id: 'team-003',
+            name: 'Semillero Norte',
+            categoryId: 'category-003',
+            categoryName: 'Sub 8',
+            status: 'ACTIVE'
+        },
+        {
+            id: 'team-004',
+            name: 'Formativo Azul',
+            categoryId: 'category-004',
+            categoryName: 'Sub 10',
+            status: 'ACTIVE'
+        },
+        {
+            id: 'team-005',
+            name: 'Juvenil A',
+            categoryId: 'category-006',
+            categoryName: 'Juvenil',
+            status: 'ACTIVE'
+        }
+    ];
+    staffMembers: AcademyStaffMember[] = [
+        {
+            id: 'staff-001',
+            userId: 'user-201',
+            fullName: 'Juan Pérez',
+            email: 'juan.perez@academia.com',
+            status: 'ACTIVE'
+        },
+        {
+            id: 'staff-002',
+            userId: 'user-202',
+            fullName: 'María Gómez',
+            email: 'maria.gomez@academia.com',
+            status: 'ACTIVE'
+        },
+        {
+            id: 'staff-003',
+            userId: 'user-203',
+            fullName: 'Carlos Rojas',
+            email: 'carlos.rojas@academia.com',
+            status: 'ACTIVE'
+        },
+        {
+            id: 'staff-004',
+            userId: 'user-204',
+            fullName: 'Sandra León',
+            email: 'sandra.leon@academia.com',
+            status: 'ACTIVE'
+        }
+    ];
+    teamStaffAssignments: AcademyTeamStaffAssignment[] = [
+        {
+            assignmentId: 'assignment-001',
+            staffId: 'staff-001',
+            userId: 'user-201',
+            teamId: 'team-001',
+            fullName: 'Juan Pérez',
+            email: 'juan.perez@academia.com',
+            role: 'HEAD_COACH',
+            status: 'ACTIVE'
+        },
+        {
+            assignmentId: 'assignment-002',
+            staffId: 'staff-002',
+            userId: 'user-202',
+            teamId: 'team-001',
+            fullName: 'María Gómez',
+            email: 'maria.gomez@academia.com',
+            role: 'ASSISTANT_COACH',
+            status: 'ACTIVE'
+        },
+        {
+            assignmentId: 'assignment-003',
+            staffId: 'staff-003',
+            userId: 'user-203',
+            teamId: 'team-003',
+            fullName: 'Carlos Rojas',
+            email: 'carlos.rojas@academia.com',
+            role: 'FITNESS_COACH',
+            status: 'ACTIVE'
+        }
+    ];
+    teamActionItems: MenuItem[] = [
+        {
+            label: 'Editar equipo',
+            icon: 'pi pi-pencil',
+            command: () => {
+                if (this.selectedTeam) {
+                    this.openTeamDialog(this.selectedTeam);
+                }
+            }
+        },
+        {
+            label: 'Cambiar estado',
+            icon: 'pi pi-refresh',
+            command: () => {
+                if (this.selectedTeam) {
+                    this.toggleTeamStatus(this.selectedTeam);
+                }
+            }
+        }
+    ];
+    teamStaffActionItems: MenuItem[] = [
+        {
+            label: 'Editar rol',
+            icon: 'pi pi-pencil',
+            command: () => {
+                if (this.selectedTeamStaffAssignment) {
+                    this.openTeamStaffDialog(this.selectedTeamStaffAssignment);
+                }
+            }
+        },
+        {
+            label: 'Retirar del equipo',
+            icon: 'pi pi-times',
+            command: () => {
+                if (this.selectedTeamStaffAssignment) {
+                    this.removeTeamStaffAssignment(this.selectedTeamStaffAssignment);
+                }
+            }
+        }
+    ];
+    technicalRoleOptions: { label: string; value: AcademyTeamStaffAssignment['role'] }[] = [
+        { label: 'Entrenador principal', value: 'HEAD_COACH' },
+        { label: 'Entrenador asistente', value: 'ASSISTANT_COACH' },
+        { label: 'Entrenador de porteros', value: 'GOALKEEPER_COACH' },
+        { label: 'Preparador físico', value: 'FITNESS_COACH' },
+        { label: 'Nutricionista', value: 'NUTRITIONIST' },
+        { label: 'Fisioterapia', value: 'PHYSIOTHERAPIST' }
+    ];
 
     constructor(
         private readonly academyService: AcademyProfileService,
@@ -454,6 +1188,7 @@ export class AcademyProfilePage {
     ) {
         this.academy = this.academyService.getCurrentAcademy();
         this.form = this.academy ?? this.emptyForm();
+        this.selectedTeam = this.teams[0] ?? null;
     }
 
     get academyInitials(): string {
@@ -481,6 +1216,47 @@ export class AcademyProfilePage {
         }
 
         return this.venues.filter((venue) => [venue.name, venue.city, venue.address].some((value) => value.toLowerCase().includes(query)));
+    }
+
+    get filteredCategories(): AcademyCategory[] {
+        const query = this.categorySearch.trim().toLowerCase();
+        if (!query) {
+            return this.categories;
+        }
+
+        return this.categories.filter((category) => [category.name, category.categoryKey, category.description].some((value) => value.toLowerCase().includes(query)));
+    }
+
+    get filteredTeams(): AcademyTeam[] {
+        const query = this.teamSearch.trim().toLowerCase();
+        if (!query) {
+            return this.teams;
+        }
+
+        return this.teams.filter((team) => [team.name, team.categoryName].some((value) => value.toLowerCase().includes(query)));
+    }
+
+    get activeCategoryOptions(): Pick<AcademyCategory, 'id' | 'name'>[] {
+        return this.categories.filter((category) => category.status === 'ACTIVE').map((category) => ({ id: category.id, name: category.name }));
+    }
+
+    get selectedTeamStaffAssignments(): AcademyTeamStaffAssignment[] {
+        const selectedTeam = this.selectedTeam;
+
+        if (!selectedTeam) {
+            return [];
+        }
+
+        return this.teamStaffAssignments.filter((assignment) => assignment.teamId === selectedTeam.id);
+    }
+
+    get availableStaffOptions(): AcademyStaffMember[] {
+        if (this.teamStaffDialogMode === 'edit' && this.editingTeamStaffAssignmentId) {
+            return this.staffMembers.filter((staff) => staff.status === 'ACTIVE');
+        }
+
+        const assignedIds = new Set(this.selectedTeamStaffAssignments.map((assignment) => assignment.staffId));
+        return this.staffMembers.filter((staff) => staff.status === 'ACTIVE' && !assignedIds.has(staff.id));
     }
 
     save() {
@@ -586,6 +1362,84 @@ export class AcademyProfilePage {
         menu.toggle(event);
     }
 
+    openCategoryActionsMenu(event: Event, menu: Menu, category: AcademyCategory) {
+        this.selectedCategory = category;
+        this.categoryActionItems = [
+            {
+                label: 'Editar categoría',
+                icon: 'pi pi-pencil',
+                command: () => {
+                    if (this.selectedCategory) {
+                        this.openCategoryDialog(this.selectedCategory);
+                    }
+                }
+            },
+            {
+                label: category.status === 'ACTIVE' ? 'Marcar como inactiva' : 'Marcar como activa',
+                icon: category.status === 'ACTIVE' ? 'pi pi-pause' : 'pi pi-play',
+                command: () => {
+                    if (this.selectedCategory) {
+                        this.toggleCategoryStatus(this.selectedCategory);
+                    }
+                }
+            }
+        ];
+
+        menu.toggle(event);
+    }
+
+    openTeamActionsMenu(event: Event, menu: Menu, team: AcademyTeam) {
+        this.selectedTeam = team;
+        this.teamActionItems = [
+            {
+                label: 'Editar equipo',
+                icon: 'pi pi-pencil',
+                command: () => {
+                    if (this.selectedTeam) {
+                        this.openTeamDialog(this.selectedTeam);
+                    }
+                }
+            },
+            {
+                label: team.status === 'ACTIVE' ? 'Marcar como inactivo' : 'Marcar como activo',
+                icon: team.status === 'ACTIVE' ? 'pi pi-pause' : 'pi pi-play',
+                command: () => {
+                    if (this.selectedTeam) {
+                        this.toggleTeamStatus(this.selectedTeam);
+                    }
+                }
+            }
+        ];
+
+        menu.toggle(event);
+    }
+
+    openTeamStaffActionsMenu(event: Event, menu: Menu, assignment: AcademyTeamStaffAssignment) {
+        this.selectedTeamStaffAssignment = assignment;
+        this.teamStaffActionItems = [
+            {
+                label: 'Editar rol',
+                icon: 'pi pi-pencil',
+                command: () => {
+                    if (this.selectedTeamStaffAssignment) {
+                        this.openTeamStaffDialog(this.selectedTeamStaffAssignment);
+                    }
+                }
+            },
+            {
+                label: 'Retirar del equipo',
+                icon: 'pi pi-times',
+                command: () => {
+                    if (this.selectedTeamStaffAssignment) {
+                        this.removeTeamStaffAssignment(this.selectedTeamStaffAssignment);
+                    }
+                }
+            }
+        ];
+
+        menu.toggle(event);
+    }
+
     removeShield() {
         this.shieldPreviewUrl = null;
         this.shieldFileName = 'Sin imagen seleccionada';
@@ -620,6 +1474,75 @@ export class AcademyProfilePage {
         this.editingVenueId = null;
         this.venueDialogMode = 'create';
         this.venueForm = this.emptyVenueForm();
+    }
+
+    openCategoryDialog(category?: AcademyCategory) {
+        this.categorySubmitted = false;
+        this.categoryDialogMode = category ? 'edit' : 'create';
+        this.editingCategoryId = category?.id ?? null;
+        this.categoryForm = category
+            ? {
+                  name: category.name,
+                  minAge: String(category.minAge),
+                  maxAge: String(category.maxAge),
+                  description: category.description
+              }
+            : this.emptyCategoryForm();
+        this.categoryDialogVisible = true;
+    }
+
+    resetCategoryDialog() {
+        this.categoryDialogVisible = false;
+        this.categorySubmitted = false;
+        this.editingCategoryId = null;
+        this.categoryDialogMode = 'create';
+        this.categoryForm = this.emptyCategoryForm();
+    }
+
+    openTeamDialog(team?: AcademyTeam) {
+        this.teamSubmitted = false;
+        this.teamDialogMode = team ? 'edit' : 'create';
+        this.editingTeamId = team?.id ?? null;
+        this.selectedTeam = team ?? null;
+        this.teamForm = team
+            ? {
+                  name: team.name,
+                  categoryId: team.categoryId
+              }
+            : this.emptyTeamForm();
+        this.teamDialogVisible = true;
+    }
+
+    resetTeamDialog() {
+        this.teamDialogVisible = false;
+        this.teamSubmitted = false;
+        this.editingTeamId = null;
+        this.teamDialogMode = 'create';
+        this.teamForm = this.emptyTeamForm();
+        this.selectedTeam = this.teams[0] ?? null;
+    }
+
+    openTeamStaffDialog(assignment?: AcademyTeamStaffAssignment) {
+        this.teamStaffSubmitted = false;
+        this.selectedTeamStaffAssignment = assignment ?? null;
+        this.editingTeamStaffAssignmentId = assignment?.assignmentId ?? null;
+        this.teamStaffDialogMode = assignment ? 'edit' : 'create';
+        this.teamStaffForm = assignment
+            ? {
+                  staffId: assignment.staffId,
+                  role: assignment.role
+              }
+            : this.emptyTeamStaffForm();
+        this.teamStaffDialogVisible = true;
+    }
+
+    resetTeamStaffDialog() {
+        this.teamStaffDialogVisible = false;
+        this.teamStaffSubmitted = false;
+        this.editingTeamStaffAssignmentId = null;
+        this.teamStaffDialogMode = 'create';
+        this.teamStaffForm = this.emptyTeamStaffForm();
+        this.selectedTeamStaffAssignment = null;
     }
 
     saveVenue() {
@@ -675,6 +1598,193 @@ export class AcademyProfilePage {
         this.resetVenueDialog();
     }
 
+    saveCategory() {
+        this.categorySubmitted = true;
+
+        if (!this.isCategoryFormValid()) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Revisa la categoría',
+                detail: 'Completa correctamente los campos obligatorios antes de guardar.'
+            });
+            return;
+        }
+
+        const normalizedKey = this.buildCategoryKey(this.categoryForm.name);
+        const trimmedName = this.categoryForm.name.trim();
+        const trimmedDescription = this.categoryForm.description.trim();
+        const minAge = Number(this.categoryForm.minAge);
+        const maxAge = Number(this.categoryForm.maxAge);
+
+        if (this.categoryDialogMode === 'create') {
+            this.categories = [
+                {
+                    id: `category-${Date.now()}`,
+                    categoryKey: normalizedKey,
+                    name: trimmedName,
+                    minAge,
+                    maxAge,
+                    description: trimmedDescription,
+                    status: 'ACTIVE'
+                },
+                ...this.categories
+            ];
+
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Categoría agregada',
+                detail: 'La nueva categoría quedó registrada en esta iteración mock.'
+            });
+        } else if (this.editingCategoryId) {
+            this.categories = this.categories.map((category) =>
+                category.id === this.editingCategoryId
+                    ? {
+                          ...category,
+                          categoryKey: normalizedKey,
+                          name: trimmedName,
+                          minAge,
+                          maxAge,
+                          description: trimmedDescription
+                      }
+                    : category
+            );
+
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Categoría actualizada',
+                detail: 'Los cambios de la categoría quedaron listos en esta iteración mock.'
+            });
+        }
+
+        this.resetCategoryDialog();
+    }
+
+    saveTeam() {
+        this.teamSubmitted = true;
+
+        if (!this.isTeamFormValid()) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Revisa el equipo',
+                detail: 'Completa correctamente los campos obligatorios antes de guardar.'
+            });
+            return;
+        }
+
+        const trimmedName = this.teamForm.name.trim();
+        const selectedCategory = this.categories.find((category) => category.id === this.teamForm.categoryId);
+
+        if (!selectedCategory) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Categoría no disponible',
+                detail: 'Selecciona una categoría activa para continuar.'
+            });
+            return;
+        }
+
+        if (this.teamDialogMode === 'create') {
+            this.teams = [
+                {
+                    id: `team-${Date.now()}`,
+                    name: trimmedName,
+                    categoryId: selectedCategory.id,
+                    categoryName: selectedCategory.name,
+                    status: 'ACTIVE'
+                },
+                ...this.teams
+            ];
+
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Equipo agregado',
+                detail: 'El nuevo equipo quedó registrado en esta iteración mock.'
+            });
+        } else if (this.editingTeamId) {
+            this.teams = this.teams.map((team) =>
+                team.id === this.editingTeamId
+                    ? {
+                          ...team,
+                          name: trimmedName,
+                          categoryId: selectedCategory.id,
+                          categoryName: selectedCategory.name
+                      }
+                    : team
+            );
+
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Equipo actualizado',
+                detail: 'Los cambios del equipo quedaron listos en esta iteración mock.'
+            });
+        }
+
+        this.resetTeamDialog();
+    }
+
+    saveTeamStaffAssignment() {
+        this.teamStaffSubmitted = true;
+
+        if (!this.selectedTeam || !this.isTeamStaffFormValid()) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Revisa el cuerpo técnico',
+                detail: 'Completa correctamente los campos obligatorios antes de guardar.'
+            });
+            return;
+        }
+
+        const selectedStaff = this.staffMembers.find((staff) => staff.id === this.teamStaffForm.staffId);
+
+        if (!selectedStaff) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Miembro no disponible',
+                detail: 'Selecciona un miembro activo del staff para continuar.'
+            });
+            return;
+        }
+
+        if (this.teamStaffDialogMode === 'create') {
+            this.teamStaffAssignments = [
+                {
+                    assignmentId: `assignment-${Date.now()}`,
+                    staffId: selectedStaff.id,
+                    userId: selectedStaff.userId,
+                    teamId: this.selectedTeam.id,
+                    fullName: selectedStaff.fullName,
+                    email: selectedStaff.email,
+                    role: this.teamStaffForm.role as AcademyTeamStaffAssignment['role'],
+                    status: 'ACTIVE'
+                },
+                ...this.teamStaffAssignments
+            ];
+
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Miembro asignado',
+                detail: 'El cuerpo técnico del equipo quedó actualizado en esta iteración mock.'
+            });
+        } else if (this.editingTeamStaffAssignmentId) {
+            this.teamStaffAssignments = this.teamStaffAssignments.map((assignment) =>
+                assignment.assignmentId === this.editingTeamStaffAssignmentId
+                    ? {
+                          ...assignment,
+                          role: this.teamStaffForm.role as AcademyTeamStaffAssignment['role']
+                      }
+                    : assignment
+            );
+
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Rol actualizado',
+                detail: 'El rol técnico quedó actualizado en esta iteración mock.'
+            });
+        }
+
+        this.resetTeamStaffDialog();
+    }
+
     toggleVenueStatus(venue: AcademyVenue) {
         const nextStatus = venue.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
         this.venues = this.venues.map((item) => (item.id === venue.id ? { ...item, status: nextStatus } : item));
@@ -686,8 +1796,52 @@ export class AcademyProfilePage {
         });
     }
 
+    toggleCategoryStatus(category: AcademyCategory) {
+        const nextStatus = category.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+        this.categories = this.categories.map((item) => (item.id === category.id ? { ...item, status: nextStatus } : item));
+
+        this.messageService.add({
+            severity: 'info',
+            summary: nextStatus === 'ACTIVE' ? 'Categoría activada' : 'Categoría inactivada',
+            detail: nextStatus === 'ACTIVE' ? 'La categoría volvió a quedar disponible.' : 'La categoría dejó de estar disponible para la operación.'
+        });
+    }
+
+    toggleTeamStatus(team: AcademyTeam) {
+        const nextStatus = team.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+        this.teams = this.teams.map((item) => (item.id === team.id ? { ...item, status: nextStatus } : item));
+
+        this.messageService.add({
+            severity: 'info',
+            summary: nextStatus === 'ACTIVE' ? 'Equipo activado' : 'Equipo inactivado',
+            detail: nextStatus === 'ACTIVE' ? 'El equipo volvió a quedar disponible.' : 'El equipo dejó de estar disponible para la operación.'
+        });
+    }
+
+    removeTeamStaffAssignment(assignment: AcademyTeamStaffAssignment) {
+        this.teamStaffAssignments = this.teamStaffAssignments.filter((item) => item.assignmentId !== assignment.assignmentId);
+
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Miembro retirado',
+            detail: 'La asignación fue retirada del equipo en esta iteración mock.'
+        });
+    }
+
     showVenueError(field: keyof AcademyVenueForm): boolean {
         return this.venueSubmitted && !this.isVenueFieldValid(field);
+    }
+
+    showCategoryError(field: keyof AcademyCategoryForm): boolean {
+        return this.categorySubmitted && !this.isCategoryFieldValid(field);
+    }
+
+    showTeamError(field: keyof AcademyTeamForm): boolean {
+        return this.teamSubmitted && !this.isTeamFieldValid(field);
+    }
+
+    showTeamStaffError(field: keyof AcademyTeamStaffForm): boolean {
+        return this.teamStaffSubmitted && !this.isTeamStaffFieldValid(field);
     }
 
     onVenueNameInput(event: Event) {
@@ -704,6 +1858,18 @@ export class AcademyProfilePage {
 
     onVenueAddressInput(event: Event) {
         this.venueForm.address = this.sanitizeAddressInput((event.target as HTMLInputElement).value);
+    }
+
+    onCategoryNameInput(event: Event) {
+        this.categoryForm.name = this.sanitizeNameInput((event.target as HTMLInputElement).value);
+    }
+
+    onCategoryAgeInput(field: 'minAge' | 'maxAge', event: Event) {
+        this.categoryForm[field] = this.sanitizeNumericInput((event.target as HTMLInputElement).value);
+    }
+
+    onTeamNameInput(event: Event) {
+        this.teamForm.name = this.sanitizeNameInput((event.target as HTMLInputElement).value);
     }
 
     showError(field: string): boolean {
@@ -794,6 +1960,18 @@ export class AcademyProfilePage {
         return ['name', 'city', 'phone'].every((field) => this.isVenueFieldValid(field as keyof AcademyVenueForm));
     }
 
+    private isCategoryFormValid(): boolean {
+        return ['name', 'minAge', 'maxAge'].every((field) => this.isCategoryFieldValid(field as keyof AcademyCategoryForm));
+    }
+
+    private isTeamFormValid(): boolean {
+        return ['name', 'categoryId'].every((field) => this.isTeamFieldValid(field as keyof AcademyTeamForm));
+    }
+
+    private isTeamStaffFormValid(): boolean {
+        return ['staffId', 'role'].every((field) => this.isTeamStaffFieldValid(field as keyof AcademyTeamStaffForm));
+    }
+
     private isFieldValid(field: string): boolean {
         switch (field) {
             case 'name':
@@ -831,6 +2009,45 @@ export class AcademyProfilePage {
         }
     }
 
+    private isCategoryFieldValid(field: keyof AcademyCategoryForm): boolean {
+        const minAge = Number(this.categoryForm.minAge);
+        const maxAge = Number(this.categoryForm.maxAge);
+
+        switch (field) {
+            case 'name':
+                return this.hasValidText(this.categoryForm.name, 2) && !this.isDuplicateCategoryName(this.categoryForm.name) && !this.isDuplicateCategoryKey(this.buildCategoryKey(this.categoryForm.name));
+            case 'minAge':
+                return Number.isInteger(minAge) && minAge >= 0 && minAge < maxAge;
+            case 'maxAge':
+                return Number.isInteger(maxAge) && maxAge > minAge;
+            case 'description':
+            default:
+                return true;
+        }
+    }
+
+    private isTeamFieldValid(field: keyof AcademyTeamForm): boolean {
+        switch (field) {
+            case 'name':
+                return this.hasValidText(this.teamForm.name, 2);
+            case 'categoryId':
+                return !!this.teamForm.categoryId && this.categories.some((category) => category.id === this.teamForm.categoryId && category.status === 'ACTIVE');
+            default:
+                return true;
+        }
+    }
+
+    private isTeamStaffFieldValid(field: keyof AcademyTeamStaffForm): boolean {
+        switch (field) {
+            case 'staffId':
+                return !!this.teamStaffForm.staffId;
+            case 'role':
+                return !!this.teamStaffForm.role;
+            default:
+                return true;
+        }
+    }
+
     private hasValidText(value: string, minLength: number): boolean {
         const trimmed = value.trim();
         return trimmed.length >= minLength && this.isAllowedNameText(trimmed);
@@ -851,6 +2068,10 @@ export class AcademyProfilePage {
 
     private sanitizePhoneInput(value: string): string {
         return value.replace(/[^\d\s()+-]/g, '');
+    }
+
+    private sanitizeNumericInput(value: string): string {
+        return value.replace(/[^\d]/g, '');
     }
 
     private sanitizeEmailInput(value: string): string {
@@ -898,6 +2119,122 @@ export class AcademyProfilePage {
         }
     }
 
+    private isDuplicateCategoryName(name: string): boolean {
+        const normalizedName = name.trim().toLowerCase();
+        if (!normalizedName) {
+            return false;
+        }
+
+        return this.categories.some((category) => category.id !== this.editingCategoryId && category.name.trim().toLowerCase() === normalizedName);
+    }
+
+    private isDuplicateCategoryKey(categoryKey: string): boolean {
+        const normalizedKey = categoryKey.trim().toLowerCase();
+        if (!normalizedKey) {
+            return false;
+        }
+
+        return this.categories.some((category) => category.id !== this.editingCategoryId && category.categoryKey.trim().toLowerCase() === normalizedKey);
+    }
+
+    private buildCategoryKey(name: string): string {
+        return name
+            .trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+
+    getCategoryAgeRangeLabel(category: AcademyCategory): string {
+        return `${category.minAge} a ${category.maxAge} años`;
+    }
+
+    getCategoryStatusLabel(status: AcademyCategory['status']): string {
+        switch (status) {
+            case 'ACTIVE':
+                return 'Activa';
+            case 'INACTIVE':
+                return 'Inactiva';
+            default:
+                return status;
+        }
+    }
+
+    getCategoryStatusSeverity(status: AcademyCategory['status']): 'success' | 'danger' {
+        switch (status) {
+            case 'ACTIVE':
+                return 'success';
+            case 'INACTIVE':
+            default:
+                return 'danger';
+        }
+    }
+
+    getTeamStatusLabel(status: AcademyTeam['status']): string {
+        switch (status) {
+            case 'ACTIVE':
+                return 'Activo';
+            case 'INACTIVE':
+                return 'Inactivo';
+            default:
+                return status;
+        }
+    }
+
+    getTeamStatusSeverity(status: AcademyTeam['status']): 'success' | 'danger' {
+        switch (status) {
+            case 'ACTIVE':
+                return 'success';
+            case 'INACTIVE':
+            default:
+                return 'danger';
+        }
+    }
+
+    getTechnicalRoleLabel(role: AcademyTeamStaffAssignment['role']): string {
+        switch (role) {
+            case 'HEAD_COACH':
+                return 'Entrenador principal';
+            case 'ASSISTANT_COACH':
+                return 'Entrenador asistente';
+            case 'GOALKEEPER_COACH':
+                return 'Entrenador de porteros';
+            case 'FITNESS_COACH':
+                return 'Preparador físico';
+            case 'NUTRITIONIST':
+                return 'Nutricionista';
+            case 'PHYSIOTHERAPIST':
+                return 'Fisioterapia';
+            default:
+                return role;
+        }
+    }
+
+    getStaffAssignmentStatusLabel(status: AcademyTeamStaffAssignment['status']): string {
+        switch (status) {
+            case 'ACTIVE':
+                return 'Activo';
+            case 'INACTIVE':
+                return 'Inactivo';
+            default:
+                return status;
+        }
+    }
+
+    getStaffAssignmentStatusSeverity(status: AcademyTeamStaffAssignment['status']): 'success' | 'danger' {
+        switch (status) {
+            case 'ACTIVE':
+                return 'success';
+            case 'INACTIVE':
+            default:
+                return 'danger';
+        }
+    }
+
     getVenueStatusLabel(status: AcademyVenue['status']): string {
         switch (status) {
             case 'ACTIVE':
@@ -942,6 +2279,29 @@ export class AcademyProfilePage {
             address: '',
             city: '',
             phone: ''
+        };
+    }
+
+    private emptyCategoryForm(): AcademyCategoryForm {
+        return {
+            name: '',
+            minAge: '',
+            maxAge: '',
+            description: ''
+        };
+    }
+
+    private emptyTeamForm(): AcademyTeamForm {
+        return {
+            name: '',
+            categoryId: ''
+        };
+    }
+
+    private emptyTeamStaffForm(): AcademyTeamStaffForm {
+        return {
+            staffId: '',
+            role: ''
         };
     }
 }
