@@ -1,18 +1,27 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { MessageModule } from 'primeng/message';
+import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
 import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
 import { PlayerManagementService } from '@/app/features/players/data-access/player-management.service';
-import { Guardian, GuardianLinkedPlayer } from '@/app/features/players/models/player.model';
+import { Guardian, GuardianLinkedPlayer, Player } from '@/app/features/players/models/player.model';
 
 @Component({
     selector: 'app-guardian-detail-page',
     standalone: true,
-    imports: [ButtonModule, CommonModule, PageHeader, RouterModule, TableModule, TagModule],
+    imports: [ButtonModule, CommonModule, DialogModule, FormsModule, MessageModule, PageHeader, RouterModule, SelectModule, TableModule, TagModule, ToastModule],
+    providers: [MessageService],
     template: `
+        <p-toast />
+
         @if (guardian) {
             <div class="space-y-4">
                 <app-page-header [breadcrumbs]="breadcrumbs" [title]="guardianFullName" subtitle="Consulta los datos del acudiente y revisa con qué jugadores está relacionado."></app-page-header>
@@ -70,8 +79,16 @@ import { Guardian, GuardianLinkedPlayer } from '@/app/features/players/models/pl
 
                     <div class="content-width-full mx-auto w-full overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                         <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
-                            <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Jugadores relacionados</p>
-                            <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Revisa en qué jugadores participa este acudiente y si figura como contacto principal.</p>
+                            <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                <div>
+                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Jugadores relacionados</p>
+                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Revisa en qué jugadores participa este acudiente y si figura como contacto principal.</p>
+                                </div>
+
+                                <div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:justify-end">
+                                    <p-button label="Asociar jugador" icon="pi pi-link" severity="secondary" [outlined]="true" styleClass="w-full md:min-w-[11.5rem] md:w-auto" (onClick)="openAssociatePlayerDialog()" />
+                                </div>
+                            </div>
                         </div>
 
                         <p-table [value]="linkedPlayers" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
@@ -96,8 +113,14 @@ import { Guardian, GuardianLinkedPlayer } from '@/app/features/players/models/pl
                                         }
                                     </td>
                                     <td><p-tag [value]="player.status === 'ACTIVE' ? 'Activo' : 'Inactivo'" [severity]="player.status === 'ACTIVE' ? 'success' : 'danger'" /></td>
-                                    <td class="text-right">
-                                        <p-button label="Ver jugador" severity="secondary" [outlined]="true" size="small" [routerLink]="['/players', player.playerId]" />
+                                    <td>
+                                        <div class="flex justify-end gap-2">
+                                            @if (!player.isPrimary) {
+                                                <p-button label="Marcar principal" severity="secondary" [outlined]="true" size="small" (onClick)="markAsPrimary(player)" />
+                                            }
+                                            <p-button label="Quitar" severity="secondary" text size="small" (onClick)="removeRelation(player)" />
+                                            <p-button label="Ver jugador" severity="secondary" [outlined]="true" size="small" [routerLink]="['/players', player.playerId]" />
+                                        </div>
                                     </td>
                                 </tr>
                             </ng-template>
@@ -115,6 +138,46 @@ import { Guardian, GuardianLinkedPlayer } from '@/app/features/players/models/pl
                     </div>
                 </div>
             </div>
+
+            <p-dialog [(visible)]="showAssociatePlayerDialog" header="Asociar jugador" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" [breakpoints]="{ '960px': '92vw' }" [style]="{ width: '32rem' }">
+                <div class="space-y-4 pb-1">
+                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Selecciona un jugador disponible para vincularlo con este acudiente.</p>
+
+                    <div class="flex flex-col gap-2">
+                        <label for="playerId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Jugador <span class="text-rose-500">*</span></label>
+                        <p-select
+                            id="playerId"
+                            [(ngModel)]="selectedPlayerId"
+                            [options]="availablePlayerOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Selecciona un jugador"
+                            class="w-full"
+                            appendTo="body"
+                            [filter]="true"
+                            filterBy="label,categoryName"
+                            [scrollHeight]="'16rem'"
+                        >
+                            <ng-template let-option #item>
+                                <div class="flex items-center justify-between gap-3">
+                                    <span>{{ option.label }}</span>
+                                    <span class="text-xs text-slate-500 dark:text-slate-400">{{ option.categoryName }}</span>
+                                </div>
+                            </ng-template>
+                        </p-select>
+                        @if (associateSubmitted && !selectedPlayerId) {
+                            <p-message severity="error" size="small">Selecciona un jugador para continuar.</p-message>
+                        }
+                    </div>
+                </div>
+
+                <ng-template pTemplate="footer">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                        <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="showAssociatePlayerDialog = false" />
+                        <p-button label="Asociar jugador" styleClass="w-full sm:w-auto" (onClick)="associatePlayer()" />
+                    </div>
+                </ng-template>
+            </p-dialog>
         } @else {
             <div class="rounded-[0.75rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-surface-800 dark:bg-surface-900">
                 <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Acudiente no encontrado</p>
@@ -129,11 +192,16 @@ import { Guardian, GuardianLinkedPlayer } from '@/app/features/players/models/pl
 export class GuardianDetailPage {
     guardian: Guardian | null = null;
     linkedPlayers: GuardianLinkedPlayer[] = [];
+    availablePlayers: Player[] = [];
+    selectedPlayerId = '';
+    showAssociatePlayerDialog = false;
+    associateSubmitted = false;
     breadcrumbs: PageHeaderBreadcrumb[] = [{ label: 'Inicio', routerLink: '/' }, { label: 'Acudientes', routerLink: '/guardians' }, { label: 'Detalle' }];
 
     constructor(
         private readonly route: ActivatedRoute,
-        private readonly playerService: PlayerManagementService
+        private readonly playerService: PlayerManagementService,
+        private readonly messageService: MessageService
     ) {
         const guardianId = this.route.snapshot.paramMap.get('id');
         if (!guardianId) {
@@ -146,10 +214,79 @@ export class GuardianDetailPage {
         }
 
         this.linkedPlayers = this.playerService.listGuardianPlayers(guardianId);
+        this.availablePlayers = this.playerService.listAvailablePlayersForGuardian(guardianId);
         this.breadcrumbs = [{ label: 'Inicio', routerLink: '/' }, { label: 'Acudientes', routerLink: '/guardians' }, { label: `${this.guardian.firstName} ${this.guardian.lastName}`.trim() }];
     }
 
     get guardianFullName() {
         return this.guardian ? `${this.guardian.firstName} ${this.guardian.lastName}`.trim() : 'Acudiente';
+    }
+
+    get availablePlayerOptions() {
+        return this.availablePlayers.map((player) => ({
+            value: player.id,
+            label: `${player.firstName} ${player.lastName}`.trim(),
+            categoryName: player.categoryName
+        }));
+    }
+
+    openAssociatePlayerDialog() {
+        this.associateSubmitted = false;
+        this.selectedPlayerId = '';
+        this.showAssociatePlayerDialog = true;
+    }
+
+    associatePlayer() {
+        if (!this.guardian) {
+            return;
+        }
+
+        this.associateSubmitted = true;
+        if (!this.selectedPlayerId) {
+            return;
+        }
+
+        const relation = this.playerService.associateExistingGuardian(this.selectedPlayerId, this.guardian.id);
+        if (!relation) {
+            return;
+        }
+
+        this.refreshRelations();
+        this.showAssociatePlayerDialog = false;
+        this.messageService.add({ severity: 'success', summary: 'Jugador asociado', detail: 'El acudiente quedó vinculado correctamente al jugador.' });
+    }
+
+    markAsPrimary(player: GuardianLinkedPlayer) {
+        if (!this.guardian) {
+            return;
+        }
+
+        this.playerService.markPrimaryGuardian(player.playerId, this.guardian.id);
+        this.refreshRelations();
+        this.messageService.add({ severity: 'success', summary: 'Relación actualizada', detail: 'Este acudiente quedó como contacto principal del jugador.' });
+    }
+
+    removeRelation(player: GuardianLinkedPlayer) {
+        if (!this.guardian) {
+            return;
+        }
+
+        const result = this.playerService.removeGuardianRelation(player.playerId, this.guardian.id);
+        if (!result.ok) {
+            this.messageService.add({ severity: 'warn', summary: 'No se puede quitar', detail: 'Primero define otro acudiente principal antes de quitar esta relación.' });
+            return;
+        }
+
+        this.refreshRelations();
+        this.messageService.add({ severity: 'success', summary: 'Relación eliminada', detail: 'El acudiente dejó de estar vinculado con ese jugador.' });
+    }
+
+    private refreshRelations() {
+        if (!this.guardian) {
+            return;
+        }
+
+        this.linkedPlayers = this.playerService.listGuardianPlayers(this.guardian.id);
+        this.availablePlayers = this.playerService.listAvailablePlayersForGuardian(this.guardian.id);
     }
 }

@@ -310,6 +310,11 @@ export class PlayerManagementService {
             .filter((item): item is GuardianLinkedPlayer => item !== null);
     }
 
+    listAvailablePlayersForGuardian(guardianId: string): Player[] {
+        const linkedPlayerIds = new Set(this.relations.filter((relation) => relation.guardian.id === guardianId).map((relation) => relation.playerId));
+        return this.players.filter((player) => !linkedPlayerIds.has(player.id)).map((player) => ({ ...player, photo: player.photo ? { ...player.photo } : null }));
+    }
+
     listPlayerGuardians(playerId: string): PlayerGuardianRelation[] {
         return this.relations.filter((relation) => relation.playerId === playerId).map((relation) => ({ ...relation, guardian: { ...relation.guardian } }));
     }

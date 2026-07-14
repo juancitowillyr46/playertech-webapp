@@ -38,7 +38,6 @@ export class AppMenu {
             {
                 label: 'Mi cuenta',
                 items: [
-                    { label: 'Perfil', icon: 'pi pi-fw pi-user', routerLink: ['/account/profile'] },
                     ...(canManageAcademy ? [{ label: 'Academia', icon: 'pi pi-fw pi-building', routerLink: ['/academy'] }] : []),
                     ...(canManagePlayers
                         ? [

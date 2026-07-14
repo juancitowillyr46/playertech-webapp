@@ -146,6 +146,7 @@ Cobertura de alta unificada del staff, acceso y relación del staff con equipos.
 * HU-008 Ver detalle de acudiente → `In Progress (Mock UI)` → `src/app/features/guardians/pages/guardian-detail.ts`
 * HU-009 Crear acudiente desde módulo independiente → `In Progress (Mock UI)` → `src/app/features/guardians/pages/guardian-form.ts`
 * HU-010 Editar acudiente → `In Progress (Mock UI)` → `src/app/features/guardians/pages/guardian-form.ts`
+* HU-011 Asociar jugador existente a acudiente desde su detalle → `In Progress (Mock UI)` → `src/app/features/guardians/pages/guardian-detail.ts`
 
 ## EF-008 Team Management
 

@@ -29,22 +29,7 @@ import { Guardian } from '@/app/features/players/models/player.model';
         <div class="space-y-4">
             <app-page-header [breadcrumbs]="breadcrumbs" title="Acudientes" subtitle="Consulta, actualiza y organiza los contactos autorizados de la academia."></app-page-header>
 
-            <div class="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Total</p>
-                    <p class="mt-4 text-3xl font-semibold text-surface-900 dark:text-surface-0">{{ guardians.length }}</p>
-                </div>
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Activos</p>
-                    <p class="mt-4 text-3xl font-semibold text-emerald-600">{{ activeGuardiansCount }}</p>
-                </div>
-                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Inactivos</p>
-                    <p class="mt-4 text-3xl font-semibold text-rose-600">{{ inactiveGuardiansCount }}</p>
-                </div>
-            </div>
-
-            <div class="content-width-full mx-auto w-full overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
+            <div class="mt-4 content-width-full mx-auto w-full overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                 <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
                     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                         <p-iconfield iconPosition="left" class="w-full lg:max-w-md">

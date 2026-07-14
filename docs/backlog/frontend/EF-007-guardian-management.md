@@ -35,6 +35,7 @@ Soporta el vínculo legal y operativo entre familia y jugador.
 * HU-008 Ver detalle de acudiente.
 * HU-009 Crear acudiente desde módulo independiente.
 * HU-010 Editar acudiente.
+* HU-011 Asociar jugador existente a acudiente desde su detalle.
 
 ## Reglas de UX Relacionadas
 
@@ -64,3 +65,4 @@ In Progress.
 * HU-008 Ver detalle de acudiente → `In Progress (Mock UI)` → `src/app/features/guardians/pages/guardian-detail.ts`
 * HU-009 Crear acudiente desde módulo independiente → `In Progress (Mock UI)` → `src/app/features/guardians/pages/guardian-form.ts`
 * HU-010 Editar acudiente → `In Progress (Mock UI)` → `src/app/features/guardians/pages/guardian-form.ts`
+* HU-011 Asociar jugador existente a acudiente desde su detalle → `In Progress (Mock UI)` → `src/app/features/guardians/pages/guardian-detail.ts`
