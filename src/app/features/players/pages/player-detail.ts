@@ -47,6 +47,29 @@ import { Subscription } from 'rxjs';
                 font-size: 0.72rem;
                 font-weight: 600;
             }
+
+            .membership-history {
+                position: relative;
+            }
+
+            .membership-history::before {
+                content: '';
+                position: absolute;
+                left: 1.05rem;
+                top: 1.25rem;
+                bottom: 1.25rem;
+                width: 1px;
+                background: rgb(226 232 240);
+            }
+
+            .membership-history-item {
+                position: relative;
+            }
+
+            .membership-history-dot {
+                position: relative;
+                z-index: 1;
+            }
         `
     ],
     template: `
@@ -347,19 +370,30 @@ import { Subscription } from 'rxjs';
                                             </div>
 
                                             @if (membershipHistory.length) {
-                                                <div class="divide-y divide-slate-200 dark:divide-surface-800">
+                                                <div class="membership-history px-4 py-2">
                                                     @for (item of membershipHistory; track item.id) {
-                                                        <div class="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-start md:justify-between">
-                                                            <div class="space-y-1">
-                                                                <div class="flex flex-wrap items-center gap-2">
-                                                                    <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ membershipStatusLabel(item.status) }}</p>
-                                                                    <p-tag [value]="membershipStatusLabel(item.status)" [severity]="membershipStatusSeverity(item.status)" />
-                                                                </div>
-                                                                <p class="m-0 text-sm text-slate-500 dark:text-slate-400">Acudiente principal: {{ guardianNameById(item.primaryGuardianId) }}</p>
+                                                        <div class="membership-history-item flex gap-3 py-4 first:pt-3 last:pb-3">
+                                                            <div class="flex shrink-0 pt-1">
+                                                                <span class="membership-history-dot flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm dark:border-surface-700 dark:bg-surface-900">
+                                                                    <i class="pi" [class.pi-check-circle]="item.status === 'ACTIVE'" [class.pi-pause-circle]="item.status === 'SUSPENDED'" [class.pi-times-circle]="item.status === 'WITHDRAWN'"></i>
+                                                                </span>
                                                             </div>
-                                                            <div class="space-y-1 text-sm text-slate-500 dark:text-slate-400 md:text-right">
-                                                                <p class="m-0">Inicio: {{ formatDateTime(item.startedAt) }}</p>
-                                                                <p class="m-0">Fin: {{ item.endedAt ? formatDateTime(item.endedAt) : 'Vigente' }}</p>
+
+                                                            <div class="min-w-0 flex-1 rounded-[0.75rem] border border-slate-200 bg-slate-50 px-4 py-3 dark:border-surface-700 dark:bg-surface-900/60">
+                                                                <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                                                                    <div class="space-y-1">
+                                                                        <div class="flex flex-wrap items-center gap-2">
+                                                                            <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ membershipEventTitle(item.status) }}</p>
+                                                                            <p-tag [value]="membershipStatusLabel(item.status)" [severity]="membershipStatusSeverity(item.status)" />
+                                                                        </div>
+                                                                        <p class="m-0 text-sm text-slate-500 dark:text-slate-400">Acudiente principal: {{ guardianNameById(item.primaryGuardianId) }}</p>
+                                                                    </div>
+
+                                                                    <div class="space-y-1 text-sm text-slate-500 dark:text-slate-400 md:text-right">
+                                                                        <p class="m-0">Inicio: {{ formatDateTime(item.startedAt) }}</p>
+                                                                        <p class="m-0">Fin: {{ item.endedAt ? formatDateTime(item.endedAt) : 'Vigente' }}</p>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     }
@@ -838,6 +872,17 @@ export class PlayerDetailPage implements OnDestroy {
                 return 'Suspendida';
             case 'WITHDRAWN':
                 return 'Retirada';
+        }
+    }
+
+    membershipEventTitle(status: PlayerMembership['status']) {
+        switch (status) {
+            case 'ACTIVE':
+                return 'Matrícula activa';
+            case 'SUSPENDED':
+                return 'Matrícula suspendida';
+            case 'WITHDRAWN':
+                return 'Matrícula retirada';
         }
     }
 
