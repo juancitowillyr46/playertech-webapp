@@ -158,6 +158,16 @@ Cobertura de alta unificada del staff, acceso y relación del staff con equipos.
 * HU-006 Reactivar equipo → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
 * HU-007 Preparar asignación de jugadores a equipo → `In Progress (Estructura UX)` → `src/app/features/academy/pages/academy-profile.ts`, `docs/backlog/frontend/EF-008-team-management.md`
 
+## EF-009 Membership Management
+
+* HU-001 Crear matrícula desde el detalle del jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
+* HU-002 Generar y mostrar cargos iniciales → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
+* HU-003 Ver matrícula activa del jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-004 Ver historial de matrículas → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-005 Suspender matrícula → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
+* HU-006 Retirar matrícula → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
+* HU-007 Ver saldo administrativo y cargos pendientes → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
+
 ## EF-012 Staff Management
 
 * HU-001 Dar de alta miembro del staff → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`

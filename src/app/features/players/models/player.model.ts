@@ -67,3 +67,35 @@ export interface GuardianLinkedPlayer {
     isPrimary: boolean;
     status: 'ACTIVE' | 'INACTIVE';
 }
+
+export type MembershipStatus = 'ACTIVE' | 'SUSPENDED' | 'WITHDRAWN';
+export type InitialChargeStatus = 'PENDING' | 'PAID';
+
+export interface PlayerMembership {
+    id: string;
+    academyId: string;
+    playerId: string;
+    primaryGuardianId: string;
+    status: MembershipStatus;
+    startedAt: string;
+    endedAt: string | null;
+}
+
+export interface PlayerMembershipHistoryItem {
+    id: string;
+    playerId: string;
+    primaryGuardianId: string;
+    status: MembershipStatus;
+    startedAt: string;
+    endedAt: string | null;
+}
+
+export interface PlayerInitialCharge {
+    id: string;
+    membershipId: string;
+    paymentConceptId: string;
+    conceptName: string;
+    description: string;
+    amount: string;
+    status: InitialChargeStatus;
+}

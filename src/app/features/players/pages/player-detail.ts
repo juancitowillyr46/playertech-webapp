@@ -19,7 +19,7 @@ import { ToastModule } from 'primeng/toast';
 import { ImageCropperComponent, ImageCropperFileError, ImageCropperResult } from '@/app/shared/ui/image-cropper/image-cropper';
 import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
 import { PlayerManagementService } from '../data-access/player-management.service';
-import { CategoryOption, Guardian, GuardianForm, Player, PlayerForm, PlayerGuardianRelation, PlayerPhoto } from '../models/player.model';
+import { CategoryOption, Guardian, GuardianForm, Player, PlayerForm, PlayerGuardianRelation, PlayerInitialCharge, PlayerMembership, PlayerMembershipHistoryItem, PlayerPhoto } from '../models/player.model';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -66,7 +66,11 @@ import { Subscription } from 'rxjs';
             <div class="space-y-4">
                 <app-page-header [breadcrumbs]="breadcrumbs" [title]="playerFullName" subtitle="Actualiza los datos del jugador y administra sus acudientes desde un solo lugar."></app-page-header>
 
-                <div class="content-width-compact mx-auto mt-4 w-full space-y-3">
+                <div
+                    class="mx-auto mt-4 w-full space-y-3"
+                    [class.content-width-compact]="activeTab === 'information' || activeTab === 'guardians' || activeTab === 'membership'"
+                    [class.content-width-full]="activeTab === 'charges'"
+                >
                     <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                         <p-tabs [value]="activeTab">
                             <p-tablist class="overflow-x-auto">
@@ -80,6 +84,18 @@ import { Subscription } from 'rxjs';
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-users text-sm"></i>
                                         <span>Acudientes</span>
+                                    </span>
+                                </p-tab>
+                                <p-tab value="membership" (click)="activeTab = 'membership'">
+                                    <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                                        <i class="pi pi-id-card text-sm"></i>
+                                        <span>Matrícula</span>
+                                    </span>
+                                </p-tab>
+                                <p-tab value="charges" (click)="activeTab = 'charges'">
+                                    <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                                        <i class="pi pi-wallet text-sm"></i>
+                                        <span>Cargos iniciales</span>
                                     </span>
                                 </p-tab>
                             </p-tablist>
@@ -256,6 +272,162 @@ import { Subscription } from 'rxjs';
                                         </div>
                                     </div>
                                 </p-tabpanel>
+
+                                <p-tabpanel value="membership">
+                                    <div class="space-y-4 p-3 sm:p-4">
+                                        <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-none dark:border-surface-700 dark:bg-surface-900">
+                                            <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                                <div>
+                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Matrícula</p>
+                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Controla el estado administrativo del jugador y define el acudiente principal responsable.</p>
+                                                </div>
+
+                                                @if (activeMembership) {
+                                                    <div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:justify-end">
+                                                        <p-button label="Suspender" severity="secondary" [outlined]="true" styleClass="w-full md:w-auto" (onClick)="suspendMembership()" />
+                                                        <p-button label="Retirar" severity="secondary" text styleClass="w-full md:w-auto" (onClick)="withdrawMembership()" />
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        @if (activeMembership) {
+                                            <div class="grid gap-3 md:grid-cols-3">
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Estado</p>
+                                                    <div class="mt-3">
+                                                        <p-tag [value]="membershipStatusLabel(activeMembership.status)" [severity]="membershipStatusSeverity(activeMembership.status)" />
+                                                    </div>
+                                                </div>
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Inicio</p>
+                                                    <p class="mt-3 text-base font-semibold text-surface-900 dark:text-surface-0">{{ formatDateTime(activeMembership.startedAt) }}</p>
+                                                </div>
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Acudiente principal</p>
+                                                    <p class="mt-3 text-base font-semibold text-surface-900 dark:text-surface-0">{{ activeMembershipGuardianName }}</p>
+                                                </div>
+                                            </div>
+                                        } @else {
+                                            <div class="rounded-[0.75rem] border border-dashed border-slate-300 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/60">
+                                                <div class="form-width-2col mx-auto space-y-4">
+                                                    <div>
+                                                        <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Crear matrícula</p>
+                                                        <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Selecciona el acudiente principal para activar la matrícula y generar los cargos iniciales del jugador.</p>
+                                                    </div>
+
+                                                    <div class="flex flex-col gap-2">
+                                                        <label for="membershipGuardian" class="text-sm font-medium text-surface-700 dark:text-surface-200">Acudiente principal <span class="text-rose-500">*</span></label>
+                                                        <p-select
+                                                            id="membershipGuardian"
+                                                            [(ngModel)]="selectedMembershipGuardianId"
+                                                            [options]="membershipGuardianOptions"
+                                                            optionLabel="fullName"
+                                                            optionValue="id"
+                                                            placeholder="Selecciona un acudiente"
+                                                            class="w-full"
+                                                            appendTo="body"
+                                                        />
+                                                        @if (membershipSubmitted && !selectedMembershipGuardianId) {
+                                                            <p-message severity="error" size="small">Selecciona un acudiente principal antes de continuar.</p-message>
+                                                        }
+                                                    </div>
+
+                                                    <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                                        <p-button label="Crear matrícula" styleClass="w-full sm:w-auto" (onClick)="createMembership()" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                                            <div class="border-b border-slate-200 px-4 py-3 dark:border-surface-800">
+                                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Historial</p>
+                                                <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Revisa la vigencia y los cambios administrativos asociados a la matrícula del jugador.</p>
+                                            </div>
+
+                                            @if (membershipHistory.length) {
+                                                <div class="divide-y divide-slate-200 dark:divide-surface-800">
+                                                    @for (item of membershipHistory; track item.id) {
+                                                        <div class="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-start md:justify-between">
+                                                            <div class="space-y-1">
+                                                                <div class="flex flex-wrap items-center gap-2">
+                                                                    <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ membershipStatusLabel(item.status) }}</p>
+                                                                    <p-tag [value]="membershipStatusLabel(item.status)" [severity]="membershipStatusSeverity(item.status)" />
+                                                                </div>
+                                                                <p class="m-0 text-sm text-slate-500 dark:text-slate-400">Acudiente principal: {{ guardianNameById(item.primaryGuardianId) }}</p>
+                                                            </div>
+                                                            <div class="space-y-1 text-sm text-slate-500 dark:text-slate-400 md:text-right">
+                                                                <p class="m-0">Inicio: {{ formatDateTime(item.startedAt) }}</p>
+                                                                <p class="m-0">Fin: {{ item.endedAt ? formatDateTime(item.endedAt) : 'Vigente' }}</p>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            } @else {
+                                                <div class="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                                                    Todavía no hay historial de matrícula para este jugador.
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </p-tabpanel>
+
+                                <p-tabpanel value="charges">
+                                    <div class="space-y-4 p-3 sm:p-4">
+                                        <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-none dark:border-surface-700 dark:bg-surface-900">
+                                            <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                                <div>
+                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Cargos iniciales</p>
+                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Consulta los cobros generados al activar la matrícula y el saldo pendiente del jugador.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid gap-3 md:grid-cols-3">
+                                            <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                                                <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Saldo pendiente</p>
+                                                <p class="mt-3 text-2xl font-semibold text-surface-900 dark:text-surface-0">{{ debtSummary.pendingAmount | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+                                            </div>
+                                            <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                                                <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Cargos pendientes</p>
+                                                <p class="mt-3 text-2xl font-semibold text-amber-600">{{ debtSummary.pendingCharges }}</p>
+                                            </div>
+                                            <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                                                <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Total de cargos</p>
+                                                <p class="mt-3 text-2xl font-semibold text-surface-900 dark:text-surface-0">{{ initialCharges.length }}</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                                            @if (initialCharges.length) {
+                                                <p-table [value]="initialCharges" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
+                                                    <ng-template pTemplate="header">
+                                                        <tr>
+                                                            <th>Concepto</th>
+                                                            <th>Detalle</th>
+                                                            <th>Monto</th>
+                                                            <th>Estado</th>
+                                                        </tr>
+                                                    </ng-template>
+                                                    <ng-template pTemplate="body" let-charge>
+                                                        <tr>
+                                                            <td class="font-medium text-surface-900 dark:text-surface-0">{{ charge.conceptName }}</td>
+                                                            <td>{{ charge.description }}</td>
+                                                            <td>{{ charge.amount | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+                                                            <td><p-tag [value]="chargeStatusLabel(charge.status)" [severity]="chargeStatusSeverity(charge.status)" /></td>
+                                                        </tr>
+                                                    </ng-template>
+                                                </p-table>
+                                            } @else {
+                                                <div class="px-4 py-10 text-center">
+                                                    <p class="m-0 text-base font-medium text-surface-900 dark:text-surface-0">Sin cargos iniciales</p>
+                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Los cargos se generarán cuando la matrícula del jugador quede activa.</p>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </p-tabpanel>
                             </p-tabpanels>
                         </p-tabs>
                     </div>
@@ -368,14 +540,19 @@ export class PlayerDetailPage implements OnDestroy {
     private readonly document = inject(DOCUMENT);
 
     breadcrumbs: PageHeaderBreadcrumb[] = [{ label: 'Inicio', routerLink: '/' }, { label: 'Jugadores', routerLink: '/players' }, { label: 'Detalle' }];
-    activeTab: 'information' | 'guardians' = 'information';
+    activeTab: 'information' | 'guardians' | 'membership' | 'charges' = 'information';
     submitted = false;
     guardianSubmitted = false;
+    membershipSubmitted = false;
     player: Player | null = null;
     form: PlayerForm = this.emptyForm();
     categories: CategoryOption[] = [];
     relations: PlayerGuardianRelation[] = [];
     guardians: Guardian[] = [];
+    activeMembership: PlayerMembership | null = null;
+    membershipHistory: PlayerMembershipHistoryItem[] = [];
+    initialCharges: PlayerInitialCharge[] = [];
+    selectedMembershipGuardianId = '';
     readonly relationshipOptions = [
         { label: 'Padre', value: 'Padre' },
         { label: 'Madre', value: 'Madre' },
@@ -452,6 +629,22 @@ export class PlayerDetailPage implements OnDestroy {
             }));
     }
 
+    get membershipGuardianOptions() {
+        return this.relations.map((relation) => ({
+            id: relation.guardian.id,
+            fullName: this.guardianFullName(relation.guardian),
+            relationship: relation.guardian.relationship
+        }));
+    }
+
+    get activeMembershipGuardianName() {
+        return this.activeMembership ? this.guardianNameById(this.activeMembership.primaryGuardianId) : 'Sin acudiente';
+    }
+
+    get debtSummary() {
+        return this.player ? this.playerService.getPlayerDebtSummary(this.player.id) : { pendingAmount: '0.00', pendingCharges: 0 };
+    }
+
     savePlayer() {
         if (!this.player) {
             return;
@@ -483,6 +676,56 @@ export class PlayerDetailPage implements OnDestroy {
     openAssociateGuardianDialog() {
         this.selectedGuardianId = '';
         this.showAssociateGuardianDialog = true;
+    }
+
+    createMembership() {
+        if (!this.player) {
+            return;
+        }
+
+        this.membershipSubmitted = true;
+        if (!this.selectedMembershipGuardianId) {
+            this.messageService.add({ severity: 'warn', summary: 'Falta un acudiente', detail: 'Selecciona el acudiente principal para activar la matrícula.' });
+            return;
+        }
+
+        const membership = this.playerService.createMembership(this.player.id, this.selectedMembershipGuardianId);
+        if (!membership) {
+            return;
+        }
+
+        this.selectedMembershipGuardianId = '';
+        this.membershipSubmitted = false;
+        this.loadMembershipData();
+        this.messageService.add({ severity: 'success', summary: 'Matrícula creada', detail: 'La matrícula quedó activa y los cargos iniciales fueron generados en esta iteración mock.' });
+    }
+
+    suspendMembership() {
+        if (!this.player) {
+            return;
+        }
+
+        const membership = this.playerService.suspendMembership(this.player.id);
+        if (!membership) {
+            return;
+        }
+
+        this.loadMembershipData();
+        this.messageService.add({ severity: 'info', summary: 'Matrícula suspendida', detail: 'El jugador quedó con matrícula suspendida en esta iteración mock.' });
+    }
+
+    withdrawMembership() {
+        if (!this.player) {
+            return;
+        }
+
+        const membership = this.playerService.withdrawMembership(this.player.id);
+        if (!membership) {
+            return;
+        }
+
+        this.loadMembershipData();
+        this.messageService.add({ severity: 'info', summary: 'Matrícula retirada', detail: 'La matrícula del jugador quedó retirada en esta iteración mock.' });
     }
 
     associateGuardian() {
@@ -581,6 +824,40 @@ export class PlayerDetailPage implements OnDestroy {
 
     guardianFullName(guardian: Guardian) {
         return `${guardian.firstName} ${guardian.lastName}`.trim();
+    }
+
+    guardianNameById(guardianId: string) {
+        return this.playerService.getGuardianDisplayName(guardianId);
+    }
+
+    membershipStatusLabel(status: PlayerMembership['status']) {
+        switch (status) {
+            case 'ACTIVE':
+                return 'Activa';
+            case 'SUSPENDED':
+                return 'Suspendida';
+            case 'WITHDRAWN':
+                return 'Retirada';
+        }
+    }
+
+    membershipStatusSeverity(status: PlayerMembership['status']): 'success' | 'warn' | 'danger' {
+        switch (status) {
+            case 'ACTIVE':
+                return 'success';
+            case 'SUSPENDED':
+                return 'warn';
+            case 'WITHDRAWN':
+                return 'danger';
+        }
+    }
+
+    chargeStatusLabel(status: PlayerInitialCharge['status']) {
+        return status === 'PAID' ? 'Pagado' : 'Pendiente';
+    }
+
+    chargeStatusSeverity(status: PlayerInitialCharge['status']): 'success' | 'warn' {
+        return status === 'PAID' ? 'success' : 'warn';
     }
 
     showGuardianError(field: keyof GuardianForm) {
@@ -708,6 +985,7 @@ export class PlayerDetailPage implements OnDestroy {
         this.photoFileName = player.photo?.path?.split('/').pop() ?? 'Sin imagen seleccionada';
         this.photoBlob = null;
         this.loadRelations();
+        this.loadMembershipData();
     }
 
     private loadRelations() {
@@ -717,6 +995,19 @@ export class PlayerDetailPage implements OnDestroy {
         }
 
         this.relations = this.playerService.listPlayerGuardians(this.player.id);
+    }
+
+    private loadMembershipData() {
+        if (!this.player) {
+            this.activeMembership = null;
+            this.membershipHistory = [];
+            this.initialCharges = [];
+            return;
+        }
+
+        this.activeMembership = this.playerService.getActiveMembership(this.player.id);
+        this.membershipHistory = this.playerService.listMembershipHistory(this.player.id);
+        this.initialCharges = this.playerService.listInitialChargesByPlayer(this.player.id);
     }
 
     private emptyForm(): PlayerForm {
@@ -792,6 +1083,10 @@ export class PlayerDetailPage implements OnDestroy {
             size: blob.size,
             checksum: `mock:${Date.now()}`
         };
+    }
+
+    formatDateTime(value: string) {
+        return new Intl.DateTimeFormat('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value));
     }
 
     private closeGuardianActionsMenu() {

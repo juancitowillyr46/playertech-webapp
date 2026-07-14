@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CategoryOption, Guardian, GuardianForm, GuardianLinkedPlayer, Player, PlayerForm, PlayerGuardianRelation, PlayerPhoto } from '../models/player.model';
+import { CategoryOption, Guardian, GuardianForm, GuardianLinkedPlayer, Player, PlayerForm, PlayerGuardianRelation, PlayerInitialCharge, PlayerMembership, PlayerMembershipHistoryItem, PlayerPhoto } from '../models/player.model';
 
 @Injectable({
     providedIn: 'root'
@@ -119,6 +119,127 @@ export class PlayerManagementService {
             playerId: 'player-002',
             isPrimary: true,
             guardian: this.guardians[2]
+        }
+    ];
+
+    private memberships: PlayerMembership[] = [
+        {
+            id: 'membership-001',
+            academyId: this.academyId,
+            playerId: 'player-001',
+            primaryGuardianId: 'guardian-001',
+            status: 'ACTIVE',
+            startedAt: '2026-07-07T00:00:00+00:00',
+            endedAt: null
+        },
+        {
+            id: 'membership-002',
+            academyId: this.academyId,
+            playerId: 'player-002',
+            primaryGuardianId: 'guardian-003',
+            status: 'ACTIVE',
+            startedAt: '2026-07-09T00:00:00+00:00',
+            endedAt: null
+        },
+        {
+            id: 'membership-003',
+            academyId: this.academyId,
+            playerId: 'player-003',
+            primaryGuardianId: 'guardian-004',
+            status: 'WITHDRAWN',
+            startedAt: '2026-03-05T00:00:00+00:00',
+            endedAt: '2026-06-15T00:00:00+00:00'
+        }
+    ];
+
+    private membershipHistory: PlayerMembershipHistoryItem[] = [
+        {
+            id: 'membership-history-001',
+            playerId: 'player-001',
+            primaryGuardianId: 'guardian-001',
+            status: 'ACTIVE',
+            startedAt: '2026-07-07T00:00:00+00:00',
+            endedAt: null
+        },
+        {
+            id: 'membership-history-002',
+            playerId: 'player-002',
+            primaryGuardianId: 'guardian-003',
+            status: 'ACTIVE',
+            startedAt: '2026-07-09T00:00:00+00:00',
+            endedAt: null
+        },
+        {
+            id: 'membership-history-003',
+            playerId: 'player-003',
+            primaryGuardianId: 'guardian-004',
+            status: 'ACTIVE',
+            startedAt: '2026-03-05T00:00:00+00:00',
+            endedAt: '2026-05-02T00:00:00+00:00'
+        },
+        {
+            id: 'membership-history-004',
+            playerId: 'player-003',
+            primaryGuardianId: 'guardian-004',
+            status: 'SUSPENDED',
+            startedAt: '2026-05-03T00:00:00+00:00',
+            endedAt: '2026-05-25T00:00:00+00:00'
+        },
+        {
+            id: 'membership-history-005',
+            playerId: 'player-003',
+            primaryGuardianId: 'guardian-004',
+            status: 'WITHDRAWN',
+            startedAt: '2026-05-26T00:00:00+00:00',
+            endedAt: '2026-06-15T00:00:00+00:00'
+        }
+    ];
+
+    private initialCharges: PlayerInitialCharge[] = [
+        {
+            id: 'charge-001',
+            membershipId: 'membership-001',
+            paymentConceptId: 'concept-001',
+            conceptName: 'Matrícula',
+            description: 'Cobro inicial de matrícula',
+            amount: '150000.00',
+            status: 'PENDING'
+        },
+        {
+            id: 'charge-002',
+            membershipId: 'membership-001',
+            paymentConceptId: 'concept-002',
+            conceptName: 'Primera mensualidad',
+            description: 'Primer cargo mensual del jugador',
+            amount: '120000.00',
+            status: 'PENDING'
+        },
+        {
+            id: 'charge-003',
+            membershipId: 'membership-002',
+            paymentConceptId: 'concept-001',
+            conceptName: 'Matrícula',
+            description: 'Cobro inicial de matrícula',
+            amount: '150000.00',
+            status: 'PAID'
+        },
+        {
+            id: 'charge-004',
+            membershipId: 'membership-002',
+            paymentConceptId: 'concept-002',
+            conceptName: 'Primera mensualidad',
+            description: 'Primer cargo mensual del jugador',
+            amount: '120000.00',
+            status: 'PENDING'
+        },
+        {
+            id: 'charge-005',
+            membershipId: 'membership-003',
+            paymentConceptId: 'concept-001',
+            conceptName: 'Matrícula',
+            description: 'Cobro inicial de matrícula',
+            amount: '150000.00',
+            status: 'PAID'
         }
     ];
 
@@ -319,6 +440,88 @@ export class PlayerManagementService {
         return this.relations.filter((relation) => relation.playerId === playerId).map((relation) => ({ ...relation, guardian: { ...relation.guardian } }));
     }
 
+    getActiveMembership(playerId: string): PlayerMembership | null {
+        const membership = this.memberships.find((item) => item.playerId === playerId && item.status === 'ACTIVE');
+        return membership ? { ...membership } : null;
+    }
+
+    listMembershipHistory(playerId: string): PlayerMembershipHistoryItem[] {
+        return this.membershipHistory.filter((item) => item.playerId === playerId).map((item) => ({ ...item }));
+    }
+
+    listInitialChargesByPlayer(playerId: string): PlayerInitialCharge[] {
+        const membershipIds = new Set(this.memberships.filter((item) => item.playerId === playerId).map((item) => item.id));
+        return this.initialCharges.filter((item) => membershipIds.has(item.membershipId)).map((item) => ({ ...item }));
+    }
+
+    createMembership(playerId: string, primaryGuardianId: string): PlayerMembership | null {
+        const existing = this.getActiveMembership(playerId);
+        if (existing) {
+            return existing;
+        }
+
+        const membershipId = `membership-${Date.now()}`;
+        const startedAt = new Date().toISOString();
+        const membership: PlayerMembership = {
+            id: membershipId,
+            academyId: this.academyId,
+            playerId,
+            primaryGuardianId,
+            status: 'ACTIVE',
+            startedAt,
+            endedAt: null
+        };
+
+        this.memberships = [membership, ...this.memberships.filter((item) => item.playerId !== playerId || item.status !== 'ACTIVE')];
+        this.membershipHistory = [{ id: membershipId, playerId, primaryGuardianId, status: 'ACTIVE', startedAt, endedAt: null }, ...this.membershipHistory];
+        this.initialCharges = [
+            {
+                id: `charge-${Date.now()}-1`,
+                membershipId,
+                paymentConceptId: 'concept-001',
+                conceptName: 'Matrícula',
+                description: 'Cobro inicial de matrícula',
+                amount: '150000.00',
+                status: 'PENDING'
+            },
+            {
+                id: `charge-${Date.now()}-2`,
+                membershipId,
+                paymentConceptId: 'concept-002',
+                conceptName: 'Primera mensualidad',
+                description: 'Primer cargo mensual del jugador',
+                amount: '120000.00',
+                status: 'PENDING'
+            },
+            ...this.initialCharges
+        ];
+
+        return { ...membership };
+    }
+
+    suspendMembership(playerId: string): PlayerMembership | null {
+        return this.changeMembershipStatus(playerId, 'SUSPENDED');
+    }
+
+    withdrawMembership(playerId: string): PlayerMembership | null {
+        return this.changeMembershipStatus(playerId, 'WITHDRAWN');
+    }
+
+    getGuardianDisplayName(guardianId: string): string {
+        const guardian = this.guardians.find((item) => item.id === guardianId);
+        return guardian ? `${guardian.firstName} ${guardian.lastName}`.trim() : 'Sin acudiente';
+    }
+
+    getPlayerDebtSummary(playerId: string): { pendingAmount: string; pendingCharges: number } {
+        const charges = this.listInitialChargesByPlayer(playerId).filter((item) => item.status === 'PENDING');
+        const pendingAmount = charges.reduce((total, charge) => total + Number(charge.amount), 0);
+
+        return {
+            pendingAmount: pendingAmount.toFixed(2),
+            pendingCharges: charges.length
+        };
+    }
+
     associateExistingGuardian(playerId: string, guardianId: string): PlayerGuardianRelation | null {
         const guardian = this.guardians.find((item) => item.id === guardianId);
         if (!guardian) {
@@ -363,5 +566,30 @@ export class PlayerManagementService {
 
         this.relations = this.relations.filter((item) => item.id !== relation.id);
         return { ok: true };
+    }
+
+    private changeMembershipStatus(playerId: string, status: 'SUSPENDED' | 'WITHDRAWN'): PlayerMembership | null {
+        const activeMembership = this.memberships.find((item) => item.playerId === playerId && item.status === 'ACTIVE');
+        if (!activeMembership) {
+            return null;
+        }
+
+        const endedAt = new Date().toISOString();
+        const updated: PlayerMembership = { ...activeMembership, status, endedAt };
+
+        this.memberships = this.memberships.map((item) => (item.id === activeMembership.id ? updated : item));
+        this.membershipHistory = [
+            {
+                id: `${activeMembership.id}-${status.toLowerCase()}`,
+                playerId,
+                primaryGuardianId: activeMembership.primaryGuardianId,
+                status,
+                startedAt: activeMembership.startedAt,
+                endedAt
+            },
+            ...this.membershipHistory.filter((item) => item.id !== activeMembership.id)
+        ];
+
+        return { ...updated };
     }
 }
