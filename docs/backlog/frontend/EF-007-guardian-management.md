@@ -31,6 +31,10 @@ Soporta el vínculo legal y operativo entre familia y jugador.
 * HU-004 Cambiar acudiente principal.
 * HU-005 Eliminar asociación jugador-acudiente.
 * HU-006 Preparar módulo independiente de acudientes.
+* HU-007 Listar acudientes como entidad independiente.
+* HU-008 Ver detalle de acudiente.
+* HU-009 Crear acudiente desde módulo independiente.
+* HU-010 Editar acudiente.
 
 ## Reglas de UX Relacionadas
 
@@ -55,3 +59,8 @@ In Progress.
 * HU-003 Crear acudiente y asociarlo a jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
 * HU-004 Cambiar acudiente principal → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
 * HU-005 Eliminar asociación jugador-acudiente → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-006 Preparar módulo independiente de acudientes → `Done` → `src/app/features/guardians/guardians.routes.ts`, `src/app/layout/component/app.menu.ts`, `src/app.routes.ts`
+* HU-007 Listar acudientes como entidad independiente → `In Progress (Mock UI)` → `src/app/features/guardians/pages/guardians-list.ts`
+* HU-008 Ver detalle de acudiente → `In Progress (Mock UI)` → `src/app/features/guardians/pages/guardian-detail.ts`
+* HU-009 Crear acudiente desde módulo independiente → `In Progress (Mock UI)` → `src/app/features/guardians/pages/guardian-form.ts`
+* HU-010 Editar acudiente → `In Progress (Mock UI)` → `src/app/features/guardians/pages/guardian-form.ts`

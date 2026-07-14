@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CategoryOption, Guardian, GuardianForm, Player, PlayerForm, PlayerGuardianRelation, PlayerPhoto } from '../models/player.model';
+import { CategoryOption, Guardian, GuardianForm, GuardianLinkedPlayer, Player, PlayerForm, PlayerGuardianRelation, PlayerPhoto } from '../models/player.model';
 
 @Injectable({
     providedIn: 'root'
@@ -202,6 +202,114 @@ export class PlayerManagementService {
         return this.guardians.map((guardian) => ({ ...guardian }));
     }
 
+    getGuardianById(guardianId: string): Guardian | null {
+        const guardian = this.guardians.find((item) => item.id === guardianId);
+        return guardian ? { ...guardian } : null;
+    }
+
+    createGuardian(payload: GuardianForm): Guardian {
+        const guardian: Guardian = {
+            id: `guardian-${Date.now()}`,
+            academyId: this.academyId,
+            firstName: payload.firstName.trim(),
+            lastName: payload.lastName.trim(),
+            phone: payload.phone.trim(),
+            email: payload.email.trim().toLowerCase(),
+            relationship: payload.relationship,
+            status: 'ACTIVE'
+        };
+
+        this.guardians = [guardian, ...this.guardians];
+        return { ...guardian };
+    }
+
+    updateGuardian(guardianId: string, payload: GuardianForm): Guardian | null {
+        let updated: Guardian | undefined;
+
+        this.guardians = this.guardians.map((guardian) => {
+            if (guardian.id !== guardianId) {
+                return guardian;
+            }
+
+            updated = {
+                ...guardian,
+                firstName: payload.firstName.trim(),
+                lastName: payload.lastName.trim(),
+                phone: payload.phone.trim(),
+                email: payload.email.trim().toLowerCase(),
+                relationship: payload.relationship
+            };
+
+            return updated;
+        });
+
+        if (!updated) {
+            return null;
+        }
+
+        this.relations = this.relations.map((relation) =>
+            relation.guardian.id === guardianId
+                ? {
+                      ...relation,
+                      guardian: { ...updated! }
+                  }
+                : relation
+        );
+
+        return { ...updated };
+    }
+
+    toggleGuardianStatus(guardianId: string): Guardian | null {
+        let updated: Guardian | undefined;
+
+        this.guardians = this.guardians.map((guardian) => {
+            if (guardian.id !== guardianId) {
+                return guardian;
+            }
+
+            updated = {
+                ...guardian,
+                status: guardian.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
+            };
+
+            return updated;
+        });
+
+        if (!updated) {
+            return null;
+        }
+
+        this.relations = this.relations.map((relation) =>
+            relation.guardian.id === guardianId
+                ? {
+                      ...relation,
+                      guardian: { ...updated! }
+                  }
+                : relation
+        );
+
+        return { ...updated };
+    }
+
+    listGuardianPlayers(guardianId: string): GuardianLinkedPlayer[] {
+        return this.relations
+            .filter((relation) => relation.guardian.id === guardianId)
+            .map((relation) => {
+                const player = this.players.find((item) => item.id === relation.playerId);
+                return player
+                    ? {
+                          relationId: relation.id,
+                          playerId: player.id,
+                          fullName: `${player.firstName} ${player.lastName}`.trim(),
+                          categoryName: player.categoryName,
+                          isPrimary: relation.isPrimary,
+                          status: player.status
+                      }
+                    : null;
+            })
+            .filter((item): item is GuardianLinkedPlayer => item !== null);
+    }
+
     listPlayerGuardians(playerId: string): PlayerGuardianRelation[] {
         return this.relations.filter((relation) => relation.playerId === playerId).map((relation) => ({ ...relation, guardian: { ...relation.guardian } }));
     }
@@ -226,18 +334,7 @@ export class PlayerManagementService {
     }
 
     createGuardianAndAssociate(playerId: string, payload: GuardianForm): PlayerGuardianRelation {
-        const guardian: Guardian = {
-            id: `guardian-${Date.now()}`,
-            academyId: this.academyId,
-            firstName: payload.firstName.trim(),
-            lastName: payload.lastName.trim(),
-            phone: payload.phone.trim(),
-            email: payload.email.trim().toLowerCase(),
-            relationship: payload.relationship,
-            status: 'ACTIVE'
-        };
-
-        this.guardians = [guardian, ...this.guardians];
+        const guardian = this.createGuardian(payload);
         const relation = this.associateExistingGuardian(playerId, guardian.id)!;
         return relation;
     }

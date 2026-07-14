@@ -58,3 +58,12 @@ export interface CategoryOption {
     id: string;
     name: string;
 }
+
+export interface GuardianLinkedPlayer {
+    relationId: string;
+    playerId: string;
+    fullName: string;
+    categoryName: string;
+    isPrimary: boolean;
+    status: 'ACTIVE' | 'INACTIVE';
+}

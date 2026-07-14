@@ -40,7 +40,12 @@ export class AppMenu {
                 items: [
                     { label: 'Perfil', icon: 'pi pi-fw pi-user', routerLink: ['/account/profile'] },
                     ...(canManageAcademy ? [{ label: 'Academia', icon: 'pi pi-fw pi-building', routerLink: ['/academy'] }] : []),
-                    ...(canManagePlayers ? [{ label: 'Jugadores', icon: 'pi pi-fw pi-users', routerLink: ['/players'] }] : [])
+                    ...(canManagePlayers
+                        ? [
+                              { label: 'Jugadores', icon: 'pi pi-fw pi-users', routerLink: ['/players'] },
+                              { label: 'Acudientes', icon: 'pi pi-fw pi-id-card', routerLink: ['/guardians'] }
+                          ]
+                        : [])
                 ]
             },
             ...(isRoot
