@@ -23,7 +23,7 @@ import { UserProfile } from '../models/profile.model';
         <div class="space-y-4">
             <app-page-header [breadcrumbs]="breadcrumbs" title="Perfil" subtitle="Consulta tu información de acceso y actualiza tu nombre."></app-page-header>
 
-            <div class="form-width-2col mx-auto mt-4 w-full space-y-3">
+            <div class="content-width-compact mx-auto mt-4 w-full space-y-3">
                 <div class="rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                     <div class="space-y-4 p-4">
                         <div class="grid grid-cols-12 gap-4">

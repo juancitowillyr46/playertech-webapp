@@ -47,7 +47,7 @@ interface LocationDepartment {
                 <p-button headerActions label="Volver" severity="secondary" outlined styleClass="w-full sm:w-auto" routerLink="/tenants" />
             </app-page-header>
 
-            <div class="mx-auto mt-4 w-full max-w-4xl overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+            <div class="content-width-comfortable mx-auto mt-4 w-full overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
                 <div class="border-b border-slate-200 px-4 py-4 dark:border-surface-800">
                     <div class="grid gap-2 sm:grid-cols-3">
                         @for (step of wizardSteps; track step.key; let index = $index) {
