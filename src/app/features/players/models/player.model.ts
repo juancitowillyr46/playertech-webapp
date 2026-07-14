@@ -34,6 +34,7 @@ export interface Guardian {
     lastName: string;
     phone: string;
     email: string;
+    relationship: string;
     status: 'ACTIVE' | 'INACTIVE';
 }
 
@@ -42,7 +43,6 @@ export interface PlayerGuardianRelation {
     academyId: string;
     playerId: string;
     isPrimary: boolean;
-    kinship: string;
     guardian: Guardian;
 }
 
@@ -51,6 +51,7 @@ export interface GuardianForm {
     lastName: string;
     phone: string;
     email: string;
+    relationship: string;
 }
 
 export interface CategoryOption {

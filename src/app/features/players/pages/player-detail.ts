@@ -185,7 +185,7 @@ import { Subscription } from 'rxjs';
                                             <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                                                 <div>
                                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Acudientes</p>
-                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Administra los datos del acudiente principal y los contactos de apoyo del jugador.</p>
+                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Administra los datos del acudiente principal y de los contactos autorizados del jugador.</p>
                                                 </div>
 
                                                 <div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:justify-end">
@@ -232,7 +232,7 @@ import { Subscription } from 'rxjs';
                                                         <td>{{ relation.guardian.email }}</td>
                                                         <td>{{ relation.guardian.phone }}</td>
                                                         <td>
-                                                            <p-tag styleClass="guardian-relation-tag" [value]="relation.kinship" severity="info" />
+                                                            <p-tag styleClass="guardian-relation-tag" [value]="relation.guardian.relationship" severity="info" />
                                                         </td>
                                                         <td>
                                                             <div class="flex justify-end gap-2">
@@ -289,7 +289,7 @@ import { Subscription } from 'rxjs';
 
             <p-dialog [(visible)]="showCreateGuardianDialog" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" [style]="{ width: 'min(46rem, calc(100vw - 2rem))' }" styleClass="player-dialog" header="Nuevo acudiente">
                 <div class="space-y-4">
-                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Registra el acudiente y déjalo asociado al jugador en una sola acción.</p>
+                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Registra el acudiente, define el parentesco y déjalo asociado al jugador en una sola acción.</p>
 
                     <div class="grid grid-cols-12 gap-4">
                         <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -321,6 +321,24 @@ import { Subscription } from 'rxjs';
                             <input pInputText id="guardianEmail" type="text" [(ngModel)]="guardianForm.email" placeholder="Ej. maria.perez@correo.com" class="w-full" (keydown)="onEmailKeydown($event)" (paste)="onEmailPaste($event)" (input)="onGuardianEmailInput($event)" />
                             @if (showGuardianError('email')) {
                                 <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
+                            }
+                        </div>
+
+                        <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                            <label for="guardianRelationship" class="text-sm font-medium text-surface-700 dark:text-surface-200">Parentesco <span class="text-rose-500">*</span></label>
+                            <p-select
+                                id="guardianRelationship"
+                                [(ngModel)]="guardianForm.relationship"
+                                [options]="relationshipOptions"
+                                optionLabel="label"
+                                optionValue="value"
+                                placeholder="Selecciona un parentesco"
+                                class="w-full"
+                                appendTo="body"
+                                [scrollHeight]="'16rem'"
+                            />
+                            @if (showGuardianError('relationship')) {
+                                <p-message severity="error" size="small">Selecciona el parentesco del acudiente.</p-message>
                             }
                         </div>
                     </div>
@@ -358,6 +376,14 @@ export class PlayerDetailPage implements OnDestroy {
     categories: CategoryOption[] = [];
     relations: PlayerGuardianRelation[] = [];
     guardians: Guardian[] = [];
+    readonly relationshipOptions = [
+        { label: 'Padre', value: 'Padre' },
+        { label: 'Madre', value: 'Madre' },
+        { label: 'Abuelo(a)', value: 'Abuelo(a)' },
+        { label: 'Tutor', value: 'Tutor' },
+        { label: 'Hermano(a)', value: 'Hermano(a)' },
+        { label: 'Otro', value: 'Otro' }
+    ];
     guardianSearch = '';
     selectedGuardianId = '';
     showAssociateGuardianDialog = false;
@@ -698,7 +724,7 @@ export class PlayerDetailPage implements OnDestroy {
     }
 
     private emptyGuardianForm(): GuardianForm {
-        return { firstName: '', lastName: '', phone: '', email: '' };
+        return { firstName: '', lastName: '', phone: '', email: '', relationship: '' };
     }
 
     private isFormValid() {
@@ -722,7 +748,7 @@ export class PlayerDetailPage implements OnDestroy {
     }
 
     private isGuardianFormValid() {
-        return ['firstName', 'lastName', 'phone', 'email'].every((field) => this.isGuardianFieldValid(field as keyof GuardianForm));
+        return ['firstName', 'lastName', 'phone', 'email', 'relationship'].every((field) => this.isGuardianFieldValid(field as keyof GuardianForm));
     }
 
     private isGuardianFieldValid(field: keyof GuardianForm) {
@@ -734,6 +760,8 @@ export class PlayerDetailPage implements OnDestroy {
                 return this.guardianForm.phone.replace(/\D/g, '').length >= 7;
             case 'email':
                 return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.guardianForm.email.trim());
+            case 'relationship':
+                return !!this.guardianForm.relationship;
             default:
                 return true;
         }

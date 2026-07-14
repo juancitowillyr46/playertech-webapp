@@ -63,6 +63,7 @@ export class PlayerManagementService {
             lastName: 'Pérez',
             phone: '+57 312 555 0021',
             email: 'maria.perez@example.com',
+            relationship: 'Madre',
             status: 'ACTIVE'
         },
         {
@@ -72,6 +73,7 @@ export class PlayerManagementService {
             lastName: 'Pérez',
             phone: '+57 320 444 7788',
             email: 'carlos.perez@example.com',
+            relationship: 'Padre',
             status: 'ACTIVE'
         },
         {
@@ -81,6 +83,7 @@ export class PlayerManagementService {
             lastName: 'García',
             phone: '+57 315 908 1212',
             email: 'andrea.garcia@example.com',
+            relationship: 'Tía',
             status: 'ACTIVE'
         },
         {
@@ -90,6 +93,7 @@ export class PlayerManagementService {
             lastName: 'López',
             phone: '+57 301 678 0045',
             email: 'luisa.lopez@example.com',
+            relationship: 'Tutor',
             status: 'INACTIVE'
         }
     ];
@@ -100,7 +104,6 @@ export class PlayerManagementService {
             academyId: this.academyId,
             playerId: 'player-001',
             isPrimary: true,
-            kinship: 'Madre',
             guardian: this.guardians[0]
         },
         {
@@ -108,7 +111,6 @@ export class PlayerManagementService {
             academyId: this.academyId,
             playerId: 'player-001',
             isPrimary: false,
-            kinship: 'Padre',
             guardian: this.guardians[1]
         },
         {
@@ -116,7 +118,6 @@ export class PlayerManagementService {
             academyId: this.academyId,
             playerId: 'player-002',
             isPrimary: true,
-            kinship: 'Tía',
             guardian: this.guardians[2]
         }
     ];
@@ -217,7 +218,6 @@ export class PlayerManagementService {
             academyId: this.academyId,
             playerId,
             isPrimary: !hasPrimary,
-            kinship: 'Acudiente',
             guardian
         };
 
@@ -233,6 +233,7 @@ export class PlayerManagementService {
             lastName: payload.lastName.trim(),
             phone: payload.phone.trim(),
             email: payload.email.trim().toLowerCase(),
+            relationship: payload.relationship,
             status: 'ACTIVE'
         };
 
