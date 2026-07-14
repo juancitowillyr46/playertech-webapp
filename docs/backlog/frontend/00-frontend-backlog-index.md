@@ -124,6 +124,24 @@ Cobertura de alta unificada del staff, acceso y relación del staff con equipos.
 * HU-008 Actualizar categoría → `Draft`
 * HU-009 Activar o inactivar categoría → `Draft`
 
+## EF-006 Player Management
+
+* HU-001 Listar jugadores → `In Progress (Mock UI)` → `src/app/features/players/pages/players-list.ts`
+* HU-002 Registrar jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-form.ts`
+* HU-003 Ver detalle de jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-004 Actualizar jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-005 Desactivar jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/players-list.ts`
+* HU-006 Reactivar jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/players-list.ts`
+* HU-007 Subir o actualizar foto de jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-form.ts`, `src/app/features/players/pages/player-detail.ts`
+
+## EF-007 Guardian Management
+
+* HU-001 Listar acudientes asociados a un jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-002 Asociar acudiente existente a jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-003 Crear acudiente y asociarlo a jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-004 Cambiar acudiente principal → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-005 Eliminar asociación jugador-acudiente → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+
 ## EF-008 Team Management
 
 * HU-001 Crear equipo → `In Progress (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`

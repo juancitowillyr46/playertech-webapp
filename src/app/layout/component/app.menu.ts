@@ -25,8 +25,10 @@ export class AppMenu {
     constructor(private readonly auth: MockAuthService) {}
 
     ngOnInit() {
-        const isRoot = this.auth.getRole() === 'super_admin';
-        const canManageAcademy = ['tenant_owner', 'academy_admin'].includes(this.auth.getRole());
+        const role = this.auth.getRole();
+        const isRoot = role === 'super_admin';
+        const canManageAcademy = ['tenant_owner', 'academy_admin'].includes(role);
+        const canManagePlayers = ['tenant_owner', 'academy_admin', 'staff'].includes(role);
 
         this.model = [
             {
@@ -37,7 +39,8 @@ export class AppMenu {
                 label: 'Mi cuenta',
                 items: [
                     { label: 'Perfil', icon: 'pi pi-fw pi-user', routerLink: ['/account/profile'] },
-                    ...(canManageAcademy ? [{ label: 'Academia', icon: 'pi pi-fw pi-building', routerLink: ['/academy'] }] : [])
+                    ...(canManageAcademy ? [{ label: 'Academia', icon: 'pi pi-fw pi-building', routerLink: ['/academy'] }] : []),
+                    ...(canManagePlayers ? [{ label: 'Jugadores', icon: 'pi pi-fw pi-users', routerLink: ['/players'] }] : [])
                 ]
             },
             ...(isRoot

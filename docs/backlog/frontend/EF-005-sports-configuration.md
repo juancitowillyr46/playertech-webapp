@@ -220,6 +220,151 @@ Esta decisión busca:
 * evitar una navegación fragmentada demasiado pronto;
 * permitir que el usuario entienda que una sede pertenece a su academia y no a un módulo aislado.
 
+## HU de Categorías
+
+### HU-006 Crear categoría
+
+Como owner o administrador de academia, quiero registrar una categoría deportiva, para organizar jugadores y equipos por rango de edad dentro de la academia.
+
+#### Referencia backend
+
+* Épica backend: `EP-004 Gestión de Categorías`
+* Endpoint visible en Postman:
+  * `POST /api/v1/academy/categories`
+* Body de referencia:
+  * `categoryKey`
+  * `name`
+  * `minAge`
+  * `maxAge`
+  * `description`
+
+#### Criterios de aceptación
+
+* Debe existir una acción principal `Nueva categoría`.
+* La creación debe resolverse desde un formulario simple y consistente con la administración deportiva de la academia.
+* El formulario debe contemplar como mínimo:
+  * `categoryKey`
+  * `name`
+  * `minAge`
+  * `maxAge`
+  * `description`
+* `categoryKey` debe ser obligatorio.
+* `name` debe ser obligatorio.
+* `minAge` debe ser obligatorio.
+* `maxAge` debe ser obligatorio.
+* `description` debe ser opcional.
+* El frontend debe validar que `minAge` sea menor que `maxAge`.
+* El frontend debe prevenir visualmente duplicados evidentes de nombre o clave dentro del mock actual.
+* Al guardar, la nueva categoría debe aparecer en el listado sin recargar la pantalla.
+* Mientras no exista integración real, el flujo debe operar con mocks alineados al dominio `Category`.
+
+#### Reglas de UX
+
+* Mostrar edad mínima y máxima con etiquetas claras.
+* Evitar lenguaje técnico como `categoryKey` en la interfaz visible.
+* La acción principal debe ser inequívoca: `Guardar categoría`.
+* El usuario debe entender rápidamente que la categoría define un rango etario.
+
+### HU-007 Listar categorías
+
+Como owner o administrador de academia, quiero consultar el listado de categorías registradas, para saber cuáles están activas y qué rangos de edad cubren.
+
+#### Referencia backend
+
+* Endpoint visible en Postman:
+  * `GET /api/v1/academy/categories`
+* Query params:
+  * `page`
+  * `per_page`
+  * `sort`
+  * `direction`
+* Respuesta de referencia:
+  * `data`
+  * `meta`
+
+#### Criterios de aceptación
+
+* Debe existir una sección específica de `Categorías` dentro del contexto deportivo de la academia.
+* El listado debe usar tabla o layout administrativo consistente con sedes y academias.
+* Debe mostrar al menos las columnas:
+  * `Nombre`
+  * `Clave`
+  * `Rango de edad`
+  * `Estado`
+* El rango de edad debe mostrarse de forma legible, por ejemplo `11 a 12 años`.
+* Debe permitir búsqueda local mock por nombre o clave.
+* Debe contemplar paginación mock alineada al contrato `data/meta`.
+* Debe incluir acciones por registro para ver, editar y cambiar estado.
+* Debe reflejar estado activo o inactivo con badges visibles.
+
+#### Reglas de UX
+
+* El listado debe priorizar lectura rápida del rango de edad.
+* La tabla no debe saturarse con demasiados campos secundarios.
+* El estado debe distinguirse visualmente sin depender solo del texto.
+* Debe mantenerse usable en desktop y mobile.
+
+### HU-008 Actualizar categoría
+
+Como owner o administrador de academia, quiero editar una categoría existente, para corregir su nombre, clave o rango de edad cuando sea necesario.
+
+#### Referencia backend
+
+* Endpoint visible en Postman:
+  * `PUT /api/v1/academy/categories/{categoryId}`
+* Body de referencia:
+  * `categoryKey`
+  * `name`
+  * `minAge`
+  * `maxAge`
+  * `description`
+
+#### Criterios de aceptación
+
+* Debe existir una acción `Editar` por cada categoría.
+* La edición debe reutilizar el mismo formulario base de creación.
+* Debe permitir modificar:
+  * clave
+  * nombre
+  * edad mínima
+  * edad máxima
+  * descripción
+* Debe validar obligatorios antes de guardar.
+* Debe validar que `minAge` sea menor que `maxAge`.
+* Al guardar, el listado mock debe reflejar el cambio sin perder contexto.
+* Debe existir una acción clara para cancelar la edición.
+
+#### Reglas de UX
+
+* La edición debe sentirse igual a crear, sin introducir otro patrón visual innecesario.
+* Si se usa diálogo, no debe afectar scroll, overlays ni selects.
+* Si el formulario crece, debe preferirse página dedicada o bloque expandible limpio.
+
+### HU-009 Activar o inactivar categoría
+
+Como owner o administrador de academia, quiero activar o inactivar una categoría, para controlar si sigue disponible en la operación sin eliminar su historial.
+
+#### Referencia backend
+
+* Endpoints visibles en Postman:
+  * `PATCH /api/v1/academy/categories/{categoryId}/inactivate`
+  * `PATCH /api/v1/academy/categories/{categoryId}/activate`
+
+#### Criterios de aceptación
+
+* Cada categoría debe permitir cambiar su estado según su estado actual.
+* La acción debe pedir confirmación previa.
+* Una categoría inactiva debe seguir visible en el listado.
+* El cambio debe actualizar el badge de estado inmediatamente en el mock.
+* El texto de confirmación debe ser claro y orientado a operación.
+* El usuario debe entender que inactivar una categoría evita su uso operativo, pero no la elimina.
+
+#### Reglas de UX
+
+* No usar el término `eliminar` si la intención real es desactivar.
+* Activar e inactivar deben distinguirse visualmente.
+* El estado debe quedar visible también después del cambio, sin obligar a refrescar la pantalla.
+
 ## Estado
 
 Draft.
