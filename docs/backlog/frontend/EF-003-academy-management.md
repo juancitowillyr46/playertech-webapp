@@ -24,13 +24,16 @@ Centraliza la operación institucional y el control del entorno multi-tenant.
 
 ## Historias de Usuario
 
-* HU-001 Consultar academia propia. `In Progress`
-* HU-002 Actualizar academia propia. `In Progress`
+* HU-001 Consultar academia propia. `Done (Mock UI)`
+* HU-002 Actualizar academia propia. `Done (Mock UI)`
 * HU-003 Consultar academias desde plataforma. `Done`
 * HU-004 Ver detalle de academia. `Partial`
 * HU-005 Suspender o reactivar academia. `Done`
-* HU-006 Subir escudo institucional. `In Progress`
-* HU-007 Navegar submódulos de academia desde tabs. `Draft`
+* HU-006 Subir escudo institucional. `Done (Mock UI)`
+* HU-007 Navegar submódulos de academia desde tabs. `Done (Mock UI)`
+* HU-008 Consultar información fiscal de la academia. `Done (Mock UI)`
+* HU-009 Actualizar información fiscal de la academia. `Done (Mock UI)`
+* HU-010 Mostrar resumen fiscal de la academia en contextos útiles. `Done (Mock UI)`
 
 ## Reglas de UX Relacionadas
 
@@ -41,6 +44,9 @@ Centraliza la operación institucional y el control del entorno multi-tenant.
 * Evitar exponer estados internos de la academia dentro del formulario principal del owner/admin.
 * Usar a `Academia` como contenedor padre de submódulos como `Información` y `Sedes`.
 * Evitar pantallas excesivamente largas apilando bloques heterogéneos cuando tabs simples resuelven mejor la navegación.
+* En UI usar siempre el término `Información fiscal`, no `Datos fiscales`.
+* No asumir múltiples perfiles fiscales: la academia tiene un único perfil fiscal principal/default.
+* Mantener la información fiscal como bloque independiente del formulario operativo general de academia.
 
 ## Detalle de HU-001
 
@@ -136,6 +142,94 @@ Como owner o administrador de academia, quiero navegar la gestión de mi academi
 * No mezclar en un mismo submit los cambios de `Información` con la gestión operativa de `Sedes`.
 * Si el número de tabs crece, en mobile deben poder desplazarse horizontalmente o transformarse en un selector compacto.
 
+## Detalle de HU-008
+
+### HU-008 Consultar información fiscal de la academia
+
+Como owner o administrador de academia, quiero consultar la información fiscal principal de mi academia, para verificar qué datos se usarán en comprobantes operativos y procesos administrativos relacionados con pagos.
+
+#### Criterios de aceptación
+
+* La pantalla o tab de academia debe incluir una sección visible llamada `Información fiscal`.
+* La UI debe usar como referencia `GET /api/v1/academy/me/tax-profile`.
+* Deben mostrarse, con nombres funcionales amigables:
+  * Razón social
+  * Tipo de identificación
+  * Número de identificación
+  * Dígito de verificación
+  * Dirección fiscal
+  * Ciudad
+  * País
+  * Correo para facturación
+* Si un dato no viene configurado, la UI debe mostrarlo como `No configurado`, `Opcional` o equivalente claro.
+* El dígito de verificación debe verse como dato opcional.
+* La implementación puede funcionar con mocks mientras no exista integración real.
+
+#### Reglas de UX
+
+* La sección debe ser simple y de lectura clara.
+* No mezclar esta información con acciones como cambiar escudo, sedes o staff.
+* Evitar exponer nombres técnicos del contrato backend como `taxIdType` o `billingEmail`.
+
+## Detalle de HU-009
+
+### HU-009 Actualizar información fiscal de la academia
+
+Como owner o administrador de academia, quiero editar la información fiscal principal de mi academia desde un único formulario, para mantener actualizados los datos administrativos usados en comprobantes y procesos de cobro.
+
+#### Criterios de aceptación
+
+* Debe existir un solo formulario de edición para `Información fiscal`.
+* La UI debe usar como referencia `PUT /api/v1/academy/me/tax-profile`.
+* El formulario debe contemplar el mapeo funcional:
+  * razón social
+  * tipo de identificación
+  * número de identificación
+  * dígito de verificación
+  * dirección fiscal
+  * ciudad
+  * país
+  * correo para facturación
+* El frontend debe considerar como contrato técnico mínimo:
+  * `taxIdType`
+  * `taxIdNumber`
+  * `taxCheckDigit`
+  * `taxRegime`
+  * `billingEmail`
+* El dígito de verificación debe ser opcional.
+* La UI no debe inventar múltiples perfiles fiscales ni lógica de selección de perfil.
+* La implementación puede operar con mocks mientras no exista integración real.
+
+#### Reglas de UX
+
+* El usuario debe percibir un bloque independiente, claro y corto.
+* Los campos deben tener labels funcionales y no técnicos.
+* Si un campo es opcional, debe indicarse sin ruido visual excesivo.
+
+## Detalle de HU-010
+
+### HU-010 Mostrar resumen fiscal de la academia en contextos útiles
+
+Como usuario administrativo, quiero ver un resumen fiscal básico de la academia donde sea relevante, para entender rápidamente si la información operativa de facturación está completa.
+
+#### Criterios de aceptación
+
+* La UI puede mostrar un resumen fiscal breve en:
+  * vista de academia propia
+  * detalle útil dentro de contextos financieros
+* El resumen no debe duplicar el formulario completo.
+* Debe priorizar al menos:
+  * razón social
+  * identificación
+  * correo para facturación
+* Si faltan datos clave, la UI debe comunicarlo de forma simple.
+
+#### Reglas de UX
+
+* El resumen debe ser compacto.
+* No debe competir visualmente con el contenido principal de la pantalla.
+* Debe servir como lectura de estado, no como segundo formulario.
+
 ## Escenarios de Guardado
 
 Para la edición de academia se deben contemplar explícitamente estos escenarios:
@@ -168,7 +262,7 @@ El frontend debe poder convertir el resultado del crop a `Blob/File` antes del e
 
 ## Estado
 
-In Progress.
+Done (Mock UI).
 
 ## Nota de Iteración
 

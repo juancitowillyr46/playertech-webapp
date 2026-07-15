@@ -22,7 +22,7 @@ import { MockAuthService } from '@/app/core/auth/mock-auth.service';
 import { ImageCropperComponent, ImageCropperFileError, ImageCropperResult } from '@/app/shared/ui/image-cropper/image-cropper';
 import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
 import { AcademyProfileService } from '../data-access/academy-profile.service';
-import { AcademyProfile } from '../models/academy.model';
+import { AcademyProfile, AcademyTaxProfile } from '../models/academy.model';
 import { Menu } from 'primeng/menu';
 
 interface CountryOption {
@@ -146,7 +146,7 @@ interface AcademyTeamStaffForm {
             } @else {
                 <div
                     class="mx-auto mt-4 w-full space-y-3 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"
-                    [class.content-width-compact]="activeTab === 'information' || activeTab === 'venues' || activeTab === 'categories' || activeTab === 'teams'"
+                    [class.content-width-compact]="activeTab === 'information' || activeTab === 'tax' || activeTab === 'venues' || activeTab === 'categories' || activeTab === 'teams'"
                     [class.content-width-full]="activeTab === 'staff'"
                 >
                     <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
@@ -156,6 +156,12 @@ interface AcademyTeamStaffForm {
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-building text-sm"></i>
                                         <span>Información</span>
+                                    </span>
+                                </p-tab>
+                                <p-tab value="tax" (click)="activeTab = 'tax'">
+                                    <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                                        <i class="pi pi-file-edit text-sm"></i>
+                                        <span>Información fiscal</span>
                                     </span>
                                 </p-tab>
                                 <p-tab value="venues" (click)="activeTab = 'venues'">
@@ -313,6 +319,114 @@ interface AcademyTeamStaffForm {
                                         <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center sm:justify-end">
                                             <p-button label="Cancelar" severity="secondary" text styleClass="w-full" routerLink="/" />
                                             <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full" (onClick)="save()" />
+                                        </div>
+                                    </div>
+                                </p-tabpanel>
+
+                                <p-tabpanel value="tax">
+                                    <div class="space-y-4 p-3 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:p-4 sm:pb-4">
+                                        <div class="form-width-2col mx-auto space-y-4">
+                                            <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/60">
+                                                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                                    <div class="space-y-1">
+                                                        <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Resumen fiscal</p>
+                                                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Verifica la identificación, la facturación y la ubicación fiscal que hoy tiene configurada la academia.</p>
+                                                    </div>
+                                                    <span class="inline-flex items-center self-start rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 dark:border-surface-700 dark:bg-surface-900 dark:text-slate-300">
+                                                        {{ isTaxSummaryConfigured ? 'Configurado' : 'Pendiente de completar' }}
+                                                    </span>
+                                                </div>
+
+                                                <div class="mt-4 grid gap-3 md:grid-cols-3">
+                                                    <div class="rounded-[0.85rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900">
+                                                        <p class="m-0 text-xs font-medium text-slate-500 dark:text-slate-400">Razón social</p>
+                                                        <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ taxForm.legalName || 'No configurado' }}</p>
+                                                    </div>
+                                                    <div class="rounded-[0.85rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900">
+                                                        <p class="m-0 text-xs font-medium text-slate-500 dark:text-slate-400">Identificación</p>
+                                                        <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ taxIdentificationSummary }}</p>
+                                                    </div>
+                                                    <div class="rounded-[0.85rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900">
+                                                        <p class="m-0 text-xs font-medium text-slate-500 dark:text-slate-400">Facturación</p>
+                                                        <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ taxBillingSummary }}</p>
+                                                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ taxLocationSummary }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-12 gap-4">
+                                                <div class="col-span-12">
+                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información fiscal</p>
+                                                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Mantén al día los datos que se usarán en comprobantes y procesos de facturación.</p>
+                                                </div>
+
+                                                <div class="col-span-12 flex flex-col gap-2">
+                                                    <label for="legalName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Razón social <span class="text-rose-500">*</span></label>
+                                                    <input pInputText id="legalName" type="text" [(ngModel)]="taxForm.legalName" placeholder="Ej. Academia PlayerTech Demo SAS" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onTaxLegalNameInput($event)" />
+                                                    @if (showTaxError('legalName')) {
+                                                        <p-message severity="error" size="small">Ingresa la razón social.</p-message>
+                                                    }
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="taxIdType" class="text-sm font-medium text-surface-700 dark:text-surface-200">Tipo de identificación <span class="text-rose-500">*</span></label>
+                                                    <p-select id="taxIdType" [(ngModel)]="taxForm.taxIdType" [options]="taxIdTypeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un tipo" class="w-full" appendTo="body" />
+                                                    @if (showTaxError('taxIdType')) {
+                                                        <p-message severity="error" size="small">Selecciona el tipo de identificación.</p-message>
+                                                    }
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="taxIdNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Número de identificación <span class="text-rose-500">*</span></label>
+                                                    <input pInputText id="taxIdNumber" type="text" [(ngModel)]="taxForm.taxIdNumber" placeholder="Ej. 901234567" class="w-full" (input)="onTaxIdNumberInput($event)" />
+                                                    @if (showTaxError('taxIdNumber')) {
+                                                        <p-message severity="error" size="small">Ingresa el número de identificación.</p-message>
+                                                    }
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="taxCheckDigit" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dígito de verificación <span class="text-slate-400">(opcional)</span></label>
+                                                    <input pInputText id="taxCheckDigit" type="text" [(ngModel)]="taxForm.taxCheckDigit" placeholder="Ej. 8" class="w-full" maxlength="2" (input)="onTaxCheckDigitInput($event)" />
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="taxRegime" class="text-sm font-medium text-surface-700 dark:text-surface-200">Régimen fiscal <span class="text-rose-500">*</span></label>
+                                                    <p-select id="taxRegime" [(ngModel)]="taxForm.taxRegime" [options]="taxRegimeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un régimen" class="w-full" appendTo="body" />
+                                                    @if (showTaxError('taxRegime')) {
+                                                        <p-message severity="error" size="small">Selecciona el régimen fiscal.</p-message>
+                                                    }
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="billingEmail" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo para facturación <span class="text-rose-500">*</span></label>
+                                                    <input pInputText id="billingEmail" type="text" [(ngModel)]="taxForm.billingEmail" placeholder="Ej. facturacion@academia.com" class="w-full" (keydown)="onEmailKeydown($event)" (paste)="onEmailPaste($event)" (input)="onBillingEmailInput()" />
+                                                    @if (showTaxError('billingEmail')) {
+                                                        <p-message severity="error" size="small">Ingresa un correo válido para facturación.</p-message>
+                                                    }
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="fiscalCountry" class="text-sm font-medium text-surface-700 dark:text-surface-200">País</label>
+                                                    <p-select id="fiscalCountry" [(ngModel)]="taxForm.fiscalCountry" [options]="countryOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name" placeholder="Selecciona un país" class="w-full" appendTo="body" />
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="fiscalCity" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad</label>
+                                                    <input pInputText id="fiscalCity" type="text" [(ngModel)]="taxForm.fiscalCity" placeholder="Ej. Pereira" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onFiscalCityInput($event)" />
+                                                </div>
+
+                                                <div class="col-span-12 flex flex-col gap-2">
+                                                    <label for="fiscalAddress" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección fiscal</label>
+                                                    <input pInputText id="fiscalAddress" type="text" [(ngModel)]="taxForm.fiscalAddress" placeholder="Ej. Calle 10 # 20-30" class="w-full" (keydown)="onAddressKeydown($event)" (paste)="onAddressPaste($event)" (input)="onFiscalAddressInput($event)" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="border-t border-slate-200 p-4 dark:border-surface-800">
+                                        <div class="form-width-2col mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                                            <p-button label="Restablecer" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetTaxForm()" />
+                                            <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full sm:w-auto" (onClick)="saveTaxProfile()" />
                                         </div>
                                     </div>
                                 </p-tabpanel>
@@ -1121,9 +1235,12 @@ export class AcademyProfilePage {
     };
 
     submitted = false;
-    activeTab: 'information' | 'venues' | 'categories' | 'teams' | 'staff' = 'information';
+    taxSubmitted = false;
+    activeTab: 'information' | 'tax' | 'venues' | 'categories' | 'teams' | 'staff' = 'information';
     academy: AcademyProfile | null;
     form: AcademyProfile;
+    taxProfile: AcademyTaxProfile | null;
+    taxForm: AcademyTaxProfile;
     shieldFileName = 'Sin imagen seleccionada';
     shieldPreviewUrl: string | null = null;
     hasPendingShieldChanges = false;
@@ -1444,6 +1561,19 @@ export class AcademyProfilePage {
         { label: 'Administrador de academia', value: 'ROLE_ACADEMY_ADMIN' },
         { label: 'Entrenador', value: 'ROLE_COACH' }
     ];
+    taxIdTypeOptions = [
+        { label: 'NIT', value: 'NIT' },
+        { label: 'RUC', value: 'RUC' },
+        { label: 'RUT', value: 'RUT' },
+        { label: 'Cédula', value: 'CEDULA' },
+        { label: 'Pasaporte', value: 'PASAPORTE' }
+    ];
+    taxRegimeOptions = [
+        { label: 'Responsable de IVA', value: 'RESPONSABLE_IVA' },
+        { label: 'No responsable de IVA', value: 'NO_RESPONSABLE_IVA' },
+        { label: 'Régimen general', value: 'REGIMEN_GENERAL' },
+        { label: 'Régimen simplificado', value: 'REGIMEN_SIMPLIFICADO' }
+    ];
     staffStatusOptions: { label: string; value: AcademyStaffMember['status'] }[] = [
         { label: 'Activo', value: 'ACTIVE' },
         { label: 'Inactivo', value: 'INACTIVE' },
@@ -1458,6 +1588,8 @@ export class AcademyProfilePage {
     ) {
         this.academy = this.academyService.getCurrentAcademy();
         this.form = this.academy ?? this.emptyForm();
+        this.taxProfile = this.academyService.getCurrentTaxProfile();
+        this.taxForm = this.taxProfile ?? this.emptyTaxForm();
         this.selectedTeam = this.teams[0] ?? null;
     }
 
@@ -1519,6 +1651,32 @@ export class AcademyProfilePage {
         return this.categories.filter((category) => category.status === 'ACTIVE').map((category) => ({ id: category.id, name: category.name }));
     }
 
+    get taxIdentificationSummary(): string {
+        const type = this.getTaxOptionLabel(this.taxIdTypeOptions, this.taxForm.taxIdType);
+        const number = this.taxForm.taxIdNumber.trim();
+        const checkDigit = this.taxForm.taxCheckDigit.trim();
+
+        if (!type && !number) {
+            return 'No configurado';
+        }
+
+        const base = [type, number].filter(Boolean).join(' ');
+        return checkDigit ? `${base} · DV ${checkDigit}` : base;
+    }
+
+    get taxBillingSummary(): string {
+        return this.taxForm.billingEmail.trim() || 'No configurado';
+    }
+
+    get taxLocationSummary(): string {
+        const location = [this.taxForm.fiscalCity.trim(), this.taxForm.fiscalCountry.trim()].filter(Boolean).join(', ');
+        return location || 'Ubicación fiscal no configurada';
+    }
+
+    get isTaxSummaryConfigured(): boolean {
+        return !!(this.taxForm.legalName.trim() && this.taxForm.taxIdType.trim() && this.taxForm.taxIdNumber.trim() && this.taxForm.billingEmail.trim());
+    }
+
     get selectedTeamStaffAssignments(): AcademyTeamStaffAssignment[] {
         const selectedTeam = this.selectedTeam;
 
@@ -1561,6 +1719,34 @@ export class AcademyProfilePage {
         });
 
         this.hasPendingShieldChanges = false;
+    }
+
+    saveTaxProfile() {
+        this.taxSubmitted = true;
+
+        if (!this.canEditAcademy() || !this.isTaxFormValid()) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Revisa la información fiscal',
+                detail: 'Completa los campos obligatorios antes de guardar.'
+            });
+            return;
+        }
+
+        this.academyService.updateCurrentTaxProfile(this.taxForm);
+        this.taxProfile = this.academyService.getCurrentTaxProfile();
+        this.taxForm = this.taxProfile ?? this.emptyTaxForm();
+
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Información fiscal actualizada',
+            detail: 'Los datos fiscales quedaron listos en esta iteración mock.'
+        });
+    }
+
+    resetTaxForm() {
+        this.taxSubmitted = false;
+        this.taxForm = this.taxProfile ?? this.emptyTaxForm();
     }
 
     onShieldSelected(event: Event) {
@@ -2325,20 +2511,52 @@ export class AcademyProfilePage {
         return this.submitted && !this.isFieldValid(field);
     }
 
+    showTaxError(field: keyof AcademyTaxProfile): boolean {
+        return this.taxSubmitted && !this.isTaxFieldValid(field);
+    }
+
     onAcademyNameInput(event: Event) {
         this.form.name = this.sanitizeNameInput((event.target as HTMLInputElement).value);
+    }
+
+    onTaxLegalNameInput(event: Event) {
+        this.taxForm.legalName = this.sanitizeNameInput((event.target as HTMLInputElement).value);
     }
 
     onAddressInput(event: Event) {
         this.form.address = this.sanitizeAddressInput((event.target as HTMLInputElement).value);
     }
 
+    onFiscalAddressInput(event: Event) {
+        this.taxForm.fiscalAddress = this.sanitizeAddressInput((event.target as HTMLInputElement).value);
+    }
+
     onPhoneInput(event: Event) {
         this.form.phoneNumber = this.sanitizePhoneInput((event.target as HTMLInputElement).value);
     }
 
+    onTaxIdNumberInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.taxForm.taxIdNumber = input.value.replace(/[^\dA-Za-z-]/g, '');
+        input.value = this.taxForm.taxIdNumber;
+    }
+
+    onTaxCheckDigitInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.taxForm.taxCheckDigit = input.value.replace(/[^\dA-Za-z]/g, '');
+        input.value = this.taxForm.taxCheckDigit;
+    }
+
     onEmailInput() {
         this.form.contactEmail = this.sanitizeEmailInput(this.form.contactEmail);
+    }
+
+    onBillingEmailInput() {
+        this.taxForm.billingEmail = this.sanitizeEmailInput(this.taxForm.billingEmail);
+    }
+
+    onFiscalCityInput(event: Event) {
+        this.taxForm.fiscalCity = this.sanitizeNameInput((event.target as HTMLInputElement).value);
     }
 
     onLocationCountryChange() {
@@ -2405,6 +2623,10 @@ export class AcademyProfilePage {
         return ['name', 'contactEmail', 'countryCode', 'phoneNumber', 'country', 'department', 'city', 'address'].every((field) => this.isFieldValid(field));
     }
 
+    private isTaxFormValid(): boolean {
+        return ['legalName', 'taxIdType', 'taxIdNumber', 'taxRegime', 'billingEmail'].every((field) => this.isTaxFieldValid(field as keyof AcademyTaxProfile));
+    }
+
     private isVenueFormValid(): boolean {
         return ['name', 'city', 'phone'].every((field) => this.isVenueFieldValid(field as keyof AcademyVenueForm));
     }
@@ -2454,6 +2676,31 @@ export class AcademyProfilePage {
             default:
                 return true;
         }
+    }
+
+    private isTaxFieldValid(field: keyof AcademyTaxProfile): boolean {
+        switch (field) {
+            case 'legalName':
+                return this.hasValidText(this.taxForm.legalName, 3);
+            case 'taxIdType':
+                return !!this.taxForm.taxIdType.trim();
+            case 'taxIdNumber':
+                return this.taxForm.taxIdNumber.trim().length >= 6;
+            case 'taxRegime':
+                return !!this.taxForm.taxRegime.trim();
+            case 'billingEmail':
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.taxForm.billingEmail.trim());
+            case 'taxCheckDigit':
+            case 'fiscalAddress':
+            case 'fiscalCity':
+            case 'fiscalCountry':
+            default:
+                return true;
+        }
+    }
+
+    private getTaxOptionLabel(options: { label: string; value: string }[], value: string): string {
+        return options.find((option) => option.value === value)?.label ?? value;
     }
 
     private isVenueFieldValid(field: keyof AcademyVenueForm): boolean {
@@ -2827,6 +3074,20 @@ export class AcademyProfilePage {
             address: '',
             status: 'ACTIVE',
             statusLabel: 'Activa'
+        };
+    }
+
+    private emptyTaxForm(): AcademyTaxProfile {
+        return {
+            legalName: this.form?.name ?? '',
+            taxIdType: '',
+            taxIdNumber: '',
+            taxCheckDigit: '',
+            taxRegime: '',
+            billingEmail: this.form?.contactEmail ?? '',
+            fiscalAddress: this.form?.address ?? '',
+            fiscalCity: this.form?.city ?? '',
+            fiscalCountry: this.form?.country ?? 'Colombia'
         };
     }
 

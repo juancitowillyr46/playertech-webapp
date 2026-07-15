@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { MockAuthService, MockUserRole } from '@/app/core/auth/mock-auth.service';
-import { AcademyProfile } from '../models/academy.model';
+import { AcademyProfile, AcademyTaxProfile } from '../models/academy.model';
 
 @Injectable({
     providedIn: 'root'
@@ -51,11 +51,52 @@ export class AcademyProfileService {
             statusLabel: 'Activa'
         }
     });
+    private readonly taxProfileStore = signal<Record<MockUserRole, AcademyTaxProfile | null>>({
+        super_admin: null,
+        tenant_owner: {
+            legalName: 'Academia PlayerTech Demo SAS',
+            taxIdType: 'NIT',
+            taxIdNumber: '901234567',
+            taxCheckDigit: '8',
+            taxRegime: 'RESPONSABLE_IVA',
+            billingEmail: 'facturacion@playertechdemo.com',
+            fiscalAddress: 'Calle 10 # 20-30',
+            fiscalCity: 'Pereira',
+            fiscalCountry: 'Colombia'
+        },
+        academy_admin: {
+            legalName: 'Club Deportivo Norte SAC',
+            taxIdType: 'RUC',
+            taxIdNumber: '20609876541',
+            taxCheckDigit: '',
+            taxRegime: 'REGIMEN_GENERAL',
+            billingEmail: 'facturacion@clubnorte.com',
+            fiscalAddress: 'Av. Central 245',
+            fiscalCity: 'Lima',
+            fiscalCountry: 'Perú'
+        },
+        staff: {
+            legalName: 'Escuela Gol Azul SpA',
+            taxIdType: 'RUT',
+            taxIdNumber: '76453210',
+            taxCheckDigit: '2',
+            taxRegime: 'REGIMEN_GENERAL',
+            billingEmail: 'facturacion@golazul.com',
+            fiscalAddress: 'Pasaje Sur 120',
+            fiscalCity: 'Santiago',
+            fiscalCountry: 'Chile'
+        }
+    });
 
     constructor(private readonly auth: MockAuthService) {}
 
     getCurrentAcademy(): AcademyProfile | null {
         const current = this.store()[this.auth.getRole()];
+        return current ? { ...current } : null;
+    }
+
+    getCurrentTaxProfile(): AcademyTaxProfile | null {
+        const current = this.taxProfileStore()[this.auth.getRole()];
         return current ? { ...current } : null;
     }
 
@@ -67,6 +108,17 @@ export class AcademyProfileService {
             [currentRole]: {
                 ...payload,
                 phone: `${payload.countryCode} ${payload.phoneNumber}`.trim()
+            }
+        }));
+    }
+
+    updateCurrentTaxProfile(payload: AcademyTaxProfile) {
+        const currentRole = this.auth.getRole();
+
+        this.taxProfileStore.update((profiles) => ({
+            ...profiles,
+            [currentRole]: {
+                ...payload
             }
         }));
     }

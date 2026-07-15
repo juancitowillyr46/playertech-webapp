@@ -137,7 +137,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 padding: .85rem;
                 margin-top: 1rem;
                 border: 1px solid var(--surface-border);
-                border-radius: var(--content-border-radius);
+                border-radius: .75rem;
                 background: white;
             }
 
@@ -254,11 +254,9 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 bottom: calc(100% + .75rem);
                 padding: .7rem;
                 border: 1px solid var(--surface-border);
-                border-radius: var(--content-border-radius);
+                border-radius: .75rem;
                 background: var(--surface-overlay);
-                box-shadow:
-                    0 18px 40px rgba(15, 23, 42, 0.18),
-                    0 8px 18px rgba(15, 23, 42, 0.12);
+                box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
                 z-index: 1200;
             }
 
@@ -269,7 +267,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 gap: 0.75rem;
                 width: 100%;
                 padding: 0.8rem 0.85rem;
-                border-radius: calc(var(--content-border-radius) - 2px);
+                border-radius: calc(.75rem - 2px);
                 background: transparent;
                 color: var(--text-color);
                 text-align: left;

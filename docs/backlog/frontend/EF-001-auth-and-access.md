@@ -32,8 +32,8 @@ Habilita el uso seguro de la plataforma y la entrada a los flujos de negocio.
 * HU-003 Recuperar acceso o rehidratar sesión. `Partial`
 * HU-004 Redirigir según rol y contexto. `Partial`
 * HU-005 Mostrar una pantalla de ingreso clara y consistente con el signup. `Done`
-* HU-006 Recuperar contraseña con solicitud pública, confirmación y nueva contraseña por token. `In Progress`
-* HU-007 Consultar y actualizar el perfil del usuario autenticado. `In Progress`
+* HU-006 Recuperar contraseña con solicitud pública, confirmación y nueva contraseña por token. `Done (Mock UI)`
+* HU-007 Consultar y actualizar el perfil del usuario autenticado. `Done (Mock UI)`
 
 ## Reglas de UX Relacionadas
 
@@ -114,4 +114,4 @@ Como usuario autenticado de la plataforma, quiero ver y actualizar mi informaci�
 
 ## Estado
 
-In Progress.
+Done (Mock UI).
