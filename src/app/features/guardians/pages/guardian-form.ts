@@ -29,8 +29,8 @@ import { GuardianForm } from '@/app/features/players/models/player.model';
                         <div class="form-width-2col mx-auto space-y-4">
                             <div class="grid grid-cols-12 gap-4">
                                 <div class="col-span-12">
-                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información del acudiente</p>
-                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Completa los datos de contacto y el parentesco del acudiente.</p>
+                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Datos del acudiente</p>
+                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Completa los datos principales, la identificación y el parentesco del acudiente.</p>
                                 </div>
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -50,18 +50,18 @@ import { GuardianForm } from '@/app/features/players/models/player.model';
                                 </div>
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="phone" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono <span class="text-rose-500">*</span></label>
-                                    <input pInputText id="phone" type="text" [(ngModel)]="form.phone" placeholder="Ej. +57 312 555 0021" class="w-full" (input)="onPhoneInput($event)" />
-                                    @if (showError('phone')) {
-                                        <p-message severity="error" size="small">Ingresa un teléfono válido.</p-message>
+                                    <label for="documentType" class="text-sm font-medium text-surface-700 dark:text-surface-200">Tipo de documento <span class="text-rose-500">*</span></label>
+                                    <p-select id="documentType" [(ngModel)]="form.documentType" [options]="documentTypeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un tipo" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                                    @if (showError('documentType')) {
+                                        <p-message severity="error" size="small">Selecciona el tipo de documento.</p-message>
                                     }
                                 </div>
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo <span class="text-rose-500">*</span></label>
-                                    <input pInputText id="email" type="text" [(ngModel)]="form.email" placeholder="Ej. maria.perez@correo.com" class="w-full" (keydown)="onEmailKeydown($event)" (paste)="onEmailPaste($event)" (input)="onEmailInput($event)" />
-                                    @if (showError('email')) {
-                                        <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
+                                    <label for="documentNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Número de documento <span class="text-rose-500">*</span></label>
+                                    <input pInputText id="documentNumber" type="text" [(ngModel)]="form.documentNumber" placeholder="Ej. 42110567" class="w-full" (input)="onDocumentInput($event)" />
+                                    @if (showError('documentNumber')) {
+                                        <p-message severity="error" size="small">Ingresa el número de documento.</p-message>
                                     }
                                 </div>
 
@@ -71,6 +71,27 @@ import { GuardianForm } from '@/app/features/players/models/player.model';
                                     @if (showError('relationship')) {
                                         <p-message severity="error" size="small">Selecciona el parentesco del acudiente.</p-message>
                                     }
+                                </div>
+
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="phone" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono <span class="text-slate-400">(opcional)</span></label>
+                                    <input pInputText id="phone" type="text" [(ngModel)]="form.phone" placeholder="Ej. +57 312 555 0021" class="w-full" (input)="onPhoneInput($event)" />
+                                    @if (showError('phone')) {
+                                        <p-message severity="error" size="small">Ingresa un teléfono válido.</p-message>
+                                    }
+                                </div>
+
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo <span class="text-slate-400">(opcional)</span></label>
+                                    <input pInputText id="email" type="text" [(ngModel)]="form.email" placeholder="Ej. maria.perez@correo.com" class="w-full" (keydown)="onEmailKeydown($event)" (paste)="onEmailPaste($event)" (input)="onEmailInput($event)" />
+                                    @if (showError('email')) {
+                                        <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
+                                    }
+                                </div>
+
+                                <div class="col-span-12 flex flex-col gap-2">
+                                    <label for="address" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección <span class="text-slate-400">(opcional)</span></label>
+                                    <input pInputText id="address" type="text" [(ngModel)]="form.address" placeholder="Ej. Calle 25 # 14-30" class="w-full" />
                                 </div>
                             </div>
                         </div>
@@ -88,6 +109,12 @@ import { GuardianForm } from '@/app/features/players/models/player.model';
     `
 })
 export class GuardianFormPage {
+    readonly documentTypeOptions = [
+        { label: 'Cédula de ciudadanía', value: 'CC' },
+        { label: 'Tarjeta de identidad', value: 'TI' },
+        { label: 'Cédula de extranjería', value: 'CE' },
+        { label: 'Pasaporte', value: 'PASAPORTE' }
+    ];
     readonly relationshipOptions = [
         { label: 'Padre', value: 'Padre' },
         { label: 'Madre', value: 'Madre' },
@@ -117,6 +144,9 @@ export class GuardianFormPage {
                     lastName: guardian.lastName,
                     phone: guardian.phone,
                     email: guardian.email,
+                    documentType: guardian.documentType,
+                    documentNumber: guardian.documentNumber,
+                    address: guardian.address,
                     relationship: guardian.relationship
                 };
                 this.breadcrumbs = [
@@ -138,7 +168,7 @@ export class GuardianFormPage {
     }
 
     get pageSubtitle() {
-        return this.isEditMode ? 'Actualiza los datos del acudiente y conserva el parentesco correcto.' : 'Registra un nuevo acudiente con sus datos de contacto y parentesco.';
+        return this.isEditMode ? 'Actualiza la identificación, el parentesco y los datos de contacto del acudiente.' : 'Registra un nuevo acudiente con la información necesaria para contacto y seguimiento.';
     }
 
     saveGuardian() {
@@ -184,6 +214,12 @@ export class GuardianFormPage {
         input.value = this.form.email;
     }
 
+    onDocumentInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.form.documentNumber = input.value.replace(/[^\dA-Za-z-]/g, '');
+        input.value = this.form.documentNumber;
+    }
+
     onRestrictedNameKeydown(event: KeyboardEvent) {
         if (this.isAllowedEditingKey(event)) {
             return;
@@ -219,11 +255,20 @@ export class GuardianFormPage {
     }
 
     private emptyForm(): GuardianForm {
-        return { firstName: '', lastName: '', phone: '', email: '', relationship: '' };
+        return {
+            firstName: '',
+            lastName: '',
+            phone: '',
+            email: '',
+            documentType: '',
+            documentNumber: '',
+            address: '',
+            relationship: ''
+        };
     }
 
     private isFormValid() {
-        return ['firstName', 'lastName', 'phone', 'email', 'relationship'].every((field) => this.isFieldValid(field as keyof GuardianForm));
+        return ['firstName', 'lastName', 'documentType', 'documentNumber', 'relationship'].every((field) => this.isFieldValid(field as keyof GuardianForm));
     }
 
     private isFieldValid(field: keyof GuardianForm) {
@@ -232,11 +277,16 @@ export class GuardianFormPage {
             case 'lastName':
                 return this.hasValidText(this.form[field], 2);
             case 'phone':
-                return this.form.phone.replace(/\D/g, '').length >= 7;
+                return !this.form.phone.trim() || this.form.phone.replace(/\D/g, '').length >= 7;
             case 'email':
-                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email.trim());
+                return !this.form.email.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email.trim());
+            case 'documentType':
+                return !!this.form.documentType;
+            case 'documentNumber':
+                return this.form.documentNumber.trim().length >= 5;
             case 'relationship':
                 return !!this.form.relationship;
+            case 'address':
             default:
                 return true;
         }

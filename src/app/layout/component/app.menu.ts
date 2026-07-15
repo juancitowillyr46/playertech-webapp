@@ -29,6 +29,7 @@ export class AppMenu {
         const isRoot = role === 'super_admin';
         const canManageAcademy = ['tenant_owner', 'academy_admin'].includes(role);
         const canManagePlayers = ['tenant_owner', 'academy_admin', 'staff'].includes(role);
+        const canManagePayments = ['tenant_owner', 'academy_admin', 'staff'].includes(role);
 
         this.model = [
             {
@@ -43,6 +44,13 @@ export class AppMenu {
                         ? [
                               { label: 'Jugadores', icon: 'pi pi-fw pi-users', routerLink: ['/players'] },
                               { label: 'Acudientes', icon: 'pi pi-fw pi-id-card', routerLink: ['/guardians'] }
+                          ]
+                        : []),
+                    ...(canManagePayments
+                        ? [
+                              { label: 'Conceptos de cobro', icon: 'pi pi-fw pi-wallet', routerLink: ['/payments/concepts'] },
+                              { label: 'Cargos y deuda', icon: 'pi pi-fw pi-receipt', routerLink: ['/payments/charges'] },
+                              { label: 'Pagos', icon: 'pi pi-fw pi-credit-card', routerLink: ['/payments/history'] }
                           ]
                         : [])
                 ]

@@ -51,14 +51,15 @@ Es el núcleo operativo de formación, competición, matrícula y pagos.
 
 ## Estado
 
-In Progress.
+Done (Mock UI).
 
 ## Trazabilidad Actual
 
-* HU-001 Listar jugadores → `In Progress (Mock UI)` → `src/app/features/players/pages/players-list.ts`
-* HU-002 Registrar jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-form.ts`
-* HU-003 Ver detalle de jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
-* HU-004 Actualizar jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
-* HU-005 Desactivar jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/players-list.ts`
-* HU-006 Reactivar jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/players-list.ts`
-* HU-007 Subir o actualizar foto de jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-form.ts`, `src/app/features/players/pages/player-detail.ts`
+* HU-001 Listar jugadores → `Done (Mock UI)` → `src/app/features/players/pages/players-list.ts`
+* HU-002 Registrar jugador → `Done (Mock UI)` → `src/app/features/players/pages/player-form.ts`
+* HU-003 Ver detalle de jugador → `Done (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-004 Actualizar jugador → `Done (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-005 Desactivar jugador → `Done (Mock UI)` → `src/app/features/players/pages/players-list.ts`
+* HU-006 Reactivar jugador → `Done (Mock UI)` → `src/app/features/players/pages/players-list.ts`
+* HU-007 Subir o actualizar foto de jugador → `Done (Mock UI)` → `src/app/features/players/pages/player-form.ts`, `src/app/features/players/pages/player-detail.ts`
+* HU-008 Preparar vista para matrícula, equipo y acudientes → `Done (Mock UI)` → `src/app/features/players/pages/player-detail.ts`

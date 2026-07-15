@@ -34,7 +34,7 @@ import { Guardian } from '@/app/features/players/models/player.model';
                     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                         <p-iconfield iconPosition="left" class="w-full lg:max-w-md">
                             <p-inputicon styleClass="pi pi-search" />
-                            <input pInputText type="text" [(ngModel)]="search" placeholder="Buscar acudiente por nombre, correo o teléfono" class="w-full" />
+                            <input pInputText type="text" [(ngModel)]="search" placeholder="Buscar acudiente por nombre, documento o teléfono" class="w-full" />
                         </p-iconfield>
 
                         <div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:justify-end">
@@ -47,6 +47,7 @@ import { Guardian } from '@/app/features/players/models/player.model';
                     <ng-template pTemplate="header">
                         <tr>
                             <th>Acudiente</th>
+                            <th>Documento</th>
                             <th>Correo</th>
                             <th>Teléfono</th>
                             <th>Parentesco</th>
@@ -59,11 +60,12 @@ import { Guardian } from '@/app/features/players/models/player.model';
                             <td>
                                 <div class="space-y-1">
                                     <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ guardianFullName(guardian) }}</p>
-                                    <p class="m-0 text-xs text-slate-500 dark:text-slate-400">Contacto autorizado de la academia</p>
+                                    <p class="m-0 text-xs text-slate-500 dark:text-slate-400">{{ guardian.address || 'Dirección no configurada' }}</p>
                                 </div>
                             </td>
-                            <td>{{ guardian.email }}</td>
-                            <td>{{ guardian.phone }}</td>
+                            <td>{{ getDocumentTypeLabel(guardian.documentType) }} · {{ guardian.documentNumber }}</td>
+                            <td>{{ guardian.email || 'No configurado' }}</td>
+                            <td>{{ guardian.phone || 'No configurado' }}</td>
                             <td><p-tag [value]="guardian.relationship" severity="info" /></td>
                             <td><p-tag [value]="getStatusLabel(guardian.status)" [severity]="getStatusSeverity(guardian.status)" /></td>
                             <td>
@@ -76,7 +78,7 @@ import { Guardian } from '@/app/features/players/models/player.model';
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                         <tr>
-                            <td colspan="6" class="py-10 text-center">
+                            <td colspan="7" class="py-10 text-center">
                                 <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                                     <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay acudientes registrados</span>
                                     <span>Crea el primer acudiente para mantener organizados los contactos autorizados.</span>
@@ -129,6 +131,7 @@ export class GuardiansListPage implements OnDestroy {
             const fullName = this.guardianFullName(guardian).toLowerCase();
             return (
                 fullName.includes(term) ||
+                guardian.documentNumber.toLowerCase().includes(term) ||
                 guardian.email.toLowerCase().includes(term) ||
                 guardian.phone.toLowerCase().includes(term) ||
                 guardian.relationship.toLowerCase().includes(term)
@@ -184,6 +187,17 @@ export class GuardiansListPage implements OnDestroy {
 
     guardianFullName(guardian: Guardian) {
         return `${guardian.firstName} ${guardian.lastName}`.trim();
+    }
+
+    getDocumentTypeLabel(value: string) {
+        const labels: Record<string, string> = {
+            CC: 'CC',
+            TI: 'TI',
+            CE: 'CE',
+            PASAPORTE: 'Pasaporte'
+        };
+
+        return labels[value] ?? value;
     }
 
     getStatusLabel(status: Guardian['status']) {

@@ -12,3 +12,15 @@ export interface AcademyProfile {
     status: 'ACTIVE' | 'SUSPENDED';
     statusLabel: string;
 }
+
+export interface AcademyTaxProfile {
+    legalName: string;
+    taxIdType: string;
+    taxIdNumber: string;
+    taxCheckDigit: string;
+    taxRegime: string;
+    billingEmail: string;
+    fiscalAddress: string;
+    fiscalCity: string;
+    fiscalCountry: string;
+}

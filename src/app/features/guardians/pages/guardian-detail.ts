@@ -24,16 +24,35 @@ import { Guardian, GuardianLinkedPlayer, Player } from '@/app/features/players/m
 
         @if (guardian) {
             <div class="space-y-4">
-                <app-page-header [breadcrumbs]="breadcrumbs" [title]="guardianFullName" subtitle="Consulta los datos del acudiente y revisa con qué jugadores está relacionado."></app-page-header>
+                <app-page-header [breadcrumbs]="breadcrumbs" [title]="guardianFullName" subtitle="Consulta la identificación, el parentesco y los jugadores relacionados con este acudiente."></app-page-header>
 
                 <div class="content-width-compact mx-auto mt-4 w-full space-y-3">
                     <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                         <div class="space-y-4 p-3 sm:p-4">
                             <div class="form-width-2col mx-auto space-y-4">
+                                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                    <div class="rounded-[0.85rem] border border-slate-200 bg-slate-50 p-3 dark:border-surface-700 dark:bg-surface-900/60">
+                                        <p class="m-0 text-xs font-medium text-slate-500 dark:text-slate-400">Documento</p>
+                                        <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ getDocumentTypeLabel(guardian.documentType) }} · {{ guardian.documentNumber || 'No configurado' }}</p>
+                                    </div>
+                                    <div class="rounded-[0.85rem] border border-slate-200 bg-slate-50 p-3 dark:border-surface-700 dark:bg-surface-900/60">
+                                        <p class="m-0 text-xs font-medium text-slate-500 dark:text-slate-400">Parentesco</p>
+                                        <div class="mt-2">
+                                            <p-tag [value]="guardian.relationship" severity="info" />
+                                        </div>
+                                    </div>
+                                    <div class="rounded-[0.85rem] border border-slate-200 bg-slate-50 p-3 dark:border-surface-700 dark:bg-surface-900/60">
+                                        <p class="m-0 text-xs font-medium text-slate-500 dark:text-slate-400">Estado</p>
+                                        <div class="mt-2">
+                                            <p-tag [value]="guardian.status === 'ACTIVE' ? 'Activo' : 'Inactivo'" [severity]="guardian.status === 'ACTIVE' ? 'success' : 'danger'" />
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="grid grid-cols-12 gap-4">
                                     <div class="col-span-12">
                                         <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Detalle del acudiente</p>
-                                        <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Verifica los datos de contacto y el parentesco registrado.</p>
+                                        <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Verifica la identificación, el parentesco y los datos de contacto registrados.</p>
                                     </div>
 
                                     <div class="col-span-12 md:col-span-6">
@@ -47,13 +66,23 @@ import { Guardian, GuardianLinkedPlayer, Player } from '@/app/features/players/m
                                     </div>
 
                                     <div class="col-span-12 md:col-span-6">
+                                        <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Tipo de documento</p>
+                                        <p class="mt-1 text-base text-surface-900 dark:text-surface-0">{{ getDocumentTypeLabel(guardian.documentType) }}</p>
+                                    </div>
+
+                                    <div class="col-span-12 md:col-span-6">
+                                        <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Número de documento</p>
+                                        <p class="mt-1 text-base text-surface-900 dark:text-surface-0">{{ guardian.documentNumber || 'No configurado' }}</p>
+                                    </div>
+
+                                    <div class="col-span-12 md:col-span-6">
                                         <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Correo</p>
-                                        <p class="mt-1 text-base text-surface-900 dark:text-surface-0">{{ guardian.email }}</p>
+                                        <p class="mt-1 text-base text-surface-900 dark:text-surface-0">{{ guardian.email || 'No configurado' }}</p>
                                     </div>
 
                                     <div class="col-span-12 md:col-span-6">
                                         <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Teléfono</p>
-                                        <p class="mt-1 text-base text-surface-900 dark:text-surface-0">{{ guardian.phone }}</p>
+                                        <p class="mt-1 text-base text-surface-900 dark:text-surface-0">{{ guardian.phone || 'No configurado' }}</p>
                                     </div>
 
                                     <div class="col-span-12 md:col-span-6">
@@ -64,6 +93,11 @@ import { Guardian, GuardianLinkedPlayer, Player } from '@/app/features/players/m
                                     <div class="col-span-12 md:col-span-6">
                                         <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Estado</p>
                                         <div class="mt-1"><p-tag [value]="guardian.status === 'ACTIVE' ? 'Activo' : 'Inactivo'" [severity]="guardian.status === 'ACTIVE' ? 'success' : 'danger'" /></div>
+                                    </div>
+
+                                    <div class="col-span-12">
+                                        <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Dirección</p>
+                                        <p class="mt-1 text-base text-surface-900 dark:text-surface-0">{{ guardian.address || 'No configurado' }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -82,15 +116,64 @@ import { Guardian, GuardianLinkedPlayer, Player } from '@/app/features/players/m
                             <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                                 <div>
                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Jugadores relacionados</p>
-                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Revisa en qué jugadores participa este acudiente y si figura como contacto principal.</p>
+                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Revisa en qué jugadores participa este acudiente y si hoy figura como contacto principal.</p>
                                 </div>
 
-                                <div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:justify-end">
-                                    <p-button label="Asociar jugador" icon="pi pi-link" severity="secondary" [outlined]="true" styleClass="w-full md:min-w-[11.5rem] md:w-auto" (onClick)="openAssociatePlayerDialog()" />
+                                <div class="flex w-full flex-col gap-2 xl:w-auto xl:flex-row xl:justify-end">
+                                    <p-button label="Asociar jugador" icon="pi pi-link" severity="secondary" [outlined]="true" styleClass="w-full xl:min-w-[11.5rem]" (onClick)="openAssociatePlayerDialog()" />
                                 </div>
                             </div>
                         </div>
 
+                        <div class="space-y-3 p-3 sm:hidden">
+                            @if (linkedPlayers.length) {
+                                @for (player of linkedPlayers; track player.playerId) {
+                                    <div class="rounded-[0.85rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="min-w-0 space-y-1">
+                                                <p class="m-0 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ player.fullName }}</p>
+                                                <p class="m-0 text-xs leading-5 text-slate-500 dark:text-slate-400">{{ player.categoryName }}</p>
+                                            </div>
+                                            @if (player.isPrimary) {
+                                                <p-tag value="Principal" severity="success" />
+                                            }
+                                        </div>
+
+                                        <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+                                            <div>
+                                                <p class="m-0 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Relación</p>
+                                                <p class="mt-1 m-0 text-surface-900 dark:text-surface-0">{{ player.isPrimary ? 'Contacto principal' : 'Contacto de apoyo' }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="m-0 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Estado</p>
+                                                <div class="mt-1">
+                                                    <p-tag [value]="player.status === 'ACTIVE' ? 'Activo' : 'Inactivo'" [severity]="player.status === 'ACTIVE' ? 'success' : 'danger'" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-3 flex flex-col gap-2">
+                                            @if (!player.isPrimary) {
+                                                <p-button label="Marcar principal" severity="secondary" [outlined]="true" styleClass="w-full" (onClick)="markAsPrimary(player)" />
+                                            }
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <p-button label="Quitar" severity="secondary" text styleClass="w-full" (onClick)="removeRelation(player)" />
+                                                <p-button label="Ver jugador" severity="secondary" [outlined]="true" styleClass="w-full" [routerLink]="['/players', player.playerId]" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            } @else {
+                                <div class="py-8 text-center">
+                                    <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                        <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay jugadores vinculados</span>
+                                        <span>Asocia el primer jugador desde esta misma sección.</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="hidden sm:block">
                         <p-table [value]="linkedPlayers" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
                             <ng-template pTemplate="header">
                                 <tr>
@@ -135,6 +218,7 @@ import { Guardian, GuardianLinkedPlayer, Player } from '@/app/features/players/m
                                 </tr>
                             </ng-template>
                         </p-table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -220,6 +304,17 @@ export class GuardianDetailPage {
 
     get guardianFullName() {
         return this.guardian ? `${this.guardian.firstName} ${this.guardian.lastName}`.trim() : 'Acudiente';
+    }
+
+    getDocumentTypeLabel(value: string) {
+        const labels: Record<string, string> = {
+            CC: 'Cédula de ciudadanía',
+            TI: 'Tarjeta de identidad',
+            CE: 'Cédula de extranjería',
+            PASAPORTE: 'Pasaporte'
+        };
+
+        return (labels[value] ?? value) || 'No configurado';
     }
 
     get availablePlayerOptions() {

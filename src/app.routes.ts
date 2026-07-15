@@ -16,6 +16,7 @@ export const appRoutes: Routes = [
             { path: 'academy', loadChildren: () => import('./app/features/academy/academy.routes') },
             { path: 'account', loadChildren: () => import('./app/features/account/account.routes') },
             { path: 'guardians', loadChildren: () => import('./app/features/guardians/guardians.routes') },
+            { path: 'payments', loadChildren: () => import('./app/features/payments/payments.routes') },
             { path: 'players', loadChildren: () => import('./app/features/players/players.routes') },
             { path: 'tenants', loadChildren: () => import('./app/features/tenants/tenants.routes') },
             { path: 'uikit', loadChildren: () => import('./app/pages/uikit/uikit.routes') },

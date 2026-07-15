@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationStart, Router, RouterModule } from '@angular/router';
 import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -16,16 +17,17 @@ import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { ImageCropperComponent, ImageCropperFileError, ImageCropperResult } from '@/app/shared/ui/image-cropper/image-cropper';
 import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
 import { PlayerManagementService } from '../data-access/player-management.service';
-import { CategoryOption, Guardian, GuardianForm, Player, PlayerForm, PlayerGuardianRelation, PlayerInitialCharge, PlayerMembership, PlayerMembershipHistoryItem, PlayerPhoto } from '../models/player.model';
+import { CategoryOption, Guardian, GuardianForm, Player, PlayerChargeForm, PlayerForm, PlayerGuardianRelation, PlayerInitialCharge, PlayerMembership, PlayerMembershipHistoryItem, PlayerPhoto, PlayerTeamAssignment, PlayerTeamAssignmentForm, TeamOption } from '../models/player.model';
 import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-player-detail-page',
     standalone: true,
-    imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, ImageCropperComponent, InputIconModule, InputTextModule, MenuModule, MessageModule, PageHeader, RouterModule, SelectModule, TableModule, TabsModule, TagModule, ToastModule],
+    imports: [ButtonModule, CheckboxModule, CommonModule, DialogModule, FormsModule, IconFieldModule, ImageCropperComponent, InputIconModule, InputTextModule, MenuModule, MessageModule, PageHeader, RouterModule, SelectModule, TableModule, TabsModule, TagModule, ToastModule, TooltipModule],
     providers: [MessageService],
     styles: [
         `
@@ -70,10 +72,34 @@ import { Subscription } from 'rxjs';
                 position: relative;
                 z-index: 1;
             }
+
+            :host ::ng-deep .player-detail-tablist {
+                overflow-x: auto;
+            }
+
+            @media (max-width: 640px) {
+                :host ::ng-deep .player-detail-tablist {
+                    gap: 0;
+                }
+
+                :host ::ng-deep .player-detail-tablist .p-tab {
+                    padding-inline: 0.65rem;
+                    padding-block: 0.9rem;
+                }
+
+                :host ::ng-deep .player-detail-tablist .p-tab span {
+                    font-size: 0.92rem;
+                }
+
+                :host ::ng-deep .player-detail-tablist .p-tabpanels {
+                    overflow-x: hidden;
+                }
+            }
         `
     ],
     template: `
         <p-toast />
+        <p-menu #teamActionsMenu [popup]="true" appendTo="body" [model]="teamActionItems"></p-menu>
 
         <app-image-cropper
             #playerPhotoCropper
@@ -87,38 +113,44 @@ import { Subscription } from 'rxjs';
 
         @if (player) {
             <div class="space-y-4">
-                <app-page-header [breadcrumbs]="breadcrumbs" [title]="playerFullName" subtitle="Actualiza los datos del jugador y administra sus acudientes desde un solo lugar."></app-page-header>
+                <app-page-header [breadcrumbs]="breadcrumbs" [title]="playerFullName" subtitle="Actualiza la información del jugador y administra acudientes, equipos, matrícula y cargos desde un solo lugar."></app-page-header>
 
                 <div
                     class="mx-auto mt-4 w-full space-y-3"
-                    [class.content-width-compact]="activeTab === 'information' || activeTab === 'guardians' || activeTab === 'membership'"
+                    [class.content-width-compact]="activeTab === 'information' || activeTab === 'guardians' || activeTab === 'teams' || activeTab === 'membership'"
                     [class.content-width-full]="activeTab === 'charges'"
                 >
                     <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                         <p-tabs [value]="activeTab">
-                            <p-tablist class="overflow-x-auto">
+                            <p-tablist class="player-detail-tablist">
                                 <p-tab value="information" (click)="activeTab = 'information'">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
-                                        <i class="pi pi-user text-sm"></i>
+                                        <i class="pi pi-user hidden text-sm sm:inline-block"></i>
                                         <span>Información</span>
                                     </span>
                                 </p-tab>
                                 <p-tab value="guardians" (click)="activeTab = 'guardians'">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
-                                        <i class="pi pi-users text-sm"></i>
+                                        <i class="pi pi-users hidden text-sm sm:inline-block"></i>
                                         <span>Acudientes</span>
+                                    </span>
+                                </p-tab>
+                                <p-tab value="teams" (click)="activeTab = 'teams'">
+                                    <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                                        <i class="pi pi-sitemap hidden text-sm sm:inline-block"></i>
+                                        <span>Equipos</span>
                                     </span>
                                 </p-tab>
                                 <p-tab value="membership" (click)="activeTab = 'membership'">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
-                                        <i class="pi pi-id-card text-sm"></i>
+                                        <i class="pi pi-id-card hidden text-sm sm:inline-block"></i>
                                         <span>Matrícula</span>
                                     </span>
                                 </p-tab>
                                 <p-tab value="charges" (click)="activeTab = 'charges'">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
-                                        <i class="pi pi-wallet text-sm"></i>
-                                        <span>Cargos iniciales</span>
+                                        <i class="pi pi-wallet hidden text-sm sm:inline-block"></i>
+                                        <span>Cargos</span>
                                     </span>
                                 </p-tab>
                             </p-tablist>
@@ -224,33 +256,103 @@ import { Subscription } from 'rxjs';
                                             <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                                                 <div>
                                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Acudientes</p>
-                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Administra los datos del acudiente principal y de los contactos autorizados del jugador.</p>
+                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Administra el acudiente principal y los contactos de apoyo del jugador.</p>
                                                 </div>
 
-                                                <div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:flex-wrap md:justify-end">
-                                                    <p-button label="Asociar acudiente" icon="pi pi-link" severity="secondary" [outlined]="true" styleClass="w-full md:min-w-[11.5rem] md:w-auto" (onClick)="openAssociateGuardianDialog()" />
-                                                    <p-button label="Nuevo acudiente" icon="pi pi-plus" styleClass="w-full md:min-w-[11.5rem] md:w-auto" (onClick)="openCreateGuardianDialog()" />
+                                                <div class="flex w-full flex-col gap-2 xl:w-auto xl:flex-row xl:justify-end">
+                                                    <p-button label="Asociar" icon="pi pi-link" severity="secondary" [outlined]="true" styleClass="w-full xl:min-w-[10.5rem]" (onClick)="openAssociateGuardianDialog()" />
+                                                    <p-button label="Nuevo acudiente" icon="pi pi-plus" styleClass="w-full xl:min-w-[12rem]" (onClick)="openCreateGuardianDialog()" />
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                                             <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
-                                                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                                                     <p-iconfield iconPosition="left" class="w-full lg:max-w-md">
                                                         <p-inputicon styleClass="pi pi-search" />
-                                                        <input pInputText type="text" [(ngModel)]="guardianSearch" placeholder="Buscar acudiente por nombre, correo o teléfono" class="w-full" />
+                                                        <input pInputText type="text" [(ngModel)]="guardianSearch" placeholder="Buscar acudiente por nombre, documento o teléfono" class="w-full" />
                                                     </p-iconfield>
-                                                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Identifica con claridad quién es el contacto principal del jugador.</p>
+                                                    <button
+                                                        type="button"
+                                                        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-surface-700 dark:text-slate-400 dark:hover:border-surface-500 dark:hover:text-slate-200"
+                                                        pTooltip="Busca por nombre, documento o teléfono."
+                                                        tooltipPosition="left"
+                                                        aria-label="Ayuda de búsqueda"
+                                                    >
+                                                        <i class="pi pi-info-circle text-sm"></i>
+                                                    </button>
                                                 </div>
                                             </div>
 
+                                            <div class="space-y-3 p-3 sm:hidden">
+                                                @if (filteredGuardians.length) {
+                                                    @for (relation of filteredGuardians; track relation.id) {
+                                                        <div class="rounded-[0.85rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900">
+                                                            <div class="flex items-start justify-between gap-3">
+                                                                <div class="min-w-0 space-y-1">
+                                                                    <p class="m-0 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ guardianFullName(relation.guardian) }}</p>
+                                                                    <p class="m-0 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                                                                        {{ relation.isPrimary ? 'Contacto principal del jugador' : 'Contacto de apoyo del jugador' }}
+                                                                    </p>
+                                                                </div>
+                                                                <div class="flex shrink-0 items-center gap-2">
+                                                                    @if (relation.isPrimary) {
+                                                                        <p-tag value="Principal" severity="success" styleClass="guardian-primary-tag" />
+                                                                    }
+                                                                    <p-button
+                                                                        icon="pi pi-ellipsis-h"
+                                                                        [text]="true"
+                                                                        rounded
+                                                                        severity="secondary"
+                                                                        (onClick)="guardianActionsMenu && openGuardianActionsMenu($event, guardianActionsMenu, relation)"
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="mt-3 grid grid-cols-1 gap-3 text-sm">
+                                                                <div>
+                                                                    <p class="m-0 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Documento</p>
+                                                                    <p class="mt-1 m-0 text-surface-900 dark:text-surface-0">{{ getGuardianDocumentLabel(relation.guardian) }}</p>
+                                                                </div>
+                                                                <div class="grid grid-cols-2 gap-3">
+                                                                    <div>
+                                                                        <p class="m-0 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Correo</p>
+                                                                        <p class="mt-1 m-0 break-all text-surface-900 dark:text-surface-0">{{ relation.guardian.email || 'No configurado' }}</p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <p class="m-0 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Teléfono</p>
+                                                                        <p class="mt-1 m-0 text-surface-900 dark:text-surface-0">{{ relation.guardian.phone || 'No configurado' }}</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="grid grid-cols-2 gap-3">
+                                                                    <div>
+                                                                        <p class="m-0 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Parentesco</p>
+                                                                        <div class="mt-1">
+                                                                            <p-tag [value]="relation.guardian.relationship" severity="info" />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                } @else {
+                                                    <div class="py-8 text-center">
+                                                        <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                                            <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay acudientes asociados</span>
+                                                            <span>Asocia o crea el primer acudiente para este jugador.</span>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+
+                                            <div class="hidden sm:block">
                                             <p-table [value]="filteredGuardians" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
                                                 <ng-template pTemplate="header">
                                                     <tr>
                                                         <th>Acudiente</th>
-                                                        <th>Correo</th>
-                                                        <th>Teléfono</th>
+                                                        <th>Documento</th>
+                                                        <th>Contacto</th>
                                                         <th>Parentesco</th>
                                                         <th class="text-right">Acciones</th>
                                                     </tr>
@@ -268,8 +370,13 @@ import { Subscription } from 'rxjs';
                                                                 <p class="m-0 text-xs text-slate-500 dark:text-slate-400">{{ relation.isPrimary ? 'Contacto principal del jugador' : 'Contacto de apoyo del jugador' }}</p>
                                                             </div>
                                                         </td>
-                                                        <td>{{ relation.guardian.email }}</td>
-                                                        <td>{{ relation.guardian.phone }}</td>
+                                                        <td>{{ getGuardianDocumentLabel(relation.guardian) }}</td>
+                                                        <td>
+                                                            <div class="space-y-1">
+                                                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ relation.guardian.phone || 'No configurado' }}</p>
+                                                                <p class="m-0 text-xs text-slate-500 dark:text-slate-400">{{ relation.guardian.email || 'No configurado' }}</p>
+                                                            </div>
+                                                        </td>
                                                         <td>
                                                             <p-tag styleClass="guardian-relation-tag" [value]="relation.guardian.relationship" severity="info" />
                                                         </td>
@@ -278,168 +385,366 @@ import { Subscription } from 'rxjs';
                                                                 <p-menu #guardianActionsMenu [popup]="true" appendTo="body" [model]="guardianActionItems"></p-menu>
                                                                 <p-button icon="pi pi-ellipsis-h" [text]="true" rounded severity="secondary" (onClick)="openGuardianActionsMenu($event, guardianActionsMenu, relation)" />
                                                             </div>
-                                                        </td>
-                                                    </tr>
-                                                </ng-template>
-                                                <ng-template pTemplate="emptymessage">
-                                                    <tr>
+                                                    </td>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="emptymessage">
+                                                <tr>
                                                         <td colspan="5" class="py-10 text-center">
                                                             <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                                                                 <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay acudientes vinculados</span>
                                                                 <span>Asocia un acudiente existente o crea uno nuevo desde esta misma sección.</span>
                                                             </div>
-                                                        </td>
-                                                    </tr>
-                                                </ng-template>
+                                                    </td>
+                                                </tr>
+                                            </ng-template>
                                             </p-table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </p-tabpanel>
+
+                                <p-tabpanel value="teams">
+                                    <div class="space-y-4 p-3 sm:p-4">
+                                        <div class="form-width-2col mx-auto space-y-4">
+                                            <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-none dark:border-surface-700 dark:bg-surface-900 sm:p-4">
+                                                <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                                    <div class="space-y-1">
+                                                        <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Equipos del jugador</p>
+                                                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Define el equipo principal y conserva el historial deportivo del jugador.</p>
+                                                    </div>
+
+                                                    <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
+                                                        <p-button label="Asignar equipo" icon="pi pi-plus" styleClass="w-full sm:w-auto sm:min-w-[11.5rem]" (onClick)="openCreateTeamAssignmentDialog()" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Equipo principal</p>
+                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0 sm:text-base">{{ primaryTeamAssignment?.teamName ?? 'Sin definir' }}</p>
+                                                </div>
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Asignaciones activas</p>
+                                                    <p class="mt-2 text-sm font-semibold text-emerald-600 sm:text-base">{{ activeTeamAssignmentsCount }}</p>
+                                                </div>
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Historial</p>
+                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0 sm:text-base">{{ historicalTeamAssignmentsCount }}</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                                            <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
+                                                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                                    <p-iconfield iconPosition="left" class="w-full lg:max-w-md">
+                                                        <p-inputicon styleClass="pi pi-search" />
+                                                        <input pInputText type="text" [(ngModel)]="teamAssignmentSearch" placeholder="Buscar equipo" class="w-full" />
+                                                    </p-iconfield>
+                                                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400 lg:max-w-sm">Consulta qué participación sigue activa y cuál quedó como referencia principal.</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="space-y-3 p-3 sm:hidden">
+                                                @if (filteredTeamAssignments.length) {
+                                                    @for (assignment of filteredTeamAssignments; track assignment.id) {
+                                                        <div class="rounded-[0.85rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900">
+                                                            <div class="flex items-start justify-between gap-3">
+                                                                <div class="min-w-0 space-y-1">
+                                                                    <div class="flex flex-wrap items-center gap-2">
+                                                                        <p class="m-0 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ assignment.teamName }}</p>
+                                                                        @if (assignment.isPrimary && isTeamAssignmentActive(assignment)) {
+                                                                            <p-tag value="Principal" severity="success" />
+                                                                        }
+                                                                    </div>
+                                                                    <p class="m-0 text-xs leading-5 text-slate-500 dark:text-slate-400">{{ assignment.teamCategoryName }}</p>
+                                                                </div>
+                                                                <p-button icon="pi pi-ellipsis-h" [text]="true" rounded severity="secondary" (onClick)="openTeamActionsMenu($event, assignment)" />
+                                                            </div>
+
+                                                            <div class="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+                                                                <div>
+                                                                    <p class="m-0 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Inicio</p>
+                                                                    <p class="mt-1 m-0 text-surface-900 dark:text-surface-0">{{ formatDateOnly(assignment.startDate) }}</p>
+                                                                </div>
+                                                                <div>
+                                                                    <p class="m-0 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Estado</p>
+                                                                    <div class="mt-1">
+                                                                        <p-tag [value]="teamAssignmentStatusLabel(assignment)" [severity]="teamAssignmentStatusSeverity(assignment)" />
+                                                                    </div>
+                                                                </div>
+                                                                <div class="sm:col-span-2">
+                                                                    <p class="m-0 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Fin</p>
+                                                                    <p class="mt-1 m-0 text-surface-900 dark:text-surface-0">{{ assignment.endDate ? formatDateOnly(assignment.endDate) : 'Sigue activa' }}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                } @else {
+                                                    <div class="py-8 text-center">
+                                                        <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                                            <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay asignaciones deportivas</span>
+                                                            <span>Asigna el primer equipo para registrar la participación del jugador.</span>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+
+                                            <div class="hidden sm:block">
+                                                <p-table [value]="filteredTeamAssignments" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
+                                                    <ng-template pTemplate="header">
+                                                        <tr>
+                                                            <th>Equipo</th>
+                                                            <th>Categoría</th>
+                                                            <th>Inicio</th>
+                                                            <th>Fin</th>
+                                                            <th>Estado</th>
+                                                            <th class="text-right">Acciones</th>
+                                                        </tr>
+                                                    </ng-template>
+                                                    <ng-template pTemplate="body" let-assignment>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="space-y-1">
+                                                                    <div class="flex flex-wrap items-center gap-2">
+                                                                        <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ assignment.teamName }}</p>
+                                                                        @if (assignment.isPrimary && isTeamAssignmentActive(assignment)) {
+                                                                            <p-tag value="Principal" severity="success" />
+                                                                        }
+                                                                    </div>
+                                                                    <p class="m-0 text-xs text-slate-500 dark:text-slate-400">{{ isTeamAssignmentActive(assignment) ? 'Participación vigente' : 'Participación finalizada' }}</p>
+                                                                </div>
+                                                            </td>
+                                                            <td>{{ assignment.teamCategoryName }}</td>
+                                                            <td>{{ formatDateOnly(assignment.startDate) }}</td>
+                                                            <td>{{ assignment.endDate ? formatDateOnly(assignment.endDate) : 'Sigue activa' }}</td>
+                                                            <td><p-tag [value]="teamAssignmentStatusLabel(assignment)" [severity]="teamAssignmentStatusSeverity(assignment)" /></td>
+                                                            <td>
+                                                                <div class="flex justify-end gap-2">
+                                                                    <p-button icon="pi pi-ellipsis-h" [text]="true" rounded severity="secondary" (onClick)="openTeamActionsMenu($event, assignment)" />
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </ng-template>
+                                                    <ng-template pTemplate="emptymessage">
+                                                        <tr>
+                                                            <td colspan="6" class="py-10 text-center">
+                                                                <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                                                    <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay asignaciones deportivas</span>
+                                                                    <span>Asigna el primer equipo para registrar la participación del jugador.</span>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </ng-template>
+                                                </p-table>
+                                            </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </p-tabpanel>
 
                                 <p-tabpanel value="membership">
                                     <div class="space-y-4 p-3 sm:p-4">
-                                        <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-none dark:border-surface-700 dark:bg-surface-900">
-                                            <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                                                <div>
-                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Matrícula</p>
-                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Controla el estado administrativo del jugador y define el acudiente principal responsable.</p>
-                                                </div>
-
-                                                @if (activeMembership) {
-                                                    <div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:justify-end">
-                                                        <p-button label="Suspender" severity="secondary" [outlined]="true" styleClass="w-full md:w-auto" (onClick)="suspendMembership()" />
-                                                        <p-button label="Retirar" severity="secondary" text styleClass="w-full md:w-auto" (onClick)="withdrawMembership()" />
-                                                    </div>
-                                                }
-                                            </div>
-                                        </div>
-
-                                        @if (activeMembership) {
-                                            <div class="grid gap-3 md:grid-cols-3">
-                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Estado</p>
-                                                    <div class="mt-3">
-                                                        <p-tag [value]="membershipStatusLabel(activeMembership.status)" [severity]="membershipStatusSeverity(activeMembership.status)" />
-                                                    </div>
-                                                </div>
-                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Inicio</p>
-                                                    <p class="mt-3 text-base font-semibold text-surface-900 dark:text-surface-0">{{ formatDateTime(activeMembership.startedAt) }}</p>
-                                                </div>
-                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Acudiente principal</p>
-                                                    <p class="mt-3 text-base font-semibold text-surface-900 dark:text-surface-0">{{ activeMembershipGuardianName }}</p>
-                                                </div>
-                                            </div>
-                                        } @else {
-                                            <div class="rounded-[0.75rem] border border-dashed border-slate-300 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/60">
-                                                <div class="form-width-2col mx-auto space-y-4">
-                                                    <div>
-                                                        <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Crear matrícula</p>
-                                                        <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Selecciona el acudiente principal para activar la matrícula y generar los cargos iniciales del jugador.</p>
+                                        <div class="form-width-2col mx-auto space-y-4">
+                                            <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-none dark:border-surface-700 dark:bg-surface-900 sm:p-4">
+                                                <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                                    <div class="space-y-1">
+                                                        <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Matrícula</p>
+                                                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Controla el estado administrativo del jugador y define el acudiente principal responsable.</p>
                                                     </div>
 
-                                                    <div class="flex flex-col gap-2">
-                                                        <label for="membershipGuardian" class="text-sm font-medium text-surface-700 dark:text-surface-200">Acudiente principal <span class="text-rose-500">*</span></label>
-                                                        <p-select
-                                                            id="membershipGuardian"
-                                                            [(ngModel)]="selectedMembershipGuardianId"
-                                                            [options]="membershipGuardianOptions"
-                                                            optionLabel="fullName"
-                                                            optionValue="id"
-                                                            placeholder="Selecciona un acudiente"
-                                                            class="w-full"
-                                                            appendTo="body"
-                                                        />
-                                                        @if (membershipSubmitted && !selectedMembershipGuardianId) {
-                                                            <p-message severity="error" size="small">Selecciona un acudiente principal antes de continuar.</p-message>
-                                                        }
-                                                    </div>
-
-                                                    <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                                                        <p-button label="Crear matrícula" styleClass="w-full sm:w-auto" (onClick)="createMembership()" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        }
-
-                                        <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                                            <div class="border-b border-slate-200 px-4 py-3 dark:border-surface-800">
-                                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Historial</p>
-                                                <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Revisa la vigencia y los cambios administrativos asociados a la matrícula del jugador.</p>
-                                            </div>
-
-                                            @if (membershipHistory.length) {
-                                                <div class="membership-history px-4 py-2">
-                                                    @for (item of membershipHistory; track item.id) {
-                                                        <div class="membership-history-item flex gap-3 py-4 first:pt-3 last:pb-3">
-                                                            <div class="flex shrink-0 pt-1">
-                                                                <span class="membership-history-dot flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm dark:border-surface-700 dark:bg-surface-900">
-                                                                    <i class="pi" [class.pi-check-circle]="item.status === 'ACTIVE'" [class.pi-pause-circle]="item.status === 'SUSPENDED'" [class.pi-times-circle]="item.status === 'WITHDRAWN'"></i>
-                                                                </span>
-                                                            </div>
-
-                                                            <div class="min-w-0 flex-1 rounded-[0.75rem] border border-slate-200 bg-slate-50 px-4 py-3 dark:border-surface-700 dark:bg-surface-900/60">
-                                                                <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                                                                    <div class="space-y-1">
-                                                                        <div class="flex flex-wrap items-center gap-2">
-                                                                            <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ membershipEventTitle(item.status) }}</p>
-                                                                            <p-tag [value]="membershipStatusLabel(item.status)" [severity]="membershipStatusSeverity(item.status)" />
-                                                                        </div>
-                                                                        <p class="m-0 text-sm text-slate-500 dark:text-slate-400">Acudiente principal: {{ guardianNameById(item.primaryGuardianId) }}</p>
-                                                                    </div>
-
-                                                                    <div class="space-y-1 text-sm text-slate-500 dark:text-slate-400 md:text-right">
-                                                                        <p class="m-0">Inicio: {{ formatDateTime(item.startedAt) }}</p>
-                                                                        <p class="m-0">Fin: {{ item.endedAt ? formatDateTime(item.endedAt) : 'Vigente' }}</p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+                                                    @if (activeMembership) {
+                                                        <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
+                                                            <p-button label="Suspender" severity="secondary" [outlined]="true" styleClass="w-full sm:w-auto" (onClick)="suspendMembership()" />
+                                                            <p-button label="Retirar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="withdrawMembership()" />
                                                         </div>
                                                     }
                                                 </div>
+                                            </div>
+
+                                            @if (activeMembership) {
+                                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                                    <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                        <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Estado</p>
+                                                        <div class="mt-2">
+                                                            <p-tag [value]="membershipStatusLabel(activeMembership.status)" [severity]="membershipStatusSeverity(activeMembership.status)" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                        <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Inicio</p>
+                                                        <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0 sm:text-base">{{ formatDateTime(activeMembership.startedAt) }}</p>
+                                                    </div>
+                                                    <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                        <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Acudiente principal</p>
+                                                        <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0 sm:text-base">{{ activeMembershipGuardianName }}</p>
+                                                    </div>
+                                                </div>
                                             } @else {
-                                                <div class="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
-                                                    Todavía no hay historial de matrícula para este jugador.
+                                                <div class="rounded-[0.75rem] border border-dashed border-slate-300 bg-slate-50 p-3 dark:border-surface-700 dark:bg-surface-900/60 sm:p-4">
+                                                    <div class="space-y-4">
+                                                        <div class="space-y-1">
+                                                            <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Crear matrícula</p>
+                                                            <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Selecciona el acudiente principal para activar la matrícula y generar los cargos iniciales del jugador.</p>
+                                                        </div>
+
+                                                        <div class="flex flex-col gap-2">
+                                                            <label for="membershipGuardian" class="text-sm font-medium text-surface-700 dark:text-surface-200">Acudiente principal <span class="text-rose-500">*</span></label>
+                                                            <p-select
+                                                                id="membershipGuardian"
+                                                                [(ngModel)]="selectedMembershipGuardianId"
+                                                                [options]="membershipGuardianOptions"
+                                                                optionLabel="fullName"
+                                                                optionValue="id"
+                                                                placeholder="Selecciona un acudiente"
+                                                                class="w-full"
+                                                                appendTo="body"
+                                                            />
+                                                            @if (membershipSubmitted && !selectedMembershipGuardianId) {
+                                                                <p-message severity="error" size="small">Selecciona un acudiente principal antes de continuar.</p-message>
+                                                            }
+                                                        </div>
+
+                                                        <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                                            <p-button label="Crear matrícula" styleClass="w-full sm:w-auto" (onClick)="createMembership()" />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             }
+
+                                            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                                                <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-800 sm:px-4">
+                                                    <div class="space-y-1">
+                                                        <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Historial</p>
+                                                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Revisa la vigencia y los cambios administrativos asociados a la matrícula del jugador.</p>
+                                                    </div>
+                                                </div>
+
+                                                @if (membershipHistory.length) {
+                                                    <div class="membership-history px-3 py-2 sm:px-4">
+                                                        @for (item of membershipHistory; track item.id) {
+                                                            <div class="membership-history-item flex gap-3 py-4 first:pt-3 last:pb-3">
+                                                                <div class="flex shrink-0 pt-1">
+                                                                    <span class="membership-history-dot flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm dark:border-surface-700 dark:bg-surface-900">
+                                                                        <i class="pi" [class.pi-check-circle]="item.status === 'ACTIVE'" [class.pi-pause-circle]="item.status === 'SUSPENDED'" [class.pi-times-circle]="item.status === 'WITHDRAWN'"></i>
+                                                                    </span>
+                                                                </div>
+
+                                                                <div class="min-w-0 flex-1 rounded-[0.75rem] border border-slate-200 bg-slate-50 px-3 py-3 dark:border-surface-700 dark:bg-surface-900/60 sm:px-4">
+                                                                    <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                                                                        <div class="space-y-1">
+                                                                            <div class="flex flex-wrap items-center gap-2">
+                                                                                <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ membershipEventTitle(item.status) }}</p>
+                                                                                <p-tag [value]="membershipStatusLabel(item.status)" [severity]="membershipStatusSeverity(item.status)" />
+                                                                            </div>
+                                                                            <p class="m-0 text-sm text-slate-500 dark:text-slate-400">Acudiente principal: {{ guardianNameById(item.primaryGuardianId) }}</p>
+                                                                        </div>
+
+                                                                        <div class="space-y-1 text-sm text-slate-500 dark:text-slate-400 md:text-right">
+                                                                            <p class="m-0">Inicio: {{ formatDateTime(item.startedAt) }}</p>
+                                                                            <p class="m-0">Fin: {{ item.endedAt ? formatDateTime(item.endedAt) : 'Vigente' }}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                } @else {
+                                                    <div class="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                                                        Todavía no hay historial de matrícula para este jugador.
+                                                    </div>
+                                                }
+                                            </div>
                                         </div>
                                     </div>
                                 </p-tabpanel>
 
                                 <p-tabpanel value="charges">
                                     <div class="space-y-4 p-3 sm:p-4">
-                                        <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-none dark:border-surface-700 dark:bg-surface-900">
-                                            <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                                                <div>
-                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Cargos iniciales</p>
-                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Consulta los cobros generados al activar la matrícula y el saldo pendiente del jugador.</p>
+                                        <div class="form-width-2col mx-auto space-y-4">
+                                            <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-none dark:border-surface-700 dark:bg-surface-900 sm:p-4">
+                                                <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                                    <div class="space-y-1">
+                                                        <div class="flex items-center gap-2">
+                                                            <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Cargos y deuda</p>
+                                                            <p-button
+                                                                icon="pi pi-info-circle"
+                                                                severity="secondary"
+                                                                [text]="true"
+                                                                [rounded]="true"
+                                                                styleClass="h-8 w-8 shrink-0"
+                                                                pTooltip="Entender este flujo"
+                                                                tooltipPosition="top"
+                                                                (onClick)="showChargesHelpDialog = true"
+                                                            />
+                                                        </div>
+                                                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Consulta los cargos activos del jugador y el saldo pendiente asociado.</p>
+                                                    </div>
+
+                                                    <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
+                                                        <p-button label="Nuevo cargo" icon="pi pi-plus" styleClass="w-full sm:w-auto" (onClick)="openCreateChargeDialog()" />
+                                                        @if (player) {
+                                                            <p-button label="Ver pagos" icon="pi pi-credit-card" severity="secondary" [outlined]="true" styleClass="w-full sm:w-auto" [routerLink]="['/payments/history']" [queryParams]="{ playerId: player.id }" />
+                                                        }
+                                                        <p-button label="Ir al módulo financiero" icon="pi pi-arrow-right" severity="secondary" [outlined]="true" styleClass="w-full sm:w-auto" routerLink="/payments/charges" />
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div class="grid gap-3 md:grid-cols-3">
-                                            <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                                                <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Saldo pendiente</p>
-                                                <p class="mt-3 text-2xl font-semibold text-surface-900 dark:text-surface-0">{{ debtSummary.pendingAmount | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+                                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Saldo pendiente</p>
+                                                    <p class="mt-2 text-lg font-semibold text-surface-900 dark:text-surface-0 sm:text-xl">{{ debtSummary.pendingAmount | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+                                                </div>
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Cargos pendientes</p>
+                                                    <p class="mt-2 text-lg font-semibold text-amber-600 sm:text-xl">{{ debtSummary.pendingCharges }}</p>
+                                                </div>
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Total de cargos</p>
+                                                    <p class="mt-2 text-lg font-semibold text-surface-900 dark:text-surface-0 sm:text-xl">{{ initialCharges.length }}</p>
+                                                </div>
                                             </div>
-                                            <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                                                <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Cargos pendientes</p>
-                                                <p class="mt-3 text-2xl font-semibold text-amber-600">{{ debtSummary.pendingCharges }}</p>
-                                            </div>
-                                            <div class="rounded-[0.75rem] border border-slate-200 bg-white p-4 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                                                <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Total de cargos</p>
-                                                <p class="mt-3 text-2xl font-semibold text-surface-900 dark:text-surface-0">{{ initialCharges.length }}</p>
-                                            </div>
-                                        </div>
 
-                                        <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
+                                            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                                             @if (initialCharges.length) {
+                                                <div class="space-y-3 p-3 sm:hidden">
+                                                    @for (charge of initialCharges; track charge.id) {
+                                                        <div class="rounded-[0.85rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900">
+                                                            <div class="flex items-start justify-between gap-3">
+                                                                <div class="min-w-0">
+                                                                    <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ charge.conceptName }}</p>
+                                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">{{ charge.description }}</p>
+                                                                </div>
+                                                                <p-tag [value]="chargeStatusLabel(charge.status)" [severity]="chargeStatusSeverity(charge.status)" />
+                                                            </div>
+
+                                                            <div class="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+                                                                <div>
+                                                                    <p class="m-0 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Monto</p>
+                                                                    <p class="mt-1 m-0 font-medium text-surface-900 dark:text-surface-0">{{ charge.amount | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
+                                                                </div>
+                                                                <div>
+                                                                    <p class="m-0 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Vence</p>
+                                                                    <p class="mt-1 m-0 text-surface-900 dark:text-surface-0">{{ formatDateOnly(charge.dueDate) }}</p>
+                                                                </div>
+                                                                <div class="sm:col-span-2">
+                                                                    <p class="m-0 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Origen</p>
+                                                                    <p class="mt-1 m-0 text-surface-900 dark:text-surface-0">{{ charge.sourceLabel }}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+
+                                                <div class="hidden sm:block">
                                                 <p-table [value]="initialCharges" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
                                                     <ng-template pTemplate="header">
                                                         <tr>
                                                             <th>Concepto</th>
                                                             <th>Detalle</th>
+                                                            <th>Vence</th>
+                                                            <th>Origen</th>
                                                             <th>Monto</th>
                                                             <th>Estado</th>
                                                         </tr>
@@ -448,17 +753,21 @@ import { Subscription } from 'rxjs';
                                                         <tr>
                                                             <td class="font-medium text-surface-900 dark:text-surface-0">{{ charge.conceptName }}</td>
                                                             <td>{{ charge.description }}</td>
+                                                            <td>{{ formatDateOnly(charge.dueDate) }}</td>
+                                                            <td>{{ charge.sourceLabel }}</td>
                                                             <td>{{ charge.amount | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
                                                             <td><p-tag [value]="chargeStatusLabel(charge.status)" [severity]="chargeStatusSeverity(charge.status)" /></td>
                                                         </tr>
                                                     </ng-template>
                                                 </p-table>
+                                                </div>
                                             } @else {
                                                 <div class="px-4 py-10 text-center">
-                                                    <p class="m-0 text-base font-medium text-surface-900 dark:text-surface-0">Sin cargos iniciales</p>
-                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Los cargos se generarán cuando la matrícula del jugador quede activa.</p>
+                                                    <p class="m-0 text-base font-medium text-surface-900 dark:text-surface-0">Sin cargos registrados</p>
+                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Activa la matrícula o crea un cargo manual para empezar el seguimiento financiero del jugador.</p>
                                                 </div>
                                             }
+                                            </div>
                                         </div>
                                     </div>
                                 </p-tabpanel>
@@ -495,7 +804,7 @@ import { Subscription } from 'rxjs';
 
             <p-dialog [(visible)]="showCreateGuardianDialog" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" [style]="{ width: 'min(46rem, calc(100vw - 2rem))' }" styleClass="player-dialog" header="Nuevo acudiente">
                 <div class="space-y-4">
-                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Registra el acudiente, define el parentesco y déjalo asociado al jugador en una sola acción.</p>
+                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Registra al acudiente, completa su identificación y déjalo asociado al jugador en una sola acción.</p>
 
                     <div class="grid grid-cols-12 gap-4">
                         <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -515,7 +824,7 @@ import { Subscription } from 'rxjs';
                         </div>
 
                         <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                            <label for="guardianPhone" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono <span class="text-rose-500">*</span></label>
+                            <label for="guardianPhone" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono <span class="text-slate-400">(opcional)</span></label>
                             <input pInputText id="guardianPhone" type="text" [(ngModel)]="guardianForm.phone" placeholder="Ej. +57 312 555 0021" class="w-full" (input)="onGuardianPhoneInput($event)" />
                             @if (showGuardianError('phone')) {
                                 <p-message severity="error" size="small">Ingresa un teléfono válido.</p-message>
@@ -523,10 +832,26 @@ import { Subscription } from 'rxjs';
                         </div>
 
                         <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                            <label for="guardianEmail" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo <span class="text-rose-500">*</span></label>
+                            <label for="guardianEmail" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo <span class="text-slate-400">(opcional)</span></label>
                             <input pInputText id="guardianEmail" type="text" [(ngModel)]="guardianForm.email" placeholder="Ej. maria.perez@correo.com" class="w-full" (keydown)="onEmailKeydown($event)" (paste)="onEmailPaste($event)" (input)="onGuardianEmailInput($event)" />
                             @if (showGuardianError('email')) {
                                 <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
+                            }
+                        </div>
+
+                        <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                            <label for="guardianDocumentType" class="text-sm font-medium text-surface-700 dark:text-surface-200">Tipo de documento <span class="text-rose-500">*</span></label>
+                            <p-select id="guardianDocumentType" [(ngModel)]="guardianForm.documentType" [options]="documentTypeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un tipo" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                            @if (showGuardianError('documentType')) {
+                                <p-message severity="error" size="small">Selecciona el tipo de documento.</p-message>
+                            }
+                        </div>
+
+                        <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                            <label for="guardianDocumentNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Número de documento <span class="text-rose-500">*</span></label>
+                            <input pInputText id="guardianDocumentNumber" type="text" [(ngModel)]="guardianForm.documentNumber" placeholder="Ej. 42110567" class="w-full" (input)="onGuardianDocumentInput($event)" />
+                            @if (showGuardianError('documentNumber')) {
+                                <p-message severity="error" size="small">Ingresa el número de documento.</p-message>
                             }
                         </div>
 
@@ -547,6 +872,11 @@ import { Subscription } from 'rxjs';
                                 <p-message severity="error" size="small">Selecciona el parentesco del acudiente.</p-message>
                             }
                         </div>
+
+                        <div class="col-span-12 flex flex-col gap-2">
+                            <label for="guardianAddress" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección <span class="text-slate-400">(opcional)</span></label>
+                            <input pInputText id="guardianAddress" type="text" [(ngModel)]="guardianForm.address" placeholder="Ej. Calle 25 # 14-30" class="w-full" />
+                        </div>
                     </div>
                 </div>
 
@@ -554,6 +884,137 @@ import { Subscription } from 'rxjs';
                     <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                         <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="showCreateGuardianDialog = false" />
                         <p-button label="Guardar" styleClass="w-full sm:w-auto" (onClick)="createGuardianAndAssociate()" />
+                    </div>
+                </ng-template>
+            </p-dialog>
+
+            <p-dialog [(visible)]="showCreateTeamAssignmentDialog" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" [style]="{ width: 'min(40rem, calc(100vw - 2rem))' }" styleClass="player-dialog" header="Asignar equipo">
+                <div class="space-y-4">
+                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Define la participación deportiva del jugador y, si corresponde, déjala como principal.</p>
+
+                    <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-12 flex flex-col gap-2">
+                            <label for="teamAssignmentTeam" class="text-sm font-medium text-surface-700 dark:text-surface-200">Equipo <span class="text-rose-500">*</span></label>
+                            @if (availableTeams.length) {
+                                <p-select id="teamAssignmentTeam" [(ngModel)]="teamAssignmentForm.teamId" [options]="availableTeams" optionLabel="name" optionValue="id" placeholder="Selecciona un equipo" class="w-full" appendTo="body">
+                                    <ng-template #item let-option>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span>{{ option.name }}</span>
+                                            <span class="text-sm text-slate-500 dark:text-slate-400">{{ option.categoryName }}</span>
+                                        </div>
+                                    </ng-template>
+                                </p-select>
+                                @if (teamAssignmentSubmitted && !teamAssignmentForm.teamId) {
+                                    <p-message severity="error" size="small">Selecciona el equipo que vas a asignar.</p-message>
+                                }
+                            } @else {
+                                <div class="rounded-[0.85rem] border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-sm leading-6 text-slate-500 dark:border-surface-700 dark:bg-surface-900/60 dark:text-slate-400">
+                                    No hay equipos activos disponibles para asignar en esta iteración.
+                                </div>
+                            }
+                        </div>
+
+                        <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                            <label for="teamAssignmentStartDate" class="text-sm font-medium text-surface-700 dark:text-surface-200">Fecha de inicio <span class="text-rose-500">*</span></label>
+                            <input pInputText id="teamAssignmentStartDate" type="date" [(ngModel)]="teamAssignmentForm.startDate" class="w-full" />
+                            @if (teamAssignmentSubmitted && !teamAssignmentForm.startDate) {
+                                <p-message severity="error" size="small">Selecciona la fecha de inicio de la participación.</p-message>
+                            }
+                        </div>
+
+                        <div class="col-span-12 md:col-span-6 flex items-end">
+                            <div class="flex w-full items-start gap-3 rounded-[0.85rem] border border-slate-200 bg-slate-50 px-3 py-3 dark:border-surface-700 dark:bg-surface-900/60">
+                                <p-checkbox inputId="teamAssignmentPrimary" [(ngModel)]="teamAssignmentForm.markAsPrimary" [binary]="true" />
+                                <div class="space-y-1">
+                                    <label for="teamAssignmentPrimary" class="cursor-pointer text-sm font-medium text-surface-900 dark:text-surface-0">Definir como equipo principal</label>
+                                    <p class="m-0 text-xs leading-5 text-slate-500 dark:text-slate-400">Si está activo, esta asignación quedará como principal entre los equipos vigentes.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <ng-template pTemplate="footer">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                        <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="showCreateTeamAssignmentDialog = false" />
+                        <p-button label="Guardar" styleClass="w-full sm:w-auto" [disabled]="!availableTeams.length" (onClick)="createTeamAssignment()" />
+                    </div>
+                </ng-template>
+            </p-dialog>
+
+            <p-dialog [(visible)]="showCreateChargeDialog" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" [style]="{ width: 'min(42rem, calc(100vw - 2rem))' }" styleClass="player-dialog" header="Nuevo cargo">
+                <div class="space-y-4">
+                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Genera una obligación para este jugador y define si después continuarás directamente al pago.</p>
+
+                    <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                            <label for="chargeConceptId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Concepto <span class="text-rose-500">*</span></label>
+                            <p-select id="chargeConceptId" [(ngModel)]="chargeForm.conceptId" [options]="chargeConceptOptions" optionLabel="name" optionValue="id" placeholder="Selecciona un concepto" class="w-full" (onChange)="onChargeConceptChange()" appendTo="body" [scrollHeight]="'16rem'" />
+                            @if (showChargeError('conceptId')) {
+                                <p-message severity="error" size="small">Selecciona el concepto del cargo.</p-message>
+                            }
+                        </div>
+
+                        <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                            <label for="chargeAmount" class="text-sm font-medium text-surface-700 dark:text-surface-200">Monto <span class="text-rose-500">*</span></label>
+                            <input pInputText id="chargeAmount" type="text" [(ngModel)]="chargeForm.amount" placeholder="Ej. 120000" class="w-full" (input)="onChargeAmountInput($event)" />
+                            @if (showChargeError('amount')) {
+                                <p-message severity="error" size="small">Ingresa un monto válido.</p-message>
+                            }
+                        </div>
+
+                        <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                            <label for="chargeDueDate" class="text-sm font-medium text-surface-700 dark:text-surface-200">Fecha de vencimiento <span class="text-rose-500">*</span></label>
+                            <input pInputText id="chargeDueDate" type="date" [(ngModel)]="chargeForm.dueDate" class="w-full" />
+                            @if (showChargeError('dueDate')) {
+                                <p-message severity="error" size="small">Selecciona la fecha de vencimiento.</p-message>
+                            }
+                        </div>
+
+                        <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                            <label for="chargeNextStep" class="text-sm font-medium text-surface-700 dark:text-surface-200">Después de guardar</label>
+                            <p-select id="chargeNextStep" [(ngModel)]="chargeForm.nextStep" [options]="chargeNextStepOptions" optionLabel="label" optionValue="value" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                        </div>
+
+                        <div class="col-span-12 flex flex-col gap-2">
+                            <label for="chargeDescription" class="text-sm font-medium text-surface-700 dark:text-surface-200">Detalle <span class="text-rose-500">*</span></label>
+                            <input pInputText id="chargeDescription" type="text" [(ngModel)]="chargeForm.description" placeholder="Ej. Uniforme oficial temporada 2026" class="w-full" />
+                            @if (showChargeError('description')) {
+                                <p-message severity="error" size="small">Describe el motivo del cargo.</p-message>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <ng-template pTemplate="footer">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                        <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="showCreateChargeDialog = false" />
+                        <p-button label="Guardar cargo" styleClass="w-full sm:w-auto" (onClick)="saveManualCharge()" />
+                    </div>
+                </ng-template>
+            </p-dialog>
+
+            <p-dialog [(visible)]="showChargesHelpDialog" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" [style]="{ width: 'min(34rem, calc(100vw - 2rem))' }" styleClass="player-dialog" header="Referencia del flujo">
+                <div class="space-y-4">
+                    <div class="space-y-2">
+                        <p class="m-0 text-sm font-semibold text-surface-900 dark:text-surface-0">Concepto</p>
+                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Corresponde al tipo de cobro disponible para la academia.</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <p class="m-0 text-sm font-semibold text-surface-900 dark:text-surface-0">Cargo</p>
+                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Registra la obligación concreta del jugador con monto y vencimiento.</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <p class="m-0 text-sm font-semibold text-surface-900 dark:text-surface-0">Pago</p>
+                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Aplica el recaudo sobre los cargos y actualiza el saldo pendiente.</p>
+                    </div>
+                </div>
+
+                <ng-template pTemplate="footer">
+                    <div class="flex justify-end">
+                        <p-button label="Cerrar" styleClass="w-full sm:w-auto" (onClick)="showChargesHelpDialog = false" />
                     </div>
                 </ng-template>
             </p-dialog>
@@ -571,10 +1032,11 @@ import { Subscription } from 'rxjs';
 export class PlayerDetailPage implements OnDestroy {
     @ViewChild('playerPhotoCropper') playerPhotoCropper?: ImageCropperComponent;
     @ViewChild('guardianActionsMenu') guardianActionsMenu?: Menu;
+    @ViewChild('teamActionsMenu') teamActionsMenu?: Menu;
     private readonly document = inject(DOCUMENT);
 
     breadcrumbs: PageHeaderBreadcrumb[] = [{ label: 'Inicio', routerLink: '/' }, { label: 'Jugadores', routerLink: '/players' }, { label: 'Detalle' }];
-    activeTab: 'information' | 'guardians' | 'membership' | 'charges' = 'information';
+    activeTab: 'information' | 'guardians' | 'teams' | 'membership' | 'charges' = 'information';
     submitted = false;
     guardianSubmitted = false;
     membershipSubmitted = false;
@@ -583,6 +1045,7 @@ export class PlayerDetailPage implements OnDestroy {
     categories: CategoryOption[] = [];
     relations: PlayerGuardianRelation[] = [];
     guardians: Guardian[] = [];
+    teamAssignments: PlayerTeamAssignment[] = [];
     activeMembership: PlayerMembership | null = null;
     membershipHistory: PlayerMembershipHistoryItem[] = [];
     initialCharges: PlayerInitialCharge[] = [];
@@ -595,12 +1058,38 @@ export class PlayerDetailPage implements OnDestroy {
         { label: 'Hermano(a)', value: 'Hermano(a)' },
         { label: 'Otro', value: 'Otro' }
     ];
+    readonly documentTypeOptions = [
+        { label: 'Cédula de ciudadanía', value: 'CC' },
+        { label: 'Tarjeta de identidad', value: 'TI' },
+        { label: 'Cédula de extranjería', value: 'CE' },
+        { label: 'Pasaporte', value: 'PASAPORTE' }
+    ];
     guardianSearch = '';
+    teamAssignmentSearch = '';
     selectedGuardianId = '';
+    selectedTeamAssignment: PlayerTeamAssignment | null = null;
     showAssociateGuardianDialog = false;
     showCreateGuardianDialog = false;
+    showCreateTeamAssignmentDialog = false;
+    showCreateChargeDialog = false;
+    showChargesHelpDialog = false;
     guardianForm: GuardianForm = this.emptyGuardianForm();
+    teamAssignmentForm: PlayerTeamAssignmentForm = this.emptyTeamAssignmentForm();
+    chargeSubmitted = false;
+    teamAssignmentSubmitted = false;
+    chargeForm: PlayerChargeForm = this.emptyChargeForm();
     guardianActionItems: MenuItem[] = [];
+    teamActionItems: MenuItem[] = [];
+    readonly chargeConceptOptions = [
+        { id: 'concept-001', code: 'MATRICULA', name: 'Matrícula' },
+        { id: 'concept-002', code: 'MENSUALIDAD', name: 'Mensualidad' },
+        { id: 'concept-003', code: 'UNIFORME', name: 'Uniforme' },
+        { id: 'concept-004', code: 'TORNEO', name: 'Torneo' }
+    ];
+    readonly chargeNextStepOptions = [
+        { label: 'Solo generar cargo', value: 'CHARGE_ONLY' as const },
+        { label: 'Generar cargo y continuar al pago', value: 'CHARGE_AND_PAYMENT' as const }
+    ];
     photoPreviewUrl: string | null = null;
     photoFileName = 'Sin imagen seleccionada';
     photoBlob: Blob | null = null;
@@ -618,12 +1107,14 @@ export class PlayerDetailPage implements OnDestroy {
         this.routerEventsSubscription = this.router.events.subscribe((event) => {
             if (event instanceof NavigationStart) {
                 this.closeGuardianActionsMenu();
+                this.closeTeamActionsMenu();
             }
         });
     }
 
     ngOnDestroy() {
         this.closeGuardianActionsMenu();
+        this.closeTeamActionsMenu();
         this.routerEventsSubscription.unsubscribe();
     }
 
@@ -649,8 +1140,23 @@ export class PlayerDetailPage implements OnDestroy {
 
         return this.relations.filter((relation) => {
             const fullName = this.guardianFullName(relation.guardian).toLowerCase();
-            return fullName.includes(term) || relation.guardian.email.toLowerCase().includes(term) || relation.guardian.phone.toLowerCase().includes(term);
+            return (
+                fullName.includes(term) ||
+                relation.guardian.email.toLowerCase().includes(term) ||
+                relation.guardian.phone.toLowerCase().includes(term) ||
+                relation.guardian.documentNumber.toLowerCase().includes(term) ||
+                relation.guardian.relationship.toLowerCase().includes(term)
+            );
         });
+    }
+
+    get filteredTeamAssignments() {
+        const term = this.teamAssignmentSearch.trim().toLowerCase();
+        if (!term) {
+            return this.teamAssignments;
+        }
+
+        return this.teamAssignments.filter((assignment) => assignment.teamName.toLowerCase().includes(term) || assignment.teamCategoryName.toLowerCase().includes(term));
     }
 
     get availableGuardians() {
@@ -661,6 +1167,22 @@ export class PlayerDetailPage implements OnDestroy {
                 ...guardian,
                 fullName: this.guardianFullName(guardian)
             }));
+    }
+
+    get availableTeams() {
+        return this.player ? this.playerService.listAvailableTeamsForPlayer(this.player.id) : [];
+    }
+
+    get primaryTeamAssignment() {
+        return this.teamAssignments.find((assignment) => assignment.isPrimary && assignment.endDate === null) ?? null;
+    }
+
+    get activeTeamAssignmentsCount() {
+        return this.teamAssignments.filter((assignment) => assignment.endDate === null).length;
+    }
+
+    get historicalTeamAssignmentsCount() {
+        return this.teamAssignments.filter((assignment) => assignment.endDate !== null).length;
     }
 
     get membershipGuardianOptions() {
@@ -677,6 +1199,12 @@ export class PlayerDetailPage implements OnDestroy {
 
     get debtSummary() {
         return this.player ? this.playerService.getPlayerDebtSummary(this.player.id) : { pendingAmount: '0.00', pendingCharges: 0 };
+    }
+
+    openCreateChargeDialog() {
+        this.chargeSubmitted = false;
+        this.chargeForm = this.emptyChargeForm();
+        this.showCreateChargeDialog = true;
     }
 
     savePlayer() {
@@ -785,6 +1313,12 @@ export class PlayerDetailPage implements OnDestroy {
         this.showCreateGuardianDialog = true;
     }
 
+    openCreateTeamAssignmentDialog() {
+        this.teamAssignmentSubmitted = false;
+        this.teamAssignmentForm = this.emptyTeamAssignmentForm();
+        this.showCreateTeamAssignmentDialog = true;
+    }
+
     createGuardianAndAssociate() {
         if (!this.player) {
             return;
@@ -801,6 +1335,128 @@ export class PlayerDetailPage implements OnDestroy {
         this.loadRelations();
         this.showCreateGuardianDialog = false;
         this.messageService.add({ severity: 'success', summary: 'Acudiente creado', detail: 'El acudiente quedó creado y asociado al jugador.' });
+    }
+
+    createTeamAssignment() {
+        if (!this.player) {
+            return;
+        }
+
+        this.teamAssignmentSubmitted = true;
+        if (!this.isTeamAssignmentFormValid()) {
+            this.messageService.add({ severity: 'warn', summary: 'Revisa la asignación', detail: 'Completa el equipo y la fecha de inicio antes de guardar.' });
+            return;
+        }
+
+        const result = this.playerService.createTeamAssignment(this.player.id, this.teamAssignmentForm);
+        if (result.reason === 'duplicate-active-assignment') {
+            this.messageService.add({ severity: 'warn', summary: 'Equipo ya asignado', detail: 'El jugador ya tiene una asignación activa en ese equipo.' });
+            return;
+        }
+
+        if (!result.assignment) {
+            this.messageService.add({ severity: 'warn', summary: 'No se pudo asignar', detail: 'Verifica que el equipo siga disponible para esta iteración.' });
+            return;
+        }
+
+        this.loadTeamAssignments();
+        this.teamAssignmentForm = this.emptyTeamAssignmentForm();
+        this.teamAssignmentSubmitted = false;
+        this.showCreateTeamAssignmentDialog = false;
+        this.messageService.add({ severity: 'success', summary: 'Equipo asignado', detail: result.assignment.isPrimary ? 'La participación quedó creada como principal.' : 'La participación quedó creada correctamente.' });
+    }
+
+    onChargeConceptChange() {
+        const concept = this.chargeConceptOptions.find((item) => item.id === this.chargeForm.conceptId);
+        if (!concept) {
+            this.chargeForm.conceptCode = '';
+            this.chargeForm.conceptName = '';
+            return;
+        }
+
+        this.chargeForm.conceptCode = concept.code;
+        this.chargeForm.conceptName = concept.name;
+
+        if (!this.chargeForm.description.trim()) {
+            this.chargeForm.description = `Cargo por ${concept.name.toLowerCase()}`;
+        }
+    }
+
+    onChargeAmountInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.chargeForm.amount = input.value.replace(/[^\d]/g, '');
+        input.value = this.chargeForm.amount;
+    }
+
+    saveManualCharge() {
+        if (!this.player) {
+            return;
+        }
+
+        this.chargeSubmitted = true;
+        if (!this.isChargeFormValid()) {
+            this.messageService.add({ severity: 'warn', summary: 'Revisa el cargo', detail: 'Completa los datos obligatorios antes de guardar.' });
+            return;
+        }
+
+        const createdCharge = this.playerService.createManualCharge(this.player.id, this.chargeForm);
+        if (!createdCharge) {
+            this.messageService.add({ severity: 'warn', summary: 'Sin matrícula activa', detail: 'Primero activa la matrícula del jugador para poder registrar cargos.' });
+            return;
+        }
+
+        const nextStep = this.chargeForm.nextStep;
+        this.loadMembershipData();
+        this.showCreateChargeDialog = false;
+        this.chargeForm = this.emptyChargeForm();
+        this.chargeSubmitted = false;
+
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Cargo generado',
+            detail: nextStep === 'CHARGE_AND_PAYMENT' ? 'El cargo quedó creado y ahora puedes continuar con el pago.' : 'El cargo quedó registrado en esta iteración mock.'
+        });
+
+        if (nextStep === 'CHARGE_AND_PAYMENT') {
+            this.router.navigate(['/payments/history'], { queryParams: { playerId: this.player.id, chargeId: createdCharge.id } });
+        }
+    }
+
+    openTeamActionsMenu(event: Event, assignment: PlayerTeamAssignment) {
+        this.closeTeamActionsMenu();
+        this.selectedTeamAssignment = assignment;
+        this.teamActionItems = [
+            ...(!assignment.isPrimary && this.isTeamAssignmentActive(assignment)
+                ? [
+                      {
+                          label: 'Marcar principal',
+                          icon: 'pi pi-star',
+                          command: () => {
+                              this.closeTeamActionsMenu();
+                              this.markPrimaryTeamAssignment(assignment);
+                          }
+                      }
+                  ]
+                : []),
+            ...(this.isTeamAssignmentActive(assignment)
+                ? [
+                      {
+                          label: 'Finalizar',
+                          icon: 'pi pi-stop-circle',
+                          command: () => {
+                              this.closeTeamActionsMenu();
+                              this.finalizeTeamAssignment(assignment);
+                          }
+                      }
+                  ]
+                : [])
+        ];
+
+        if (!this.teamActionItems.length) {
+            return;
+        }
+
+        this.teamActionsMenu?.toggle(event);
     }
 
     openGuardianActionsMenu(event: Event, menu: Menu, relation: PlayerGuardianRelation) {
@@ -829,6 +1485,41 @@ export class PlayerDetailPage implements OnDestroy {
         ];
 
         menu.toggle(event);
+    }
+
+    markPrimaryTeamAssignment(assignment: PlayerTeamAssignment) {
+        if (!this.player) {
+            return;
+        }
+
+        const result = this.playerService.markPrimaryTeamAssignment(this.player.id, assignment.id);
+        if (!result.ok) {
+            this.messageService.add({ severity: 'warn', summary: 'No se pudo actualizar', detail: 'Solo puedes marcar como principal una asignación activa.' });
+            return;
+        }
+
+        this.loadTeamAssignments();
+        this.messageService.add({ severity: 'success', summary: 'Equipo principal actualizado', detail: 'La participación principal del jugador quedó actualizada.' });
+    }
+
+    finalizeTeamAssignment(assignment: PlayerTeamAssignment) {
+        if (!this.player) {
+            return;
+        }
+
+        const result = this.playerService.finalizeTeamAssignment(this.player.id, assignment.id);
+        if (result.reason === 'missing-active-primary-replacement') {
+            this.messageService.add({ severity: 'warn', summary: 'No se puede finalizar', detail: 'Este es el único equipo activo del jugador. Asigna otro equipo antes de finalizarlo.' });
+            return;
+        }
+
+        if (!result.ok) {
+            this.messageService.add({ severity: 'warn', summary: 'No se pudo finalizar', detail: 'La asignación ya no está activa en esta iteración.' });
+            return;
+        }
+
+        this.loadTeamAssignments();
+        this.messageService.add({ severity: 'success', summary: 'Participación finalizada', detail: 'La asignación del jugador quedó cerrada y el historial se conserva.' });
     }
 
     markPrimaryGuardian(relation: PlayerGuardianRelation) {
@@ -860,8 +1551,23 @@ export class PlayerDetailPage implements OnDestroy {
         return `${guardian.firstName} ${guardian.lastName}`.trim();
     }
 
+    getGuardianDocumentLabel(guardian: Guardian) {
+        return `${this.getDocumentTypeLabel(guardian.documentType)} · ${guardian.documentNumber}`;
+    }
+
     guardianNameById(guardianId: string) {
         return this.playerService.getGuardianDisplayName(guardianId);
+    }
+
+    getDocumentTypeLabel(value: string) {
+        const labels: Record<string, string> = {
+            CC: 'CC',
+            TI: 'TI',
+            CE: 'CE',
+            PASAPORTE: 'Pasaporte'
+        };
+
+        return labels[value] ?? value;
     }
 
     membershipStatusLabel(status: PlayerMembership['status']) {
@@ -905,6 +1611,22 @@ export class PlayerDetailPage implements OnDestroy {
         return status === 'PAID' ? 'success' : 'warn';
     }
 
+    teamAssignmentStatusLabel(assignment: PlayerTeamAssignment) {
+        return assignment.endDate === null ? 'Activa' : 'Finalizada';
+    }
+
+    teamAssignmentStatusSeverity(assignment: PlayerTeamAssignment): 'success' | 'contrast' {
+        return assignment.endDate === null ? 'success' : 'contrast';
+    }
+
+    isTeamAssignmentActive(assignment: PlayerTeamAssignment) {
+        return assignment.endDate === null;
+    }
+
+    showChargeError(field: keyof PlayerChargeForm) {
+        return this.chargeSubmitted && !this.isChargeFieldValid(field);
+    }
+
     showGuardianError(field: keyof GuardianForm) {
         return this.guardianSubmitted && !this.isGuardianFieldValid(field);
     }
@@ -937,6 +1659,12 @@ export class PlayerDetailPage implements OnDestroy {
         const input = event.target as HTMLInputElement;
         this.guardianForm.email = this.sanitizeEmailInput(input.value);
         input.value = this.guardianForm.email;
+    }
+
+    onGuardianDocumentInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.guardianForm.documentNumber = input.value.replace(/[^\dA-Za-z-]/g, '');
+        input.value = this.guardianForm.documentNumber;
     }
 
     onPhotoSelected(event: Event) {
@@ -1030,6 +1758,7 @@ export class PlayerDetailPage implements OnDestroy {
         this.photoFileName = player.photo?.path?.split('/').pop() ?? 'Sin imagen seleccionada';
         this.photoBlob = null;
         this.loadRelations();
+        this.loadTeamAssignments();
         this.loadMembershipData();
     }
 
@@ -1040,6 +1769,15 @@ export class PlayerDetailPage implements OnDestroy {
         }
 
         this.relations = this.playerService.listPlayerGuardians(this.player.id);
+    }
+
+    private loadTeamAssignments() {
+        if (!this.player) {
+            this.teamAssignments = [];
+            return;
+        }
+
+        this.teamAssignments = this.playerService.listPlayerTeamAssignments(this.player.id);
     }
 
     private loadMembershipData() {
@@ -1060,7 +1798,23 @@ export class PlayerDetailPage implements OnDestroy {
     }
 
     private emptyGuardianForm(): GuardianForm {
-        return { firstName: '', lastName: '', phone: '', email: '', relationship: '' };
+        return { firstName: '', lastName: '', phone: '', email: '', documentType: '', documentNumber: '', address: '', relationship: '' };
+    }
+
+    private emptyTeamAssignmentForm(): PlayerTeamAssignmentForm {
+        return { teamId: '', startDate: '', markAsPrimary: false };
+    }
+
+    private emptyChargeForm(): PlayerChargeForm {
+        return {
+            conceptId: '',
+            conceptCode: '',
+            conceptName: '',
+            amount: '',
+            dueDate: '',
+            description: '',
+            nextStep: 'CHARGE_ONLY'
+        };
     }
 
     private isFormValid() {
@@ -1084,7 +1838,15 @@ export class PlayerDetailPage implements OnDestroy {
     }
 
     private isGuardianFormValid() {
-        return ['firstName', 'lastName', 'phone', 'email', 'relationship'].every((field) => this.isGuardianFieldValid(field as keyof GuardianForm));
+        return ['firstName', 'lastName', 'documentType', 'documentNumber', 'relationship'].every((field) => this.isGuardianFieldValid(field as keyof GuardianForm));
+    }
+
+    private isTeamAssignmentFormValid() {
+        return !!this.teamAssignmentForm.teamId && !!this.teamAssignmentForm.startDate;
+    }
+
+    private isChargeFormValid() {
+        return ['conceptId', 'amount', 'dueDate', 'description'].every((field) => this.isChargeFieldValid(field as keyof PlayerChargeForm));
     }
 
     private isGuardianFieldValid(field: keyof GuardianForm) {
@@ -1093,11 +1855,34 @@ export class PlayerDetailPage implements OnDestroy {
             case 'lastName':
                 return this.hasValidText(this.guardianForm[field], 2);
             case 'phone':
-                return this.guardianForm.phone.replace(/\D/g, '').length >= 7;
+                return !this.guardianForm.phone.trim() || this.guardianForm.phone.replace(/\D/g, '').length >= 7;
             case 'email':
-                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.guardianForm.email.trim());
+                return !this.guardianForm.email.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.guardianForm.email.trim());
+            case 'documentType':
+                return !!this.guardianForm.documentType;
+            case 'documentNumber':
+                return this.guardianForm.documentNumber.trim().length >= 5;
             case 'relationship':
                 return !!this.guardianForm.relationship;
+            default:
+                return true;
+        }
+    }
+
+    private isChargeFieldValid(field: keyof PlayerChargeForm) {
+        switch (field) {
+            case 'conceptId':
+                return !!this.chargeForm.conceptId;
+            case 'amount':
+                return Number(this.chargeForm.amount) > 0;
+            case 'dueDate':
+                return !!this.chargeForm.dueDate;
+            case 'description':
+                return this.chargeForm.description.trim().length >= 4;
+            case 'conceptCode':
+            case 'conceptName':
+            case 'nextStep':
+                return true;
             default:
                 return true;
         }
@@ -1134,8 +1919,17 @@ export class PlayerDetailPage implements OnDestroy {
         return new Intl.DateTimeFormat('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value));
     }
 
+    formatDateOnly(value: string) {
+        return new Intl.DateTimeFormat('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${value}T00:00:00`));
+    }
+
     private closeGuardianActionsMenu() {
         this.guardianActionsMenu?.hide();
+        this.closeDetachedGuardianMenus();
+    }
+
+    private closeTeamActionsMenu() {
+        this.teamActionsMenu?.hide();
         this.closeDetachedGuardianMenus();
     }
 

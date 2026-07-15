@@ -54,6 +54,11 @@ Facilita la operación deportiva, ordena la estructura competitiva y prepara la 
 * HU-005 Desactivar equipo.
 * HU-006 Reactivar equipo.
 * HU-007 Preparar asignación de jugadores a equipo.
+* HU-008 Asignar jugador a un equipo.
+* HU-009 Marcar asignación como principal.
+* HU-010 Cambiar equipo principal de un jugador.
+* HU-011 Finalizar asignación deportiva.
+* HU-012 Consultar asignaciones deportivas de un jugador.
 
 ## HU-001 Crear equipo
 
@@ -170,6 +175,77 @@ Como owner o administrador de academia, quiero que el detalle de equipo quede li
   * historial o actividad
 * La UX inicial no debe mezclar creación de equipo con asignación de jugadores.
 
+## HU-008 Asignar jugador a un equipo
+
+Como administrador académico, quiero asignar un jugador a un equipo, para registrar su participación deportiva actual.
+
+### Criterios de aceptación
+
+* La acción debe existir desde el detalle del jugador.
+* El formulario mock debe contemplar como mínimo:
+  * `teamId`
+  * `startDate`
+* Debe permitir definir si la nueva asignación quedará como principal.
+* No debe mezclar este flujo con matrícula ni con cobros.
+* Al guardar, la nueva asignación debe aparecer de inmediato en el listado del jugador.
+
+### Reglas de UX
+
+* El lenguaje debe hablar de `participación deportiva` o `equipo`, no de contratos ni deuda.
+* Si no hay equipos disponibles, la interfaz debe indicarlo con estado vacío claro.
+
+## HU-009 Marcar asignación como principal
+
+Como administrador académico, quiero definir cuál de los equipos activos del jugador es el principal, para reflejar correctamente su referencia deportiva actual.
+
+### Criterios de aceptación
+
+* La acción debe estar disponible solo para asignaciones activas no principales.
+* Al marcar una asignación como principal, la anterior debe dejar de serlo.
+* El cambio debe reflejarse inmediatamente en el listado mock.
+
+## HU-010 Cambiar equipo principal de un jugador
+
+Como administrador académico, quiero cambiar el equipo principal del jugador sin perder sus otras participaciones activas, para mantener el historial deportivo intacto.
+
+### Criterios de aceptación
+
+* El cambio debe operar sobre asignaciones activas existentes.
+* La asignación anterior puede seguir activa aunque deje de ser principal.
+* La interfaz debe mostrar con claridad cuál quedó como principal.
+
+## HU-011 Finalizar asignación deportiva
+
+Como administrador académico, quiero finalizar la participación del jugador en un equipo, para cerrar esa etapa sin borrar historial.
+
+### Criterios de aceptación
+
+* La acción debe existir solo para asignaciones activas.
+* Al finalizar, la asignación debe pasar a histórico.
+* Si era principal, la UI mock debe impedir la operación cuando no exista otro equipo activo que pueda asumir la principalidad.
+
+### Reglas de UX
+
+* No usar `Eliminar`.
+* Usar una acción más precisa como `Finalizar`.
+
+## HU-012 Consultar asignaciones deportivas de un jugador
+
+Como administrador académico, quiero consultar las asignaciones deportivas del jugador, para distinguir su equipo principal, sus equipos activos y su historial.
+
+### Criterios de aceptación
+
+* Debe existir un tab o subvista `Equipos` dentro del detalle del jugador.
+* El listado debe mostrar como mínimo:
+  * equipo
+  * categoría
+  * inicio
+  * fin
+  * estado
+  * principal
+* Debe contemplar asignaciones activas e históricas.
+* Debe permitir búsqueda local mock por equipo o categoría.
+
 ## Reglas de UX Relacionadas
 
 * Mostrar la relación `equipo -> categoría` de forma explícita.
@@ -214,4 +290,4 @@ entonces podrá evolucionar a una pantalla propia sin perder la coherencia del m
 
 ## Estado
 
-Draft.
+Done (Mock UI).

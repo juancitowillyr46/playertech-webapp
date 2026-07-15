@@ -44,14 +44,14 @@ Soporta el control de vigencia, historial y estado administrativo.
 
 ## Estado
 
-Draft.
+Done (Mock UI).
 
 ## Trazabilidad Actual
 
-* HU-001 Crear matrícula desde el detalle del jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
-* HU-002 Generar y mostrar cargos iniciales → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
-* HU-003 Ver matrícula activa del jugador → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
-* HU-004 Ver historial de matrículas → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
-* HU-005 Suspender matrícula → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
-* HU-006 Retirar matrícula → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
-* HU-007 Ver saldo administrativo y cargos pendientes → `In Progress (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
+* HU-001 Crear matrícula desde el detalle del jugador → `Done (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
+* HU-002 Generar y mostrar cargos iniciales → `Done (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
+* HU-003 Ver matrícula activa del jugador → `Done (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-004 Ver historial de matrículas → `Done (Mock UI)` → `src/app/features/players/pages/player-detail.ts`
+* HU-005 Suspender matrícula → `Done (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
+* HU-006 Retirar matrícula → `Done (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`
+* HU-007 Ver saldo administrativo y cargos pendientes → `Done (Mock UI)` → `src/app/features/players/pages/player-detail.ts`, `src/app/features/players/data-access/player-management.service.ts`

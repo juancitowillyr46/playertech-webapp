@@ -24,15 +24,15 @@ Da soporte a la organización básica de jugadores y equipos.
 
 ## Historias de Usuario
 
-* HU-001 Crear sede. `Draft`
-* HU-002 Listar sedes. `Draft`
-* HU-003 Ver detalle de sede. `Draft`
-* HU-004 Actualizar sede. `Draft`
-* HU-005 Activar o inactivar sede. `Draft`
-* HU-006 Crear categoría.
-* HU-007 Listar categorías.
-* HU-008 Actualizar categoría.
-* HU-009 Activar o inactivar categoría.
+* HU-001 Crear sede. `Done (Mock UI)`
+* HU-002 Listar sedes. `Done (Mock UI)`
+* HU-003 Ver detalle de sede. `Partial`
+* HU-004 Actualizar sede. `Done (Mock UI)`
+* HU-005 Activar o inactivar sede. `Done (Mock UI)`
+* HU-006 Crear categoría. `Done (Mock UI)`
+* HU-007 Listar categorías. `Done (Mock UI)`
+* HU-008 Actualizar categoría. `Done (Mock UI)`
+* HU-009 Activar o inactivar categoría. `Done (Mock UI)`
 
 ## Reglas de UX Relacionadas
 
@@ -367,4 +367,4 @@ Como owner o administrador de academia, quiero activar o inactivar una categorí
 
 ## Estado
 
-Draft.
+Done (Mock UI).

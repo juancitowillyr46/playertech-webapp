@@ -34,6 +34,9 @@ export interface Guardian {
     lastName: string;
     phone: string;
     email: string;
+    documentType: string;
+    documentNumber: string;
+    address: string;
     relationship: string;
     status: 'ACTIVE' | 'INACTIVE';
 }
@@ -51,12 +54,42 @@ export interface GuardianForm {
     lastName: string;
     phone: string;
     email: string;
+    documentType: string;
+    documentNumber: string;
+    address: string;
     relationship: string;
 }
 
 export interface CategoryOption {
     id: string;
     name: string;
+}
+
+export interface TeamOption {
+    id: string;
+    academyId: string;
+    name: string;
+    categoryId: string;
+    categoryName: string;
+    status: 'ACTIVE' | 'INACTIVE';
+}
+
+export interface PlayerTeamAssignment {
+    id: string;
+    academyId: string;
+    playerId: string;
+    teamId: string;
+    teamName: string;
+    teamCategoryName: string;
+    startDate: string;
+    endDate: string | null;
+    isPrimary: boolean;
+}
+
+export interface PlayerTeamAssignmentForm {
+    teamId: string;
+    startDate: string;
+    markAsPrimary: boolean;
 }
 
 export interface GuardianLinkedPlayer {
@@ -94,8 +127,21 @@ export interface PlayerInitialCharge {
     id: string;
     membershipId: string;
     paymentConceptId: string;
+    conceptCode: string;
     conceptName: string;
     description: string;
     amount: string;
+    dueDate: string;
+    sourceLabel: string;
     status: InitialChargeStatus;
+}
+
+export interface PlayerChargeForm {
+    conceptId: string;
+    conceptCode: string;
+    conceptName: string;
+    amount: string;
+    dueDate: string;
+    description: string;
+    nextStep: 'CHARGE_ONLY' | 'CHARGE_AND_PAYMENT';
 }

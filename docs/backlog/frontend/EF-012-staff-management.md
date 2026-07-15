@@ -264,4 +264,4 @@ Debe seguir viviendo dentro de `Academia`, porque:
 
 ## Estado
 
-In Progress (Mock UI).
+Done (Mock UI).
