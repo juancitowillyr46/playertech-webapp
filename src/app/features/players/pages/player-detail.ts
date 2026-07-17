@@ -114,7 +114,6 @@ import { Subscription } from 'rxjs';
         @if (player) {
             <div class="space-y-4">
                 <app-page-header [breadcrumbs]="breadcrumbs" [title]="playerFullName" subtitle="Actualiza la información del jugador y administra acudientes, equipos, matrícula y cargos desde un solo lugar."></app-page-header>
-
                 <div
                     class="mx-auto mt-4 w-full space-y-3"
                     [class.content-width-compact]="activeTab === 'information' || activeTab === 'guardians' || activeTab === 'teams' || activeTab === 'membership'"
@@ -661,7 +660,7 @@ import { Subscription } from 'rxjs';
 
                                 <p-tabpanel value="charges">
                                     <div class="space-y-4 p-3 sm:p-4">
-                                        <div class="form-width-2col mx-auto space-y-4">
+                                        <div class="w-full mx-auto space-y-4">
                                             <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-none dark:border-surface-700 dark:bg-surface-900 sm:p-4">
                                                 <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                                                     <div class="space-y-1">
@@ -681,12 +680,12 @@ import { Subscription } from 'rxjs';
                                                         <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Consulta los cargos activos del jugador y el saldo pendiente asociado.</p>
                                                     </div>
 
-                                                    <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
-                                                        <p-button label="Nuevo cargo" icon="pi pi-plus" styleClass="w-full sm:w-auto" (onClick)="openCreateChargeDialog()" />
+                                                    <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
+                                                        <p-button label="Nuevo cargo" icon="pi pi-plus" styleClass="w-full sm:min-w-[10.5rem] sm:w-auto" (onClick)="openCreateChargeDialog()" />
                                                         @if (player) {
-                                                            <p-button label="Ver pagos" icon="pi pi-credit-card" severity="secondary" [outlined]="true" styleClass="w-full sm:w-auto" [routerLink]="['/payments/history']" [queryParams]="{ playerId: player.id }" />
+                                                            <p-button label="Ver pagos" icon="pi pi-credit-card" severity="secondary" [outlined]="true" styleClass="w-full sm:min-w-[10rem] sm:w-auto" [routerLink]="['/payments/history']" [queryParams]="{ playerId: player.id }" />
                                                         }
-                                                        <p-button label="Ir al módulo financiero" icon="pi pi-arrow-right" severity="secondary" [outlined]="true" styleClass="w-full sm:w-auto" routerLink="/payments/charges" />
+                                                        <p-button label="Ir al módulo financiero" icon="pi pi-arrow-right" severity="secondary" [outlined]="true" styleClass="w-full sm:min-w-[12.5rem] sm:w-auto" routerLink="/payments/charges" />
                                                     </div>
                                                 </div>
                                             </div>

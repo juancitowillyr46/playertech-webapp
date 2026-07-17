@@ -7,6 +7,7 @@ Este paquete reúne las primeras specs operativas del frontend para arrancar ado
 * Auth
 * Players
 * Payments
+* Membership
 
 ## Regla de uso
 
@@ -21,4 +22,4 @@ Draft operativo.
 1. Auth
 2. Players
 3. Payments
-
+4. Membership

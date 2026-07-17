@@ -31,9 +31,16 @@ Esta matriz conecta requisitos, specs, páginas y evidencia inicial para los dom
 | `PLY-PAY-REQ-004` Consultar comprobantes y soportes | [specs/domains/payments.md](C:\Data\Source\Repos\playertech-webapp\specs\domains\payments.md) | [src/app/features/payments/pages/payments-history.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\payments\pages\payments-history.ts) | Mock UI | Confirmado como comportamiento actual |
 | `PLY-PAY-REQ-005` Ejecutar recaudo rápido | [specs/domains/payments.md](C:\Data\Source\Repos\playertech-webapp\specs\domains\payments.md) | [src/app/features/payments/pages/rapid-collection.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\payments\pages\rapid-collection.ts) | Mock UI | Confirmado como comportamiento actual |
 
+## Membership
+
+| Requisito | Spec | UI / Archivo | Evidencia actual | Estado |
+| --- | --- | --- | --- | --- |
+| `PLY-MEM-REQ-001` Matrícula como habilitador | [specs/domains/membership.md](C:\Data\Source\Repos\playertech-webapp\specs\domains\membership.md) | [src/app/features/players/pages/player-detail.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\players\pages\player-detail.ts) | Regla operativa visible en detalle | Definido como regla de negocio |
+| `PLY-MEM-REQ-002` Bloqueo de procesos sin matrícula | [specs/domains/membership.md](C:\Data\Source\Repos\playertech-webapp\specs\domains\membership.md) | [src/app/features/players/pages/player-detail.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\players\pages\player-detail.ts) | Mensajes y acciones condicionadas | Definido como regla de negocio |
+| `PLY-MEM-REQ-003` Habilitación de procesos con matrícula | [specs/domains/membership.md](C:\Data\Source\Repos\playertech-webapp\specs\domains\membership.md) | [src/app/features/players/pages/player-detail.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\players\pages\player-detail.ts) | Tabs y acciones posteriores | Definido como regla de negocio |
+
 ## Uso
 
 * actualizar esta matriz cuando cambie una spec;
 * usarla como puente entre backlog, UI y pruebas;
 * agregar nuevas filas solo cuando exista una trazabilidad verificable.
-

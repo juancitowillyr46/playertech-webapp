@@ -184,6 +184,7 @@ Documentos:
 * `domains/auth-flows.md`
 * `domains/players-flows.md`
 * `domains/payments-flows.md`
+* `domains/membership.md`
 * `ui/mobile-shell-navigation.md`
 
 ---
