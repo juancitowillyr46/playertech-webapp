@@ -16,6 +16,18 @@ Convención de estado vigente:
 * `In Progress` = trabajo iniciado pero aún no hay una experiencia completa validable.
 * `Draft` = definición documental sin implementación visible todavía.
 
+Documentación SDD relacionada:
+
+* [Auditoría de preparación SDD](./00-sdd-audit-report.md)
+* [Plan de adopción incremental SDD](./02-sdd-adoption-plan.md)
+* [Convención de trazabilidad SDD](./03-sdd-traceability-conventions.md)
+* [Plantilla de criterios de aceptación SDD](./04-sdd-acceptance-template.md)
+* [Matriz de trazabilidad inicial SDD](./05-sdd-traceability-matrix.md)
+* [Plan de caracterización inicial](./06-sdd-characterization-plan.md)
+* [Guía de entrada para nuevas features](./07-sdd-feature-intake-playbook.md)
+* [Plantilla de nueva feature SDD](./08-new-feature-template.md)
+* [Checklist rápida de decisión](./09-feature-decision-checklist.md)
+
 ---
 
 # Criterio de Mapeo

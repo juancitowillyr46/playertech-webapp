@@ -162,6 +162,32 @@ Incluye:
 
 ---
 
+## 10. Frontend Operational Package
+
+Define las primeras specs operativas para arrancar SDD en dominios críticos.
+
+Incluye:
+
+* auth;
+* players;
+* payments;
+* trazabilidad mínima;
+* estados y reglas visibles;
+* vacíos y dependencias por dominio.
+
+Documentos:
+
+* `domains/README.md`
+* `domains/auth.md`
+* `domains/players.md`
+* `domains/payments.md`
+* `domains/auth-flows.md`
+* `domains/players-flows.md`
+* `domains/payments-flows.md`
+* `ui/mobile-shell-navigation.md`
+
+---
+
 # Orden Recomendado de Redacción
 
 1. `01-frontend-architecture.md`
@@ -179,4 +205,3 @@ Incluye:
 # Regla de Uso
 
 Si una decisión de implementación no está cubierta por estos specs, primero se documenta y luego se implementa.
-

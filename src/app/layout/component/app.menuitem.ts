@@ -88,6 +88,34 @@ import { filter } from 'rxjs/operators';
                 margin-right: 0 !important;
             }
 
+            :host-context(.layout-mobile-active) .layout-menuitem-root-text,
+            :host-context(.layout-mobile-active) .layout-menuitem-text,
+            :host-context(.layout-mobile-active) .layout-submenu-toggler {
+                display: inline-flex !important;
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            :host-context(.layout-mobile-active) a {
+                justify-content: flex-start !important;
+            }
+
+            :host-context(.layout-mobile-active) .layout-menuitem-root-text,
+            :host-context(.layout-mobile-active) .layout-menuitem-text {
+                transition:
+                    opacity 180ms ease,
+                    transform 180ms ease;
+                opacity: 0.96;
+                transform: translateX(-0.15rem);
+            }
+
+            :host-context(.layout-mobile-active) .layout-submenu-toggler {
+                transition:
+                    opacity 180ms ease,
+                    transform 180ms ease;
+                opacity: 0.96;
+            }
+
             .p-submenu-enter {
                 animation: p-animate-submenu-expand 450ms cubic-bezier(0.86, 0, 0.07, 1) forwards;
             }
