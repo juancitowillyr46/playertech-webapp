@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
-import { ApiEnvelope, AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, TenantActivationRequest, TenantSignupRequest, TenantSignupResponse } from './auth.models';
+import { ApiEnvelope, AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, PublicCategory, PublicCategoryListResponse, TenantActivationRequest, TenantSignupRequest, TenantSignupResponse } from './auth.models';
 import { environment } from '../../../environments/environment';
 
 export interface AuthErrorLike {
@@ -45,8 +45,22 @@ export class AuthApiService {
         );
     }
 
+    getPublicCategories(): Observable<PublicCategory[]> {
+        return this.http.get<ApiEnvelope<PublicCategory[]> | PublicCategoryListResponse | PublicCategory[]>(this.url('/api/v1/public/categories')).pipe(
+            map((response) => this.unwrapArrayResponse(response)),
+            catchError((error) => throwError(() => this.normalizeError(error)))
+        );
+    }
+
     activateTenant(token: string, payload: TenantActivationRequest): Observable<TenantSignupResponse> {
         return this.http.post<ApiEnvelope<TenantSignupResponse> | TenantSignupResponse>(this.url(`/api/v1/public/tenants/activate/${encodeURIComponent(token)}`), payload).pipe(
+            map((response) => this.unwrapResponse(response)),
+            catchError((error) => throwError(() => this.normalizeError(error)))
+        );
+    }
+
+    checkTenantActivation(token: string): Observable<TenantSignupResponse> {
+        return this.http.get<ApiEnvelope<TenantSignupResponse> | TenantSignupResponse>(this.url(`/api/v1/public/tenants/activate/${encodeURIComponent(token)}`)).pipe(
             map((response) => this.unwrapResponse(response)),
             catchError((error) => throwError(() => this.normalizeError(error)))
         );
@@ -81,6 +95,18 @@ export class AuthApiService {
         }
 
         return response as T;
+    }
+
+    private unwrapArrayResponse(response: ApiEnvelope<PublicCategory[]> | PublicCategoryListResponse | PublicCategory[]): PublicCategory[] {
+        if (Array.isArray(response)) {
+            return response;
+        }
+
+        if (typeof response === 'object' && response !== null && 'data' in response && Array.isArray(response.data)) {
+            return response.data;
+        }
+
+        return [];
     }
 
     private normalizeError(error: unknown): AuthErrorLike {

@@ -26,6 +26,7 @@ export const appRoutes: Routes = [
     },
     { path: 'landing', component: Landing },
     { path: 'notfound', component: Notfound },
+    { path: 'tenant/activate', loadComponent: () => import('./app/features/auth/pages/tenant-activate').then((m) => m.TenantActivate) },
     { path: 'auth', loadChildren: () => import('./app/features/auth/auth.routes') },
     { path: '**', redirectTo: '/notfound' }
 ];

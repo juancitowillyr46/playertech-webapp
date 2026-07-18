@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { AuthApiService } from '@/app/core/auth/auth-api.service';
 import { AuthSessionService } from '@/app/core/auth/auth-session.service';
-import { AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, TenantActivationRequest, TenantSignupRequest, TenantSignupResponse, TenantSignupSummary } from '@/app/core/auth/auth.models';
+import { AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, PublicCategory, TenantActivationRequest, TenantSignupRequest, TenantSignupResponse, TenantSignupSummary } from '@/app/core/auth/auth.models';
 
 @Injectable({
     providedIn: 'root'
@@ -33,6 +33,14 @@ export class AuthAccessService {
 
     activateTenant(token: string, payload: TenantActivationRequest): Observable<TenantSignupResponse> {
         return this.api.activateTenant(token, payload);
+    }
+
+    checkTenantActivation(token: string): Observable<TenantSignupResponse> {
+        return this.api.checkTenantActivation(token);
+    }
+
+    getPublicCategories(): Observable<PublicCategory[]> {
+        return this.api.getPublicCategories();
     }
 
     saveSignupSummary(summary: TenantSignupSummary): void {
