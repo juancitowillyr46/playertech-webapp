@@ -209,8 +209,8 @@ interface CountryOption {
 
                                             <div class="grid grid-cols-12 gap-4">
                                                 <div class="col-span-12">
-                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información básica</p>
-                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Mantén actualizados los datos personales principales del jugador.</p>
+                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información personal</p>
+                                                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Registra el documento, nombres, apellidos y datos base del jugador.</p>
                                                 </div>
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -280,9 +280,9 @@ interface CountryOption {
                                                 </div>
                                             </div>
 
-                                            <div class="rounded-[0.75rem] border border-slate-200 bg-slate-50 p-3 dark:border-surface-700 dark:bg-surface-900/60 sm:p-4">
+                                            <div class="space-y-1">
                                                 <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información de contacto</p>
-                                                <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Agrupa el canal de contacto directo del jugador.</p>
+                                                <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Agrupa el canal de contacto directo del jugador.</p>
                                             </div>
 
                                             <div class="grid grid-cols-12 gap-4">
@@ -316,9 +316,9 @@ interface CountryOption {
                                                 </div>
                                             </div>
 
-                                            <div class="rounded-[0.75rem] border border-slate-200 bg-slate-50 p-3 dark:border-surface-700 dark:bg-surface-900/60 sm:p-4">
+                                            <div class="space-y-1">
                                                 <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Detalle del jugador</p>
-                                                <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Completa la categoría y los datos deportivos que aún no forman parte de la identidad base.</p>
+                                                <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Agrega la categoría y los datos deportivos complementarios.</p>
                                             </div>
 
                                             <div class="grid grid-cols-12 gap-4">
@@ -336,7 +336,7 @@ interface CountryOption {
                                                 </div>
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="federationId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Liga <span class="text-slate-400">(opcional)</span></label>
+                                                    <label for="federationId" class="text-sm font-medium text-surface-700 dark:text-surface-200">ID de liga <span class="text-slate-400">(opcional)</span></label>
                                                     <input pInputText id="federationId" type="text" [(ngModel)]="form.federationId" placeholder="Ej. F001" class="w-full" (input)="onTextInput('federationId', $event)" />
                                                 </div>
                                             </div>
