@@ -24,6 +24,12 @@ import { PlayerManagementService } from '../data-access/player-management.servic
 import { CategoryOption, Guardian, GuardianForm, Player, PlayerChargeForm, PlayerForm, PlayerGuardianRelation, PlayerInitialCharge, PlayerMembership, PlayerMembershipHistoryItem, PlayerPhoto, PlayerTeamAssignment, PlayerTeamAssignmentForm, TeamOption } from '../models/player.model';
 import { Subscription } from 'rxjs';
 
+interface CountryOption {
+    name: string;
+    dialCode: string;
+    flagFile: string;
+}
+
 @Component({
     selector: 'app-player-detail-page',
     standalone: true,
@@ -197,7 +203,7 @@ import { Subscription } from 'rxjs';
                                                 </div>
                                                 <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
                                                     <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Celular</p>
-                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ player.phoneNumber || 'No configurado' }}</p>
+                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ getPhoneLabel(player) }}</p>
                                                 </div>
                                             </div>
 
@@ -249,7 +255,23 @@ import { Subscription } from 'rxjs';
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                                     <label for="nationality" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nacionalidad <span class="text-slate-400">(opcional)</span></label>
-                                                    <input pInputText id="nationality" type="text" [(ngModel)]="form.nationality" placeholder="Ej. Peruana" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onTextInput('nationality', $event)" />
+                                                    <p-select id="nationality" [(ngModel)]="form.nationality" [options]="countryOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name,dialCode" placeholder="Selecciona un país" class="w-full" appendTo="body" [scrollHeight]="'16rem'">
+                                                        <ng-template #selectedItem let-option>
+                                                            <span class="flex items-center gap-2">
+                                                                <img [src]="option?.flagFile ?? fallbackFlag" [alt]="option?.name ?? 'País'" class="h-4 w-6 rounded-sm object-cover" />
+                                                                <span>{{ option?.name ?? 'País' }}</span>
+                                                            </span>
+                                                        </ng-template>
+                                                        <ng-template #item let-option>
+                                                            <div class="flex items-center justify-between gap-3">
+                                                                <span class="flex items-center gap-2">
+                                                                    <img [src]="option.flagFile || fallbackFlag" [alt]="option.name" class="h-4 w-6 rounded-sm object-cover" />
+                                                                    <span>{{ option.name }}</span>
+                                                                </span>
+                                                                <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-surface-800 dark:text-slate-300">{{ option.dialCode }}</span>
+                                                            </div>
+                                                        </ng-template>
+                                                    </p-select>
                                                 </div>
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -277,8 +299,21 @@ import { Subscription } from 'rxjs';
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                                     <label for="phoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Celular <span class="text-slate-400">(opcional)</span></label>
-                                                    <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" placeholder="Ej. +51 987 654 321" class="w-full" (input)="onPhoneInput($event)" />
-                                                    @if (showError('phoneNumber')) {
+                                                    <div class="grid grid-cols-12 gap-3">
+                                                        <p-select
+                                                            id="countryCode"
+                                                            [(ngModel)]="form.countryCode"
+                                                            [options]="countryOptions"
+                                                            optionLabel="label"
+                                                            optionValue="value"
+                                                            placeholder="Código"
+                                                            class="col-span-12 md:col-span-4 w-full"
+                                                            appendTo="body"
+                                                            [scrollHeight]="'16rem'"
+                                                        />
+                                                        <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" placeholder="Ej. 987 654 321" class="col-span-12 md:col-span-8 w-full" (input)="onPhoneInput($event)" />
+                                                    </div>
+                                                    @if (showError('countryCode') || showError('phoneNumber')) {
                                                         <p-message severity="error" size="small">Ingresa un celular válido.</p-message>
                                                     }
                                                 </div>
@@ -1167,6 +1202,15 @@ export class PlayerDetailPage implements OnDestroy {
         { label: 'Izquierdo', value: 'Izquierdo' },
         { label: 'Ambidiestro', value: 'Ambidiestro' }
     ];
+    readonly fallbackFlag = 'assets/flags/pe.svg';
+    readonly countryOptions: CountryOption[] = [
+        { name: 'Colombia', dialCode: '+57', flagFile: 'assets/flags/co.svg' },
+        { name: 'Perú', dialCode: '+51', flagFile: 'assets/flags/pe.svg' },
+        { name: 'Chile', dialCode: '+56', flagFile: 'assets/flags/cl.svg' },
+        { name: 'Ecuador', dialCode: '+593', flagFile: 'assets/flags/ec.svg' },
+        { name: 'México', dialCode: '+52', flagFile: 'assets/flags/mx.svg' },
+        { name: 'España', dialCode: '+34', flagFile: 'assets/flags/es.svg' }
+    ];
     guardianSearch = '';
     teamAssignmentSearch = '';
     selectedGuardianId = '';
@@ -1897,6 +1941,7 @@ export class PlayerDetailPage implements OnDestroy {
             federationId: player.federationId ?? '',
             dominantFoot: player.dominantFoot ?? '',
             email: player.email ?? '',
+            countryCode: player.countryCode ?? '',
             phoneNumber: player.phoneNumber ?? '',
             categoryId: player.categoryId
         };
@@ -1940,7 +1985,7 @@ export class PlayerDetailPage implements OnDestroy {
     }
 
     private emptyForm(): PlayerForm {
-        return { documentType: '', firstName: '', lastName: '', birthDate: '', documentNumber: '', nationality: '', gender: '', federationId: '', dominantFoot: '', email: '', phoneNumber: '', categoryId: '' };
+        return { documentType: '', firstName: '', lastName: '', birthDate: '', documentNumber: '', nationality: '', gender: '', federationId: '', dominantFoot: '', email: '', countryCode: '', phoneNumber: '', categoryId: '' };
     }
 
     private emptyGuardianForm(): GuardianForm {
@@ -1964,7 +2009,7 @@ export class PlayerDetailPage implements OnDestroy {
     }
 
     private isFormValid() {
-        return ['documentType', 'firstName', 'lastName', 'birthDate', 'documentNumber', 'categoryId', 'email', 'phoneNumber'].every((field) => this.isFieldValid(field as keyof PlayerForm));
+        return ['documentType', 'firstName', 'lastName', 'birthDate', 'documentNumber', 'categoryId', 'email', 'countryCode', 'phoneNumber'].every((field) => this.isFieldValid(field as keyof PlayerForm));
     }
 
     private isFieldValid(field: keyof PlayerForm) {
@@ -1981,7 +2026,9 @@ export class PlayerDetailPage implements OnDestroy {
             case 'email':
                 return !this.form.email.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email.trim());
             case 'phoneNumber':
-                return !this.form.phoneNumber.trim() || this.isValidPhoneNumber(this.form.phoneNumber);
+                return (!this.form.phoneNumber.trim() && !this.form.countryCode.trim()) || (!!this.form.phoneNumber.trim() && this.isValidPhoneNumber(this.form.countryCode, this.form.phoneNumber));
+            case 'countryCode':
+                return (!this.form.countryCode.trim() && !this.form.phoneNumber.trim()) || (!!this.form.countryCode.trim() && this.isValidPhoneNumber(this.form.countryCode, this.form.phoneNumber));
             case 'categoryId':
                 return !!this.form.categoryId;
             default:
@@ -2057,9 +2104,18 @@ export class PlayerDetailPage implements OnDestroy {
         return value.replace(/[^a-zA-Z0-9@._%+\-]/g, '').replace(/\s+/g, '');
     }
 
-    private isValidPhoneNumber(phoneNumber: string) {
+    private isValidPhoneNumber(countryCode: string, phoneNumber: string) {
         const digits = phoneNumber.replace(/\D/g, '');
-        return /^\+?[\d\s()+-]+$/.test(phoneNumber) && digits.length >= 7;
+        switch (countryCode) {
+            case '+51':
+                return /^9\d{8}$/.test(digits);
+            case '+57':
+                return /^3\d{9}$/.test(digits);
+            case '+56':
+                return /^[2-9]\d{8}$/.test(digits);
+            default:
+                return digits.length >= 7;
+        }
     }
 
     private isAllowedEditingKey(event: KeyboardEvent) {
@@ -2078,6 +2134,14 @@ export class PlayerDetailPage implements OnDestroy {
 
     getDocumentLabel(player: Player) {
         return `${this.getDocumentTypeLabel(player.documentType)} · ${player.documentNumber}`;
+    }
+
+    getPhoneLabel(player: Player) {
+        if (player.phoneNumber) {
+            return player.countryCode ? `${player.countryCode} ${player.phoneNumber}` : player.phoneNumber;
+        }
+
+        return player.countryCode ? `${player.countryCode} · No configurado` : 'No configurado';
     }
 
     formatDateTime(value: string) {
