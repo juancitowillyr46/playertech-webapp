@@ -303,13 +303,10 @@ type StepKey = 1 | 2 | 3;
                                             }
                                         </div>
 
-                                        <div class="col-span-12 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-surface-800 dark:bg-surface-950">
+                                        <div class="col-span-12 mt-4 flex items-start gap-3 px-1 py-0.5">
                                             <p-checkbox [(ngModel)]="accepted" inputId="terms" name="terms" binary></p-checkbox>
                                             <label for="terms" class="text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                                Acepto los
-                                                <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openTerms($event)">términos y condiciones</a>
-                                                y
-                                                <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openDataProcessing($event)">tratamiento de datos personales</a>
+                                                Acepto los <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openTerms($event)">términos y condiciones</a> y el <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openDataProcessing($event)">tratamiento de datos personales</a>.
                                             </label>
                                         </div>
                                         @if (showError('terms')) {
@@ -318,11 +315,10 @@ type StepKey = 1 | 2 | 3;
                                             </div>
                                         }
 
-                                        <div class="col-span-12 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-surface-800 dark:bg-surface-950">
+                                        <div class="col-span-12 flex items-start gap-3 px-1 py-0.5">
                                             <p-checkbox [(ngModel)]="acceptedDataProcessing" inputId="dataProcessing" name="dataProcessing" binary></p-checkbox>
                                             <label for="dataProcessing" class="text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                                Acepto el
-                                                <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openDataProcessing($event)">tratamiento de mis datos personales</a>
+                                                Acepto el <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openDataProcessing($event)">tratamiento de mis datos personales</a>.
                                             </label>
                                         </div>
                                         @if (showError('dataProcessing')) {
@@ -343,7 +339,7 @@ type StepKey = 1 | 2 | 3;
                                         <p-button label="Continuar" styleClass="w-full sm:w-auto" type="button" (onClick)="nextStep()" />
                                     }
                                     @if (currentStep === 3) {
-                                        <p-button label="Crear academia" styleClass="w-full sm:w-auto" type="submit" />
+                                        <p-button [label]="loading ? 'Enviando...' : 'Crear academia'" styleClass="w-full sm:w-auto" type="submit" [disabled]="loading" />
                                     }
                                 </div>
 
@@ -354,6 +350,18 @@ type StepKey = 1 | 2 | 3;
                                     </p>
                                 </div>
                             </div>
+
+                            @if (loading) {
+                                <div class="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm leading-6 text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/30 dark:text-sky-100">
+                                    Estamos enviando tu solicitud. Esto puede tardar unos segundos.
+                                </div>
+                            }
+
+                            @if (submissionTimedOut) {
+                                <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
+                                    La solicitud está tardando más de lo esperado. Revisa tu conexión e inténtalo nuevamente si no recibes respuesta.
+                                </div>
+                            }
                         </form>
                     </div>
                 </div>
@@ -429,10 +437,12 @@ export class Signup {
     acceptedDataProcessing = false;
     submitted = false;
     loading = false;
+    submissionTimedOut = false;
     showTermsDialog = false;
     showDataProcessingDialog = false;
     apiMessage: { severity: 'success' | 'info' | 'warn' | 'error'; text: string } | null = null;
     stepNavigationMessage: string | null = null;
+    private submissionTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
     stepSubmitted: Record<StepKey, boolean> = {
         1: false,
         2: false,
@@ -565,6 +575,13 @@ export class Signup {
         }
 
         this.loading = true;
+        this.submissionTimedOut = false;
+        this.clearSubmissionTimeout();
+        this.submissionTimeoutHandle = globalThis.setTimeout(() => {
+            if (this.loading) {
+                this.submissionTimedOut = true;
+            }
+        }, 60000);
 
         try {
             const result = await firstValueFrom(this.auth.signupTenant(this.buildSignupPayload()));
@@ -583,6 +600,7 @@ export class Signup {
             };
         } finally {
             this.loading = false;
+            this.clearSubmissionTimeout();
         }
     }
 
@@ -708,6 +726,13 @@ export class Signup {
         }
 
         return 'Completa la contraseña y acepta los términos para continuar.';
+    }
+
+    private clearSubmissionTimeout() {
+        if (this.submissionTimeoutHandle !== null) {
+            globalThis.clearTimeout(this.submissionTimeoutHandle);
+            this.submissionTimeoutHandle = null;
+        }
     }
 
     private isFormValid(): boolean {
