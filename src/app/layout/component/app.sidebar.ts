@@ -339,14 +339,14 @@ export class AppSidebar implements OnInit, OnDestroy {
 
     readonly userEmail = computed(() => this.profileService.currentProfile().email);
 
-    readonly userPlan = computed(() => this.profileService.currentProfile().roleLabel);
+    readonly userPlan = computed(() => this.profileService.currentProfile().primaryRoleLabel);
 
     readonly userInitials = computed(() =>
         this.userName()
             .split(' ')
             .filter(Boolean)
             .slice(0, 2)
-            .map((part) => part.charAt(0).toUpperCase())
+            .map((part: string) => part.charAt(0).toUpperCase())
             .join('')
     );
 

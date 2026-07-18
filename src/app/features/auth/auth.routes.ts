@@ -4,7 +4,9 @@ import { guestGuard } from '../../core/guards/guest.guard';
 export default [
     { path: 'forgot-password', loadComponent: () => import('./pages/forgot-password').then((m) => m.ForgotPassword) },
     { path: 'forgot-password-success', loadComponent: () => import('./pages/forgot-password-success').then((m) => m.ForgotPasswordSuccess) },
+    { path: 'activate/:token', loadComponent: () => import('./pages/activate').then((m) => m.ActivateUser) },
     { path: 'reset-password', loadComponent: () => import('./pages/reset-password').then((m) => m.ResetPassword) },
+    { path: 'reset-password/:token', loadComponent: () => import('./pages/reset-password').then((m) => m.ResetPassword) },
     {
         path: '',
         canActivate: [guestGuard],

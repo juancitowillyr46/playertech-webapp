@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
@@ -9,6 +10,7 @@ import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
 import { Router } from '@angular/router';
 import { AuthAccessService } from '../data-access/auth-access.service';
+import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
 
 @Component({
     selector: 'app-login',
@@ -92,6 +94,8 @@ export class Login {
 
     submitted = false;
 
+    loading = false;
+
     constructor(private router: Router, private auth: AuthAccessService) {}
 
     handleEmailKeydown(event: KeyboardEvent) {
@@ -129,8 +133,9 @@ export class Login {
         return this.submitted && !this.isFieldValid(field);
     }
 
-    submit() {
+    async submit() {
         this.submitted = true;
+        this.apiMessage = null;
 
         if (!this.isFieldValid('email') || !this.isFieldValid('password')) {
             this.apiMessage = {
@@ -140,12 +145,29 @@ export class Login {
             return;
         }
 
-        this.apiMessage = {
-            severity: 'success',
-            text: 'Los datos son válidos. Aquí luego mostraremos la respuesta del backend.'
-        };
-        this.auth.login('tenant_owner');
-        void this.router.navigate(['/']);
+        this.loading = true;
+
+        try {
+            const user = await firstValueFrom(this.auth.login({
+                email: this.email.trim(),
+                password: this.password
+            }));
+
+            const destination = this.auth.getHomeRoute();
+            this.apiMessage = {
+                severity: 'success',
+                text: `Sesión iniciada para ${user.fullName}.`
+            };
+            void this.router.navigateByUrl(destination);
+        } catch (error) {
+            const authError = error as AuthErrorLike | undefined;
+            this.apiMessage = {
+                severity: 'error',
+                text: this.getLoginErrorMessage(authError)
+            };
+        } finally {
+            this.loading = false;
+        }
     }
 
     private isFieldValid(field: string): boolean {
@@ -157,5 +179,17 @@ export class Login {
             default:
                 return true;
         }
+    }
+
+    private getLoginErrorMessage(error?: AuthErrorLike): string {
+        if (error?.status === 401) {
+            return 'Las credenciales no son válidas.';
+        }
+
+        if (error?.status === 423) {
+            return 'Tu cuenta está bloqueada o pendiente de activación.';
+        }
+
+        return 'No fue posible iniciar sesión. Intenta nuevamente.';
     }
 }

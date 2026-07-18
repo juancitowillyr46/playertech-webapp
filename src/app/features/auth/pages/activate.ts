@@ -10,7 +10,7 @@ import { AuthAccessService } from '../data-access/auth-access.service';
 import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
 
 @Component({
-    selector: 'app-reset-password',
+    selector: 'app-activate',
     standalone: true,
     imports: [ButtonModule, CommonModule, FormsModule, MessageModule, PasswordModule, RouterModule],
     template: `
@@ -19,9 +19,9 @@ import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
                 <div class="w-full min-w-0 max-w-xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_28px_90px_-28px_rgba(15,23,42,0.24)] dark:border-surface-800 dark:bg-surface-900">
                     <div class="min-w-0 px-5 py-6 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
                         <div class="mb-6 text-center sm:mb-7">
-                            <p class="hidden text-sm font-medium uppercase tracking-[0.24em] text-sky-700 dark:text-sky-400 sm:block">Nueva contraseña</p>
-                            <h1 class="mt-1 text-[clamp(1.55rem,6vw,1.9rem)] font-semibold tracking-tight text-surface-900 dark:text-surface-0">Restablecer contraseña</h1>
-                            <p class="mx-auto mt-2 max-w-[24rem] text-sm leading-6 text-slate-600 dark:text-slate-300 sm:max-w-xl">Define una nueva contraseña para volver a ingresar con seguridad.</p>
+                            <p class="hidden text-sm font-medium uppercase tracking-[0.24em] text-sky-700 dark:text-sky-400 sm:block">Activación de usuario</p>
+                            <h1 class="mt-1 text-[clamp(1.55rem,6vw,1.9rem)] font-semibold tracking-tight text-surface-900 dark:text-surface-0">Definir contraseña</h1>
+                            <p class="mx-auto mt-2 max-w-[24rem] text-sm leading-6 text-slate-600 dark:text-slate-300 sm:max-w-xl">Crea tu contraseña inicial para completar la activación de la cuenta.</p>
                         </div>
 
                         @if (apiMessage) {
@@ -32,17 +32,8 @@ import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
 
                         <div class="space-y-5 sm:space-y-6">
                             <div class="flex flex-col gap-2">
-                                <label for="password" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nueva contraseña</label>
-                                <p-password
-                                    inputId="password"
-                                    [(ngModel)]="password"
-                                    name="password"
-                                    placeholder="Ingresa tu nueva contraseña"
-                                    styleClass="w-full"
-                                    inputStyleClass="w-full"
-                                    [toggleMask]="true"
-                                    [feedback]="false"
-                                />
+                                <label for="password" class="text-sm font-medium text-surface-700 dark:text-surface-200">Contraseña</label>
+                                <p-password inputId="password" [(ngModel)]="password" name="password" placeholder="Ingresa una contraseña" styleClass="w-full" inputStyleClass="w-full" [toggleMask]="true" [feedback]="false" />
                                 @if (showPasswordError()) {
                                     <p-message severity="error" size="small">La contraseña debe tener al menos 8 caracteres.</p-message>
                                 }
@@ -50,16 +41,7 @@ import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
 
                             <div class="flex flex-col gap-2">
                                 <label for="passwordConfirmation" class="text-sm font-medium text-surface-700 dark:text-surface-200">Confirmar contraseña</label>
-                                <p-password
-                                    inputId="passwordConfirmation"
-                                    [(ngModel)]="passwordConfirmation"
-                                    name="passwordConfirmation"
-                                    placeholder="Repite la nueva contraseña"
-                                    styleClass="w-full"
-                                    inputStyleClass="w-full"
-                                    [toggleMask]="true"
-                                    [feedback]="false"
-                                />
+                                <p-password inputId="passwordConfirmation" [(ngModel)]="passwordConfirmation" name="passwordConfirmation" placeholder="Repite la contraseña" styleClass="w-full" inputStyleClass="w-full" [toggleMask]="true" [feedback]="false" />
                                 @if (showPasswordConfirmationError()) {
                                     <p-message severity="error" size="small">Debes confirmar la contraseña.</p-message>
                                 }
@@ -69,7 +51,7 @@ import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
                             </div>
 
                             <div class="pt-1">
-                                <p-button label="Guardar nueva contraseña" styleClass="w-full" type="button" (onClick)="submit()" />
+                                <p-button label="Activar cuenta" styleClass="w-full" type="button" (onClick)="submit()" />
                             </div>
                         </div>
 
@@ -82,12 +64,11 @@ import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
         </div>
     `
 })
-export class ResetPassword {
+export class ActivateUser {
     password = '';
     passwordConfirmation = '';
     token = '';
     submitted = false;
-
     apiMessage: { severity: 'success' | 'info' | 'warn' | 'error'; text: string } | null = null;
 
     constructor(
@@ -96,7 +77,6 @@ export class ResetPassword {
         private readonly auth: AuthAccessService
     ) {
         this.token = this.route.snapshot.paramMap.get('token') ?? this.route.snapshot.queryParamMap.get('token') ?? '';
-
         if (!this.token) {
             this.apiMessage = {
                 severity: 'error',
@@ -120,14 +100,14 @@ export class ResetPassword {
         if (this.showPasswordError() || this.showPasswordConfirmationError() || this.showPasswordMismatchError()) {
             this.apiMessage = {
                 severity: 'error',
-                text: 'Revisa la nueva contraseña antes de continuar.'
+                text: 'Revisa la contraseña antes de continuar.'
             };
             return;
         }
 
         try {
             await firstValueFrom(
-                this.auth.confirmPasswordReset(this.token, {
+                this.auth.activateUser(this.token, {
                     password: this.password,
                     passwordConfirmation: this.passwordConfirmation
                 })
@@ -135,7 +115,7 @@ export class ResetPassword {
 
             this.apiMessage = {
                 severity: 'success',
-                text: 'Tu contraseña fue actualizada. Ahora puedes ingresar con la nueva clave.'
+                text: 'Tu cuenta fue activada. Ahora puedes iniciar sesión.'
             };
 
             setTimeout(() => {
@@ -166,6 +146,6 @@ export class ResetPassword {
             return 'El enlace ya no es válido o expiró. Solicita uno nuevo.';
         }
 
-        return 'No fue posible actualizar la contraseña. Intenta nuevamente.';
+        return 'No fue posible activar la cuenta. Intenta nuevamente.';
     }
 }

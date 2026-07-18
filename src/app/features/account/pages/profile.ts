@@ -1,12 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
-import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
 import { ProfileService } from '../data-access/profile.service';
@@ -15,7 +14,7 @@ import { UserProfile } from '../models/profile.model';
 @Component({
     selector: 'app-profile',
     standalone: true,
-    imports: [ButtonModule, CommonModule, FormsModule, InputTextModule, MessageModule, PageHeader, RouterModule, SelectModule, ToastModule],
+    imports: [ButtonModule, CommonModule, FormsModule, InputTextModule, MessageModule, PageHeader, RouterModule, ToastModule],
     providers: [MessageService],
     template: `
         <p-toast />
@@ -46,13 +45,23 @@ import { UserProfile } from '../models/profile.model';
                             </div>
 
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="roles" class="text-sm font-medium text-surface-700 dark:text-surface-200">Roles</label>
-                                <p-select id="roles" [options]="roleOptions" optionLabel="label" optionValue="value" [ngModel]="profile.roles[0]" name="roles" class="w-full" [disabled]="true" />
+                                <label for="primaryRole" class="text-sm font-medium text-surface-700 dark:text-surface-200">Rol principal</label>
+                                <input pInputText id="primaryRole" type="text" [ngModel]="profile.primaryRoleLabel" name="primaryRole" class="w-full" [disabled]="true" />
                             </div>
 
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                 <label for="status" class="text-sm font-medium text-surface-700 dark:text-surface-200">Estado</label>
-                                <p-select id="status" [options]="statusOptions" optionLabel="label" optionValue="value" [ngModel]="profile.status" name="status" class="w-full" [disabled]="true" />
+                                <input pInputText id="status" type="text" [ngModel]="profile.statusLabel" name="status" class="w-full" [disabled]="true" />
+                            </div>
+
+                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                <label for="roles" class="text-sm font-medium text-surface-700 dark:text-surface-200">Roles asociados</label>
+                                <input pInputText id="roles" type="text" [ngModel]="profile.roles.join(', ')" name="roles" class="w-full" [disabled]="true" />
+                            </div>
+
+                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                <label for="context" class="text-sm font-medium text-surface-700 dark:text-surface-200">Contexto</label>
+                                <input pInputText id="context" type="text" [ngModel]="profile.contextLabel" name="context" class="w-full" [disabled]="true" />
                             </div>
                         </div>
 
@@ -78,12 +87,13 @@ import { UserProfile } from '../models/profile.model';
         </div>
     `
 })
-export class Profile {
+export class Profile implements OnInit {
     readonly breadcrumbs: PageHeaderBreadcrumb[] = [{ label: 'Inicio', routerLink: '/' }, { label: 'Mi cuenta' }, { label: 'Perfil' }];
 
     submitted = false;
-    profile: UserProfile;
+    profile!: UserProfile;
     editableFullName = '';
+    loading = false;
 
     constructor(
         private readonly profileService: ProfileService,
@@ -94,20 +104,25 @@ export class Profile {
         this.editableFullName = this.profile.fullName;
     }
 
-    get roleOptions() {
-        return this.profile.roles.map((role) => ({
-            label: this.getRoleDisplayName(role),
-            value: role
-        }));
-    }
-
-    get statusOptions() {
-        return [
-            {
-                label: this.profile.statusLabel,
-                value: this.profile.status
+    ngOnInit() {
+        this.loading = true;
+        this.profileService.loadCurrentProfile().subscribe({
+            next: (profile) => {
+                this.profile = profile;
+                this.editableFullName = profile.fullName;
+                this.loading = false;
+            },
+            error: () => {
+                this.profile = this.profileService.getCurrentProfile();
+                this.editableFullName = this.profile.fullName;
+                this.loading = false;
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No se pudo cargar el perfil',
+                    detail: 'Intenta volver a cargar la pantalla.'
+                });
             }
-        ];
+        });
     }
 
     saveProfile() {
@@ -121,14 +136,23 @@ export class Profile {
             return;
         }
 
-        this.profileService.updateCurrentProfileName(this.editableFullName);
-        this.profile = this.profileService.getCurrentProfile();
-        this.editableFullName = this.profile.fullName;
-
-        this.messageService.add({
-            severity: 'success',
-            summary: 'Perfil actualizado',
-            detail: 'Tu nombre fue actualizado correctamente.'
+        this.profileService.updateCurrentProfileName(this.editableFullName).subscribe({
+            next: (profile) => {
+                this.profile = profile;
+                this.editableFullName = profile.fullName;
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Perfil actualizado',
+                    detail: 'Tu nombre fue actualizado correctamente.'
+                });
+            },
+            error: () => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No se pudo actualizar',
+                    detail: 'Revisa tu conexión e inténtalo otra vez.'
+                });
+            }
         });
     }
 
@@ -184,18 +208,4 @@ export class Profile {
         return /^[\p{L}\p{N}][\p{L}\p{N}\s]*$/u.test(text);
     }
 
-    private getRoleDisplayName(role: string): string {
-        switch (role) {
-            case 'ROLE_ROOT':
-                return 'Root admin';
-            case 'ROLE_OWNER':
-                return 'Administrador';
-            case 'ROLE_ACADEMY_ADMIN':
-                return 'Administrador de academia';
-            case 'ROLE_STAFF':
-                return 'Staff';
-            default:
-                return role;
-        }
-    }
 }

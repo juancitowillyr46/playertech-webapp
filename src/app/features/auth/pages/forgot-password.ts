@@ -2,9 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
+import { AuthAccessService } from '../data-access/auth-access.service';
 
 @Component({
     selector: 'app-forgot-password',
@@ -69,7 +71,8 @@ export class ForgotPassword {
 
     constructor(
         private router: Router,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private readonly auth: AuthAccessService
     ) {
         this.email = this.route.snapshot.queryParamMap.get('email') ?? '';
     }
@@ -107,8 +110,9 @@ export class ForgotPassword {
         return this.submitted && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim());
     }
 
-    submit() {
+    async submit() {
         this.submitted = true;
+        this.apiMessage = null;
 
         if (this.showError()) {
             this.apiMessage = {
@@ -118,15 +122,28 @@ export class ForgotPassword {
             return;
         }
 
-        this.apiMessage = {
-            severity: 'success',
-            text: 'Si el correo existe, recibirás un enlace para restablecer tu contraseña.'
-        };
+        try {
+            await firstValueFrom(
+                this.auth.requestPasswordReset({
+                    email: this.email.trim()
+                })
+            );
 
-        void this.router.navigate(['/auth/forgot-password-success'], {
-            state: {
-                email: this.email
-            }
-        });
+            this.apiMessage = {
+                severity: 'success',
+                text: 'Si el correo existe, recibirás un enlace para restablecer tu contraseña.'
+            };
+
+            void this.router.navigate(['/auth/forgot-password-success'], {
+                state: {
+                    email: this.email
+                }
+            });
+        } catch {
+            this.apiMessage = {
+                severity: 'error',
+                text: 'No pudimos enviar la solicitud. Intenta de nuevo en unos minutos.'
+            };
+        }
     }
 }
