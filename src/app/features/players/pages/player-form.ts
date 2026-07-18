@@ -43,6 +43,14 @@ import { CategoryOption, PlayerForm, PlayerPhoto } from '../models/player.model'
                             </div>
 
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                <label for="documentType" class="text-sm font-medium text-surface-700 dark:text-surface-200">Tipo de documento <span class="text-rose-500">*</span></label>
+                                <p-select id="documentType" [(ngModel)]="form.documentType" [options]="documentTypeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un tipo" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                                @if (showError('documentType')) {
+                                    <p-message severity="error" size="small">Selecciona el tipo de documento.</p-message>
+                                }
+                            </div>
+
+                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                 <label for="firstName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombres <span class="text-rose-500">*</span></label>
                                 <input pInputText id="firstName" type="text" [(ngModel)]="form.firstName" placeholder="Ej. Juan" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onNameInput('firstName', $event)" />
                                 @if (showError('firstName')) {
@@ -72,6 +80,26 @@ import { CategoryOption, PlayerForm, PlayerPhoto } from '../models/player.model'
                                 @if (showError('documentNumber')) {
                                     <p-message severity="error" size="small">Ingresa el documento del jugador.</p-message>
                                 }
+                            </div>
+
+                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                <label for="nationality" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nacionalidad <span class="text-slate-400">(opcional)</span></label>
+                                <input pInputText id="nationality" type="text" [(ngModel)]="form.nationality" placeholder="Ej. Peruana" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onTextInput('nationality', $event)" />
+                            </div>
+
+                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                <label for="gender" class="text-sm font-medium text-surface-700 dark:text-surface-200">Género <span class="text-slate-400">(opcional)</span></label>
+                                <p-select id="gender" [(ngModel)]="form.gender" [options]="genderOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un género" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                            </div>
+
+                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                <label for="federationId" class="text-sm font-medium text-surface-700 dark:text-surface-200">ID federativo <span class="text-slate-400">(opcional)</span></label>
+                                <input pInputText id="federationId" type="text" [(ngModel)]="form.federationId" placeholder="Ej. F001" class="w-full" (input)="onTextInput('federationId', $event)" />
+                            </div>
+
+                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                <label for="dominantFoot" class="text-sm font-medium text-surface-700 dark:text-surface-200">Pie dominante <span class="text-slate-400">(opcional)</span></label>
+                                <p-select id="dominantFoot" [(ngModel)]="form.dominantFoot" [options]="dominantFootOptions" optionLabel="label" optionValue="value" placeholder="Selecciona una opción" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
                             </div>
 
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -133,6 +161,23 @@ export class PlayerFormPage {
     @ViewChild('playerPhotoCropper') playerPhotoCropper?: ImageCropperComponent;
 
     readonly breadcrumbs: PageHeaderBreadcrumb[] = [{ label: 'Inicio', routerLink: '/' }, { label: 'Jugadores', routerLink: '/players' }, { label: 'Nuevo jugador' }];
+    readonly documentTypeOptions = [
+        { label: 'DNI', value: 'DNI' },
+        { label: 'Cédula de extranjería', value: 'CE' },
+        { label: 'Tarjeta de identidad', value: 'TI' },
+        { label: 'Pasaporte', value: 'PASAPORTE' }
+    ];
+    readonly genderOptions = [
+        { label: 'Masculino', value: 'Masculino' },
+        { label: 'Femenino', value: 'Femenino' },
+        { label: 'Otro', value: 'Otro' },
+        { label: 'Prefiero no decir', value: 'Prefiero no decir' }
+    ];
+    readonly dominantFootOptions = [
+        { label: 'Derecho', value: 'Derecho' },
+        { label: 'Izquierdo', value: 'Izquierdo' },
+        { label: 'Ambidiestro', value: 'Ambidiestro' }
+    ];
 
     submitted = false;
     form: PlayerForm = this.emptyForm();
@@ -194,8 +239,14 @@ export class PlayerFormPage {
 
     onDocumentInput(event: Event) {
         const input = event.target as HTMLInputElement;
-        this.form.documentNumber = input.value.replace(/[^\d]/g, '');
+        this.form.documentNumber = input.value.replace(/[^\dA-Za-z-]/g, '');
         input.value = this.form.documentNumber;
+    }
+
+    onTextInput(field: 'nationality' | 'federationId', event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.form[field] = input.value.replace(/[^\p{L}\p{N}\s-]/gu, '');
+        input.value = this.form[field];
     }
 
     onPhotoSelected(event: Event) {
@@ -253,20 +304,27 @@ export class PlayerFormPage {
 
     private emptyForm(): PlayerForm {
         return {
+            documentType: '',
             firstName: '',
             lastName: '',
             birthDate: '',
             documentNumber: '',
+            nationality: '',
+            gender: '',
+            federationId: '',
+            dominantFoot: '',
             categoryId: ''
         };
     }
 
     private isFormValid() {
-        return ['firstName', 'lastName', 'birthDate', 'documentNumber', 'categoryId'].every((field) => this.isFieldValid(field as keyof PlayerForm));
+        return ['documentType', 'firstName', 'lastName', 'birthDate', 'documentNumber', 'categoryId'].every((field) => this.isFieldValid(field as keyof PlayerForm));
     }
 
     private isFieldValid(field: keyof PlayerForm) {
         switch (field) {
+            case 'documentType':
+                return !!this.form.documentType;
             case 'firstName':
             case 'lastName':
                 return this.hasValidText(this.form[field], 2);

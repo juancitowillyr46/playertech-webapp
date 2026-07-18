@@ -11,19 +11,29 @@ export interface Player {
     academyId: string;
     categoryId: string;
     categoryName: string;
+    documentType: string;
     firstName: string;
     lastName: string;
     birthDate: string;
     documentNumber: string;
+    nationality: string | null;
+    gender: string | null;
+    federationId: string | null;
+    dominantFoot: string | null;
     status: 'ACTIVE' | 'INACTIVE';
     photo: PlayerPhoto | null;
 }
 
 export interface PlayerForm {
+    documentType: string;
     firstName: string;
     lastName: string;
     birthDate: string;
     documentNumber: string;
+    nationality: string;
+    gender: string;
+    federationId: string;
+    dominantFoot: string;
     categoryId: string;
 }
 

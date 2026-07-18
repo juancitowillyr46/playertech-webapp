@@ -27,6 +27,7 @@ Documentación SDD relacionada:
 * [Guía de entrada para nuevas features](./07-sdd-feature-intake-playbook.md)
 * [Plantilla de nueva feature SDD](./08-new-feature-template.md)
 * [Checklist rápida de decisión](./09-feature-decision-checklist.md)
+* [Evolución del perfil base del jugador](./10-player-base-profile-evolution.md)
 
 ---
 

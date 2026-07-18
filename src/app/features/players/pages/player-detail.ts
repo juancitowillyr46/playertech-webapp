@@ -54,16 +54,6 @@ import { Subscription } from 'rxjs';
                 position: relative;
             }
 
-            .membership-history::before {
-                content: '';
-                position: absolute;
-                left: 1.05rem;
-                top: 1.25rem;
-                bottom: 1.25rem;
-                width: 1px;
-                background: rgb(226 232 240);
-            }
-
             .membership-history-item {
                 position: relative;
             }
@@ -71,6 +61,32 @@ import { Subscription } from 'rxjs';
             .membership-history-dot {
                 position: relative;
                 z-index: 1;
+            }
+
+            .membership-history-card {
+                border-left-width: 4px;
+                border-left-style: solid;
+                transition:
+                    transform 180ms ease,
+                    box-shadow 180ms ease,
+                    border-color 180ms ease;
+            }
+
+            .membership-history-card:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+            }
+
+            .membership-history-card-active {
+                border-left-color: rgb(34 197 94);
+            }
+
+            .membership-history-card-suspended {
+                border-left-color: rgb(245 158 11);
+            }
+
+            .membership-history-card-withdrawn {
+                border-left-color: rgb(239 68 68);
             }
 
             :host ::ng-deep .player-detail-tablist {
@@ -158,10 +174,34 @@ import { Subscription } from 'rxjs';
                                 <p-tabpanel value="information">
                                     <div class="space-y-4 p-3 sm:p-4">
                                         <div class="form-width-2col mx-auto space-y-4">
+                                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Identidad</p>
+                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ getDocumentLabel(player) }}</p>
+                                                </div>
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Nacionalidad</p>
+                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ player.nationality || 'No configurada' }}</p>
+                                                </div>
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Género / Pie</p>
+                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ player.gender || 'No configurado' }}</p>
+                                                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ player.dominantFoot || 'Pie dominante no definido' }}</p>
+                                                </div>
+                                            </div>
+
                                             <div class="grid grid-cols-12 gap-4">
                                                 <div class="col-span-12">
                                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información del jugador</p>
-                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Mantén actualizados los datos personales, la categoría y la foto del jugador.</p>
+                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Mantén actualizados los datos personales, el documento base, la categoría y la foto del jugador.</p>
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="documentType" class="text-sm font-medium text-surface-700 dark:text-surface-200">Tipo de documento <span class="text-rose-500">*</span></label>
+                                                    <p-select id="documentType" [(ngModel)]="form.documentType" [options]="documentTypeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un tipo" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                                                    @if (showError('documentType')) {
+                                                        <p-message severity="error" size="small">Selecciona el tipo de documento.</p-message>
+                                                    }
                                                 </div>
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -194,6 +234,26 @@ import { Subscription } from 'rxjs';
                                                     @if (showError('documentNumber')) {
                                                         <p-message severity="error" size="small">Ingresa el documento del jugador.</p-message>
                                                     }
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="nationality" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nacionalidad <span class="text-slate-400">(opcional)</span></label>
+                                                    <input pInputText id="nationality" type="text" [(ngModel)]="form.nationality" placeholder="Ej. Peruana" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onTextInput('nationality', $event)" />
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="gender" class="text-sm font-medium text-surface-700 dark:text-surface-200">Género <span class="text-slate-400">(opcional)</span></label>
+                                                    <p-select id="gender" [(ngModel)]="form.gender" [options]="genderOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un género" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="federationId" class="text-sm font-medium text-surface-700 dark:text-surface-200">ID federativo <span class="text-slate-400">(opcional)</span></label>
+                                                    <input pInputText id="federationId" type="text" [(ngModel)]="form.federationId" placeholder="Ej. F001" class="w-full" (input)="onTextInput('federationId', $event)" />
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="dominantFoot" class="text-sm font-medium text-surface-700 dark:text-surface-200">Pie dominante <span class="text-slate-400">(opcional)</span></label>
+                                                    <p-select id="dominantFoot" [(ngModel)]="form.dominantFoot" [options]="dominantFootOptions" optionLabel="label" optionValue="value" placeholder="Selecciona una opción" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
                                                 </div>
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -622,26 +682,31 @@ import { Subscription } from 'rxjs';
                                                 @if (membershipHistory.length) {
                                                     <div class="membership-history px-3 py-2 sm:px-4">
                                                         @for (item of membershipHistory; track item.id) {
-                                                            <div class="membership-history-item flex gap-3 py-4 first:pt-3 last:pb-3">
+                                                            <div class="membership-history-item flex gap-3 py-3 first:pt-3 last:pb-3">
                                                                 <div class="flex shrink-0 pt-1">
-                                                                    <span class="membership-history-dot flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm dark:border-surface-700 dark:bg-surface-900">
-                                                                        <i class="pi" [class.pi-check-circle]="item.status === 'ACTIVE'" [class.pi-pause-circle]="item.status === 'SUSPENDED'" [class.pi-times-circle]="item.status === 'WITHDRAWN'"></i>
+                                                                    <span class="membership-history-dot flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm dark:border-surface-700 dark:bg-surface-900">
+                                                                        <i class="pi text-base" [class.pi-check-circle]="item.status === 'ACTIVE'" [class.pi-pause-circle]="item.status === 'SUSPENDED'" [class.pi-times-circle]="item.status === 'WITHDRAWN'"></i>
                                                                     </span>
                                                                 </div>
 
-                                                                <div class="min-w-0 flex-1 rounded-[0.75rem] border border-slate-200 bg-slate-50 px-3 py-3 dark:border-surface-700 dark:bg-surface-900/60 sm:px-4">
+                                                                <div
+                                                                    class="membership-history-card min-w-0 flex-1 rounded-[0.85rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900 sm:px-4"
+                                                                    [class.membership-history-card-active]="item.status === 'ACTIVE'"
+                                                                    [class.membership-history-card-suspended]="item.status === 'SUSPENDED'"
+                                                                    [class.membership-history-card-withdrawn]="item.status === 'WITHDRAWN'"
+                                                                >
                                                                     <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                                                                        <div class="space-y-1">
+                                                                        <div class="min-w-0 space-y-2">
                                                                             <div class="flex flex-wrap items-center gap-2">
-                                                                                <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ membershipEventTitle(item.status) }}</p>
+                                                                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">{{ membershipEventTitle(item.status) }}</p>
                                                                                 <p-tag [value]="membershipStatusLabel(item.status)" [severity]="membershipStatusSeverity(item.status)" />
                                                                             </div>
-                                                                            <p class="m-0 text-sm text-slate-500 dark:text-slate-400">Acudiente principal: {{ guardianNameById(item.primaryGuardianId) }}</p>
+                                                                            <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Acudiente principal: <span class="font-medium text-surface-700 dark:text-surface-200">{{ guardianNameById(item.primaryGuardianId) }}</span></p>
                                                                         </div>
 
-                                                                        <div class="space-y-1 text-sm text-slate-500 dark:text-slate-400 md:text-right">
-                                                                            <p class="m-0">Inicio: {{ formatDateTime(item.startedAt) }}</p>
-                                                                            <p class="m-0">Fin: {{ item.endedAt ? formatDateTime(item.endedAt) : 'Vigente' }}</p>
+                                                                        <div class="flex flex-col gap-1 text-sm text-slate-500 dark:text-slate-400 md:items-end md:text-right">
+                                                                            <p class="m-0">Inicio: <span class="font-medium text-surface-700 dark:text-surface-200">{{ formatDateTime(item.startedAt) }}</span></p>
+                                                                            <p class="m-0">Fin: <span class="font-medium text-surface-700 dark:text-surface-200">{{ item.endedAt ? formatDateTime(item.endedAt) : 'Vigente' }}</span></p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1058,10 +1123,22 @@ export class PlayerDetailPage implements OnDestroy {
         { label: 'Otro', value: 'Otro' }
     ];
     readonly documentTypeOptions = [
+        { label: 'DNI', value: 'DNI' },
         { label: 'Cédula de ciudadanía', value: 'CC' },
         { label: 'Tarjeta de identidad', value: 'TI' },
         { label: 'Cédula de extranjería', value: 'CE' },
         { label: 'Pasaporte', value: 'PASAPORTE' }
+    ];
+    readonly genderOptions = [
+        { label: 'Masculino', value: 'Masculino' },
+        { label: 'Femenino', value: 'Femenino' },
+        { label: 'Otro', value: 'Otro' },
+        { label: 'Prefiero no decir', value: 'Prefiero no decir' }
+    ];
+    readonly dominantFootOptions = [
+        { label: 'Derecho', value: 'Derecho' },
+        { label: 'Izquierdo', value: 'Izquierdo' },
+        { label: 'Ambidiestro', value: 'Ambidiestro' }
     ];
     guardianSearch = '';
     teamAssignmentSearch = '';
@@ -1560,6 +1637,7 @@ export class PlayerDetailPage implements OnDestroy {
 
     getDocumentTypeLabel(value: string) {
         const labels: Record<string, string> = {
+            DNI: 'DNI',
             CC: 'CC',
             TI: 'TI',
             CE: 'CE',
@@ -1638,8 +1716,14 @@ export class PlayerDetailPage implements OnDestroy {
 
     onDocumentInput(event: Event) {
         const input = event.target as HTMLInputElement;
-        this.form.documentNumber = input.value.replace(/[^\d]/g, '');
+        this.form.documentNumber = input.value.replace(/[^\dA-Za-z-]/g, '');
         input.value = this.form.documentNumber;
+    }
+
+    onTextInput(field: 'nationality' | 'federationId', event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.form[field] = input.value.replace(/[^\p{L}\p{N}\s-]/gu, '');
+        input.value = this.form[field];
     }
 
     onGuardianNameInput(field: 'firstName' | 'lastName', event: Event) {
@@ -1747,10 +1831,15 @@ export class PlayerDetailPage implements OnDestroy {
 
         this.breadcrumbs = [{ label: 'Inicio', routerLink: '/' }, { label: 'Jugadores', routerLink: '/players' }, { label: `${player.firstName} ${player.lastName}`.trim() }];
         this.form = {
+            documentType: player.documentType,
             firstName: player.firstName,
             lastName: player.lastName,
             birthDate: player.birthDate,
             documentNumber: player.documentNumber,
+            nationality: player.nationality ?? '',
+            gender: player.gender ?? '',
+            federationId: player.federationId ?? '',
+            dominantFoot: player.dominantFoot ?? '',
             categoryId: player.categoryId
         };
         this.photoPreviewUrl = player.photo?.url ?? null;
@@ -1793,7 +1882,7 @@ export class PlayerDetailPage implements OnDestroy {
     }
 
     private emptyForm(): PlayerForm {
-        return { firstName: '', lastName: '', birthDate: '', documentNumber: '', categoryId: '' };
+        return { documentType: '', firstName: '', lastName: '', birthDate: '', documentNumber: '', nationality: '', gender: '', federationId: '', dominantFoot: '', categoryId: '' };
     }
 
     private emptyGuardianForm(): GuardianForm {
@@ -1817,11 +1906,13 @@ export class PlayerDetailPage implements OnDestroy {
     }
 
     private isFormValid() {
-        return ['firstName', 'lastName', 'birthDate', 'documentNumber', 'categoryId'].every((field) => this.isFieldValid(field as keyof PlayerForm));
+        return ['documentType', 'firstName', 'lastName', 'birthDate', 'documentNumber', 'categoryId'].every((field) => this.isFieldValid(field as keyof PlayerForm));
     }
 
     private isFieldValid(field: keyof PlayerForm) {
         switch (field) {
+            case 'documentType':
+                return !!this.form.documentType;
             case 'firstName':
             case 'lastName':
                 return this.hasValidText(this.form[field], 2);
@@ -1912,6 +2003,10 @@ export class PlayerDetailPage implements OnDestroy {
             size: blob.size,
             checksum: `mock:${Date.now()}`
         };
+    }
+
+    getDocumentLabel(player: Player) {
+        return `${this.getDocumentTypeLabel(player.documentType)} · ${player.documentNumber}`;
     }
 
     formatDateTime(value: string) {

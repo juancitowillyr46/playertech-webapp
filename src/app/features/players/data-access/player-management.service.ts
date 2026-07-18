@@ -30,10 +30,15 @@ export class PlayerManagementService {
             academyId: this.academyId,
             categoryId: 'category-sub-12',
             categoryName: 'Sub 12',
+            documentType: 'DNI',
             firstName: 'Juan',
             lastName: 'Pérez',
             birthDate: '2013-05-12',
             documentNumber: '12345678',
+            nationality: 'Peruana',
+            gender: 'Masculino',
+            federationId: 'F001',
+            dominantFoot: 'Derecho',
             status: 'ACTIVE',
             photo: null
         },
@@ -42,10 +47,15 @@ export class PlayerManagementService {
             academyId: this.academyId,
             categoryId: 'category-sub-14',
             categoryName: 'Sub 14',
+            documentType: 'DNI',
             firstName: 'Mateo',
             lastName: 'García',
             birthDate: '2011-09-02',
             documentNumber: '10456789',
+            nationality: 'Peruana',
+            gender: 'Masculino',
+            federationId: 'F002',
+            dominantFoot: 'Izquierdo',
             status: 'ACTIVE',
             photo: null
         },
@@ -54,10 +64,15 @@ export class PlayerManagementService {
             academyId: this.academyId,
             categoryId: 'category-sub-10',
             categoryName: 'Sub 10',
+            documentType: 'DNI',
             firstName: 'Sofía',
             lastName: 'López',
             birthDate: '2015-01-18',
             documentNumber: '11987654',
+            nationality: 'Colombiana',
+            gender: 'Femenino',
+            federationId: 'F003',
+            dominantFoot: 'Derecho',
             status: 'INACTIVE',
             photo: null
         }
@@ -341,10 +356,15 @@ export class PlayerManagementService {
             academyId: this.academyId,
             categoryId: payload.categoryId,
             categoryName: category?.name ?? 'Sin categoría',
+            documentType: payload.documentType,
             firstName: payload.firstName.trim(),
             lastName: payload.lastName.trim(),
             birthDate: payload.birthDate,
             documentNumber: payload.documentNumber.trim(),
+            nationality: this.normalizeOptionalText(payload.nationality),
+            gender: this.normalizeOptionalText(payload.gender),
+            federationId: this.normalizeOptionalText(payload.federationId),
+            dominantFoot: this.normalizeOptionalText(payload.dominantFoot),
             status: 'ACTIVE',
             photo
         };
@@ -364,10 +384,15 @@ export class PlayerManagementService {
 
             updated = {
                 ...player,
+                documentType: payload.documentType,
                 firstName: payload.firstName.trim(),
                 lastName: payload.lastName.trim(),
                 birthDate: payload.birthDate,
                 documentNumber: payload.documentNumber.trim(),
+                nationality: this.normalizeOptionalText(payload.nationality),
+                gender: this.normalizeOptionalText(payload.gender),
+                federationId: this.normalizeOptionalText(payload.federationId),
+                dominantFoot: this.normalizeOptionalText(payload.dominantFoot),
                 categoryId: payload.categoryId,
                 categoryName: category?.name ?? player.categoryName,
                 photo
@@ -399,6 +424,11 @@ export class PlayerManagementService {
 
     listCategories(): CategoryOption[] {
         return this.categories.map((item) => ({ ...item }));
+    }
+
+    private normalizeOptionalText(value: string) {
+        const trimmed = value.trim();
+        return trimmed.length ? trimmed : null;
     }
 
     listGuardians(): Guardian[] {

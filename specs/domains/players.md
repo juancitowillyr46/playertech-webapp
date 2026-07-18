@@ -15,6 +15,7 @@ Incluye:
 * activación y desactivación;
 * foto;
 * preparación para matrícula, acudientes y equipos.
+* evolución del perfil base del jugador con `documentType`, `documentNumber`, `nationality`, `gender`, `federationId` y `dominantFoot`.
 
 ## Fuente de verdad actual
 
@@ -67,9 +68,11 @@ Incluye:
 
 ## Formularios y validaciones visibles
 
+* tipo de documento requerido;
 * nombre y apellido requeridos;
 * fecha de nacimiento requerida;
 * documento requerido;
+* nacionalidad, género, federación e pie dominante opcionales por ahora;
 * categoría obligatoria;
 * foto opcional;
 * no duplicar asignación activa al mismo equipo;
@@ -85,7 +88,6 @@ Incluye:
 
 ## Vacíos a resolver
 
-* contrato de creación y edición;
 * reglas oficiales de foto;
 * importación masiva;
 * estados de error por relación con acudientes y equipos.

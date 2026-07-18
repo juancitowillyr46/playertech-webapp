@@ -36,6 +36,7 @@ Convertir la gestión de jugadores en flujos concretos con criterios verificable
 ### Criterios de aceptación
 
 * Dado un usuario autorizado, cuando abre el formulario, entonces ve campos esenciales para registrar un jugador.
+* Dado el contrato actual del backend, cuando abre el formulario, entonces ve el tipo de documento y los campos base del perfil ampliado.
 * Dado un formulario incompleto, cuando intenta guardar, entonces el sistema bloquea el envío y muestra errores.
 * Dado un formulario válido, cuando guarda, entonces el jugador se crea y queda disponible en el listado.
 
@@ -48,6 +49,7 @@ Convertir la gestión de jugadores en flujos concretos con criterios verificable
 ### Criterios de aceptación
 
 * Dado un usuario autorizado, cuando abre el detalle, entonces ve datos esenciales del jugador antes que elementos secundarios.
+* Dado un jugador consultado, cuando se muestra su ficha, entonces el documento y los atributos base del perfil deben quedar visibles sin abrir otros módulos.
 * Dado un usuario autorizado, cuando edita datos del jugador, entonces el cambio debe ser visible en la misma vista después de guardar.
 
 ## Toggle player status
@@ -95,4 +97,3 @@ Convertir la gestión de jugadores en flujos concretos con criterios verificable
 
 * [src/app/features/players/data-access/player-management.service.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\players\data-access\player-management.service.ts)
 * [docs/backlog/frontend/EF-006-player-management.md](C:\Data\Source\Repos\playertech-webapp\docs\backlog\frontend\EF-006-player-management.md)
-
