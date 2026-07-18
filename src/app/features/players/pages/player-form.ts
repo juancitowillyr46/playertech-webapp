@@ -19,12 +19,6 @@ interface CountryOption {
     flagFile: string;
 }
 
-interface CountryOption {
-    name: string;
-    dialCode: string;
-    flagFile: string;
-}
-
 @Component({
     selector: 'app-player-form-page',
     standalone: true,
@@ -55,45 +49,45 @@ interface CountryOption {
                             </div>
 
                             <div class="grid grid-cols-12 gap-4">
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="documentType" class="text-sm font-medium text-surface-700 dark:text-surface-200">Tipo de documento <span class="text-rose-500">*</span></label>
-                                <p-select id="documentType" [(ngModel)]="form.documentType" [options]="documentTypeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un tipo" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
-                                @if (showError('documentType')) {
-                                    <p-message severity="error" size="small">Selecciona el tipo de documento.</p-message>
-                                }
-                            </div>
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="documentType" class="text-sm font-medium text-surface-700 dark:text-surface-200">Tipo de documento <span class="text-rose-500">*</span></label>
+                                    <p-select id="documentType" [(ngModel)]="form.documentType" [options]="documentTypeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un tipo" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                                    @if (showError('documentType')) {
+                                        <p-message severity="error" size="small">Selecciona el tipo de documento.</p-message>
+                                    }
+                                </div>
 
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="firstName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombres <span class="text-rose-500">*</span></label>
-                                <input pInputText id="firstName" type="text" [(ngModel)]="form.firstName" placeholder="Ej. Juan" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onNameInput('firstName', $event)" />
-                                @if (showError('firstName')) {
-                                    <p-message severity="error" size="small">Ingresa los nombres del jugador.</p-message>
-                                }
-                            </div>
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="documentNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Número de documento <span class="text-rose-500">*</span></label>
+                                    <input pInputText id="documentNumber" type="text" [(ngModel)]="form.documentNumber" placeholder="Ej. 12345678" class="w-full" (input)="onDocumentInput($event)" />
+                                    @if (showError('documentNumber')) {
+                                        <p-message severity="error" size="small">Ingresa el documento del jugador.</p-message>
+                                    }
+                                </div>
 
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="lastName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Apellidos <span class="text-rose-500">*</span></label>
-                                <input pInputText id="lastName" type="text" [(ngModel)]="form.lastName" placeholder="Ej. Pérez" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onNameInput('lastName', $event)" />
-                                @if (showError('lastName')) {
-                                    <p-message severity="error" size="small">Ingresa los apellidos del jugador.</p-message>
-                                }
-                            </div>
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="firstName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombres <span class="text-rose-500">*</span></label>
+                                    <input pInputText id="firstName" type="text" [(ngModel)]="form.firstName" placeholder="Ej. Juan" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onNameInput('firstName', $event)" />
+                                    @if (showError('firstName')) {
+                                        <p-message severity="error" size="small">Ingresa los nombres del jugador.</p-message>
+                                    }
+                                </div>
 
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="birthDate" class="text-sm font-medium text-surface-700 dark:text-surface-200">Fecha de nacimiento <span class="text-rose-500">*</span></label>
-                                <input pInputText id="birthDate" type="date" [(ngModel)]="form.birthDate" class="w-full" />
-                                @if (showError('birthDate')) {
-                                    <p-message severity="error" size="small">Selecciona la fecha de nacimiento.</p-message>
-                                }
-                            </div>
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="lastName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Apellidos <span class="text-rose-500">*</span></label>
+                                    <input pInputText id="lastName" type="text" [(ngModel)]="form.lastName" placeholder="Ej. Pérez" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onNameInput('lastName', $event)" />
+                                    @if (showError('lastName')) {
+                                        <p-message severity="error" size="small">Ingresa los apellidos del jugador.</p-message>
+                                    }
+                                </div>
 
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="documentNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Documento <span class="text-rose-500">*</span></label>
-                                <input pInputText id="documentNumber" type="text" [(ngModel)]="form.documentNumber" placeholder="Ej. 12345678" class="w-full" (input)="onDocumentInput($event)" />
-                                @if (showError('documentNumber')) {
-                                    <p-message severity="error" size="small">Ingresa el documento del jugador.</p-message>
-                                }
-                            </div>
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="birthDate" class="text-sm font-medium text-surface-700 dark:text-surface-200">Fecha de nacimiento <span class="text-rose-500">*</span></label>
+                                    <input pInputText id="birthDate" type="date" [(ngModel)]="form.birthDate" class="w-full" />
+                                    @if (showError('birthDate')) {
+                                        <p-message severity="error" size="small">Selecciona la fecha de nacimiento.</p-message>
+                                    }
+                                </div>
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="nationality" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nacionalidad <span class="text-slate-400">(opcional)</span></label>
@@ -116,33 +110,10 @@ interface CountryOption {
                                     </p-select>
                                 </div>
 
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="gender" class="text-sm font-medium text-surface-700 dark:text-surface-200">Género <span class="text-slate-400">(opcional)</span></label>
-                                <p-select id="gender" [(ngModel)]="form.gender" [options]="genderOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un género" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
-                            </div>
-
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="federationId" class="text-sm font-medium text-surface-700 dark:text-surface-200">ID federativo <span class="text-slate-400">(opcional)</span></label>
-                                <input pInputText id="federationId" type="text" [(ngModel)]="form.federationId" placeholder="Ej. F001" class="w-full" (input)="onTextInput('federationId', $event)" />
-                            </div>
-
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="dominantFoot" class="text-sm font-medium text-surface-700 dark:text-surface-200">Pie dominante <span class="text-slate-400">(opcional)</span></label>
-                                <p-select id="dominantFoot" [(ngModel)]="form.dominantFoot" [options]="dominantFootOptions" optionLabel="label" optionValue="value" placeholder="Selecciona una opción" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
-                            </div>
-
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo <span class="text-slate-400">(opcional)</span></label>
-                                    <input pInputText id="email" type="text" [(ngModel)]="form.email" placeholder="Ej. jugador@correo.com" class="w-full" (keydown)="onEmailKeydown($event)" (paste)="onEmailPaste($event)" (input)="onEmailInput($event)" />
-                                    @if (showError('email')) {
-                                        <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
-                                    }
+                                    <label for="gender" class="text-sm font-medium text-surface-700 dark:text-surface-200">Género <span class="text-slate-400">(opcional)</span></label>
+                                    <p-select id="gender" [(ngModel)]="form.gender" [options]="genderOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un género" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
                                 </div>
-                            </div>
-
-                            <div class="rounded-[0.75rem] border border-slate-200 bg-slate-50 p-3 dark:border-surface-700 dark:bg-surface-900/60 sm:p-4">
-                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Contacto y perfil</p>
-                                <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Agrupa aquí la información opcional y complementaria para mantener limpio el bloque de identidad.</p>
                             </div>
 
                             <div class="grid grid-cols-12 gap-4">
@@ -186,13 +157,26 @@ interface CountryOption {
                                 </div>
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="gender" class="text-sm font-medium text-surface-700 dark:text-surface-200">Género <span class="text-slate-400">(opcional)</span></label>
-                                    <p-select id="gender" [(ngModel)]="form.gender" [options]="genderOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un género" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                                    <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo <span class="text-slate-400">(opcional)</span></label>
+                                    <input pInputText id="email" type="text" [(ngModel)]="form.email" placeholder="Ej. jugador@correo.com" class="w-full" (keydown)="onEmailKeydown($event)" (paste)="onEmailPaste($event)" (input)="onEmailInput($event)" />
+                                    @if (showError('email')) {
+                                        <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
+                                    }
                                 </div>
+                            </div>
 
-                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="federationId" class="text-sm font-medium text-surface-700 dark:text-surface-200">ID federativo <span class="text-slate-400">(opcional)</span></label>
-                                    <input pInputText id="federationId" type="text" [(ngModel)]="form.federationId" placeholder="Ej. F001" class="w-full" (input)="onTextInput('federationId', $event)" />
+                            <div class="rounded-[0.75rem] border border-slate-200 bg-slate-50 p-3 dark:border-surface-700 dark:bg-surface-900/60 sm:p-4">
+                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Detalle del jugador</p>
+                                <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Completa la categoría y los datos deportivos que aún no forman parte de la identidad base.</p>
+                            </div>
+
+                            <div class="grid grid-cols-12 gap-4">
+                                <div class="col-span-12 flex flex-col gap-2">
+                                    <label for="categoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categoría <span class="text-rose-500">*</span></label>
+                                    <p-select id="categoryId" [(ngModel)]="form.categoryId" [options]="categories" optionLabel="name" optionValue="id" placeholder="Selecciona una categoría" class="w-full" />
+                                    @if (showError('categoryId')) {
+                                        <p-message severity="error" size="small">Selecciona la categoría del jugador.</p-message>
+                                    }
                                 </div>
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -201,11 +185,8 @@ interface CountryOption {
                                 </div>
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="categoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categoría <span class="text-rose-500">*</span></label>
-                                    <p-select id="categoryId" [(ngModel)]="form.categoryId" [options]="categories" optionLabel="name" optionValue="id" placeholder="Selecciona una categoría" class="w-full" />
-                                    @if (showError('categoryId')) {
-                                        <p-message severity="error" size="small">Selecciona la categoría del jugador.</p-message>
-                                    }
+                                    <label for="federationId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Liga <span class="text-slate-400">(opcional)</span></label>
+                                    <input pInputText id="federationId" type="text" [(ngModel)]="form.federationId" placeholder="Ej. F001" class="w-full" (input)="onTextInput('federationId', $event)" />
                                 </div>
                             </div>
 

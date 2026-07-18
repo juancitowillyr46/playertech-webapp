@@ -209,8 +209,8 @@ interface CountryOption {
 
                                             <div class="grid grid-cols-12 gap-4">
                                                 <div class="col-span-12">
-                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información del jugador</p>
-                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Mantén actualizados los datos personales, el documento base, la categoría y la foto del jugador.</p>
+                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información básica</p>
+                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Mantén actualizados los datos personales principales del jugador.</p>
                                                 </div>
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -218,6 +218,14 @@ interface CountryOption {
                                                     <p-select id="documentType" [(ngModel)]="form.documentType" [options]="documentTypeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un tipo" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
                                                     @if (showError('documentType')) {
                                                         <p-message severity="error" size="small">Selecciona el tipo de documento.</p-message>
+                                                    }
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="documentNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Número de documento <span class="text-rose-500">*</span></label>
+                                                    <input pInputText id="documentNumber" type="text" [(ngModel)]="form.documentNumber" placeholder="Ej. 12345678" class="w-full" (input)="onDocumentInput($event)" />
+                                                    @if (showError('documentNumber')) {
+                                                        <p-message severity="error" size="small">Ingresa el documento del jugador.</p-message>
                                                     }
                                                 </div>
 
@@ -246,14 +254,6 @@ interface CountryOption {
                                                 </div>
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="documentNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Documento <span class="text-rose-500">*</span></label>
-                                                    <input pInputText id="documentNumber" type="text" [(ngModel)]="form.documentNumber" placeholder="Ej. 12345678" class="w-full" (input)="onDocumentInput($event)" />
-                                                    @if (showError('documentNumber')) {
-                                                        <p-message severity="error" size="small">Ingresa el documento del jugador.</p-message>
-                                                    }
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                                     <label for="nationality" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nacionalidad <span class="text-slate-400">(opcional)</span></label>
                                                     <p-select id="nationality" [(ngModel)]="form.nationality" [options]="countryOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name,dialCode" placeholder="Selecciona un país" class="w-full" appendTo="body" [scrollHeight]="'16rem'">
                                                         <ng-template #selectedItem let-option>
@@ -278,25 +278,14 @@ interface CountryOption {
                                                     <label for="gender" class="text-sm font-medium text-surface-700 dark:text-surface-200">Género <span class="text-slate-400">(opcional)</span></label>
                                                     <p-select id="gender" [(ngModel)]="form.gender" [options]="genderOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un género" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
                                                 </div>
+                                            </div>
 
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="federationId" class="text-sm font-medium text-surface-700 dark:text-surface-200">ID federativo <span class="text-slate-400">(opcional)</span></label>
-                                                    <input pInputText id="federationId" type="text" [(ngModel)]="form.federationId" placeholder="Ej. F001" class="w-full" (input)="onTextInput('federationId', $event)" />
-                                                </div>
+                                            <div class="rounded-[0.75rem] border border-slate-200 bg-slate-50 p-3 dark:border-surface-700 dark:bg-surface-900/60 sm:p-4">
+                                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información de contacto</p>
+                                                <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Agrupa el canal de contacto directo del jugador.</p>
+                                            </div>
 
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="dominantFoot" class="text-sm font-medium text-surface-700 dark:text-surface-200">Pie dominante <span class="text-slate-400">(opcional)</span></label>
-                                                    <p-select id="dominantFoot" [(ngModel)]="form.dominantFoot" [options]="dominantFootOptions" optionLabel="label" optionValue="value" placeholder="Selecciona una opción" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo <span class="text-slate-400">(opcional)</span></label>
-                                                    <input pInputText id="email" type="text" [(ngModel)]="form.email" placeholder="Ej. jugador@correo.com" class="w-full" (keydown)="onPlayerEmailKeydown($event)" (paste)="onPlayerEmailPaste($event)" (input)="onPlayerEmailInput($event)" />
-                                                    @if (showError('email')) {
-                                                        <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
-                                                    }
-                                                </div>
-
+                                            <div class="grid grid-cols-12 gap-4">
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                                     <label for="phoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Celular <span class="text-slate-400">(opcional)</span></label>
                                                     <div class="grid grid-cols-12 gap-3">
@@ -319,11 +308,36 @@ interface CountryOption {
                                                 </div>
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo <span class="text-slate-400">(opcional)</span></label>
+                                                    <input pInputText id="email" type="text" [(ngModel)]="form.email" placeholder="Ej. jugador@correo.com" class="w-full" (keydown)="onPlayerEmailKeydown($event)" (paste)="onPlayerEmailPaste($event)" (input)="onPlayerEmailInput($event)" />
+                                                    @if (showError('email')) {
+                                                        <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            <div class="rounded-[0.75rem] border border-slate-200 bg-slate-50 p-3 dark:border-surface-700 dark:bg-surface-900/60 sm:p-4">
+                                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Detalle del jugador</p>
+                                                <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Completa la categoría y los datos deportivos que aún no forman parte de la identidad base.</p>
+                                            </div>
+
+                                            <div class="grid grid-cols-12 gap-4">
+                                                <div class="col-span-12 flex flex-col gap-2">
                                                     <label for="categoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categoría <span class="text-rose-500">*</span></label>
                                                     <p-select id="categoryId" [(ngModel)]="form.categoryId" [options]="categories" optionLabel="name" optionValue="id" placeholder="Selecciona una categoría" class="w-full" />
                                                     @if (showError('categoryId')) {
                                                         <p-message severity="error" size="small">Selecciona la categoría del jugador.</p-message>
                                                     }
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="dominantFoot" class="text-sm font-medium text-surface-700 dark:text-surface-200">Pie dominante <span class="text-slate-400">(opcional)</span></label>
+                                                    <p-select id="dominantFoot" [(ngModel)]="form.dominantFoot" [options]="dominantFootOptions" optionLabel="label" optionValue="value" placeholder="Selecciona una opción" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="federationId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Liga <span class="text-slate-400">(opcional)</span></label>
+                                                    <input pInputText id="federationId" type="text" [(ngModel)]="form.federationId" placeholder="Ej. F001" class="w-full" (input)="onTextInput('federationId', $event)" />
                                                 </div>
                                             </div>
 
