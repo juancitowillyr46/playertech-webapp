@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -13,7 +13,7 @@ import { SelectModule } from 'primeng/select';
 import { TabsModule } from 'primeng/tabs';
 import { AuthAccessService } from '../data-access/auth-access.service';
 import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
-import { TenantSignupSummary } from '@/app/core/auth/auth.models';
+import { PublicCategory, TenantSignupSummary } from '@/app/core/auth/auth.models';
 
 type CountryOption = {
     name: string;
@@ -136,10 +136,35 @@ type StepKey = 1 | 2 | 3;
                                         </div>
 
                                         <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                            <label for="categoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categoría del equipo</label>
-                                            <p-select id="categoryId" [(ngModel)]="form.categoryId" name="categoryId" [options]="categories" optionLabel="name" optionValue="id" placeholder="Seleccionar categoría" class="w-full" appendTo="body" [scrollHeight]="'16rem'"></p-select>
-                                            @if (showError('categoryId')) {
-                                                <p-message severity="error" size="small">Selecciona la categoría del equipo.</p-message>
+                                            <label for="onboardingCategoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categorías</label>
+                                            <p-select
+                                                id="onboardingCategoryId"
+                                                [(ngModel)]="form.onboardingCategoryId"
+                                                name="onboardingCategoryId"
+                                                [options]="publicCategories"
+                                                optionLabel="name"
+                                                optionValue="id"
+                                                placeholder="Seleccionar categoría"
+                                                class="w-full"
+                                                appendTo="body"
+                                                [scrollHeight]="'16rem'"
+                                                [loading]="categoriesLoading"
+                                                [disabled]="categoriesLoading || categoriesError || categoriesEmpty">
+                                                <ng-template #item let-option>
+                                                    <div class="flex flex-col gap-1">
+                                                        <span class="font-medium text-surface-900 dark:text-surface-0">{{ categoryDisplayLabel(option) }}</span>
+                                                        <span class="text-xs leading-5 text-slate-500 dark:text-slate-400">{{ option.description }}</span>
+                                                    </div>
+                                                </ng-template>
+                                            </p-select>
+                                            @if (categoriesLoading) {
+                                                <p-message severity="info" size="small">Cargando categorías...</p-message>
+                                            } @else if (categoriesEmpty) {
+                                                <p-message severity="warn" size="small">No hay categorías disponibles.</p-message>
+                                            } @else if (categoriesError) {
+                                                <p-message severity="error" size="small">No fue posible cargar las categorías. Intenta nuevamente.</p-message>
+                                            } @if (showError('onboardingCategoryId')) {
+                                                <p-message severity="error" size="small">Selecciona una plantilla de onboarding.</p-message>
                                             }
                                         </div>
 
@@ -409,7 +434,7 @@ type StepKey = 1 | 2 | 3;
         </p-dialog>
     `
 })
-export class Signup {
+export class Signup implements OnInit {
     currentStep: StepKey = 1;
 
     steps = [
@@ -428,7 +453,7 @@ export class Signup {
         department: '',
         address: '',
         city: '',
-        categoryId: '',
+        onboardingCategoryId: '',
         teamName: ''
     };
 
@@ -438,6 +463,9 @@ export class Signup {
     submitted = false;
     loading = false;
     submissionTimedOut = false;
+    categoriesLoading = true;
+    categoriesError = false;
+    categoriesEmpty = false;
     showTermsDialog = false;
     showDataProcessingDialog = false;
     apiMessage: { severity: 'success' | 'info' | 'warn' | 'error'; text: string } | null = null;
@@ -449,25 +477,7 @@ export class Signup {
         3: false
     };
 
-    categories = [
-        { id: 'cat-sub-4', name: 'SUB 4 (3-4 años)' },
-        { id: 'cat-sub-5', name: 'SUB 5 (4-5 años)' },
-        { id: 'cat-sub-6', name: 'SUB 6 (5-6 años)' },
-        { id: 'cat-sub-7', name: 'SUB 7 (6-7 años)' },
-        { id: 'cat-sub-8', name: 'SUB 8 (7-8 años)' },
-        { id: 'cat-sub-9', name: 'SUB 9 (8-9 años)' },
-        { id: 'cat-sub-10', name: 'SUB 10 (9-10 años)' },
-        { id: 'cat-sub-11', name: 'SUB 11 (10-11 años)' },
-        { id: 'cat-sub-12', name: 'SUB 12 (11-12 años)' },
-        { id: 'cat-sub-13', name: 'SUB 13 (12-13 años)' },
-        { id: 'cat-sub-14', name: 'SUB 14 (13-14 años)' },
-        { id: 'cat-sub-15', name: 'SUB 15 (14-15 años)' },
-        { id: 'cat-sub-16', name: 'SUB 16 (15-16 años)' },
-        { id: 'cat-sub-17', name: 'SUB 17 (16-17 años)' },
-        { id: 'cat-sub-18', name: 'SUB 18 (17-18 años)' },
-        { id: 'cat-sub-19', name: 'SUB 19 (18-19 años)' },
-        { id: 'cat-sub-20', name: 'SUB 20 (19-20 años)' }
-    ];
+    publicCategories: PublicCategory[] = [];
 
     countryCodes: CountryOption[] = [
         { name: 'Colombia', dialCode: '+57', flag: 'Colombia', flagFile: 'assets/flags/co.svg' },
@@ -558,8 +568,13 @@ export class Signup {
 
     constructor(
         private router: Router,
+        private readonly cdr: ChangeDetectorRef,
         private readonly auth: AuthAccessService
     ) {}
+
+    ngOnInit(): void {
+        void this.loadPublicCategories();
+    }
 
     async submit() {
         this.stepSubmitted[this.currentStep] = true;
@@ -685,7 +700,7 @@ export class Signup {
     private touchStepFields(step: StepKey) {
         void step;
         const fieldsByStep: Record<StepKey, string[]> = {
-            1: ['name', 'categoryId', 'teamName'],
+            1: ['name', 'onboardingCategoryId', 'teamName'],
             2: ['contactName', 'contactEmail', 'countryCode', 'phoneNumber', 'department', 'address', 'city'],
             3: ['password', 'confirmPassword', 'terms', 'dataProcessing']
         };
@@ -693,7 +708,7 @@ export class Signup {
     }
 
     private getFieldStep(field: string): StepKey {
-        if (['name', 'categoryId', 'teamName'].includes(field)) {
+        if (['name', 'onboardingCategoryId', 'teamName'].includes(field)) {
             return 1;
         }
 
@@ -706,7 +721,7 @@ export class Signup {
 
     private isStepValid(step: StepKey): boolean {
         if (step === 1) {
-            return this.isFieldValid('name') && this.isFieldValid('categoryId') && this.isFieldValid('teamName');
+            return this.isFieldValid('name') && this.isFieldValid('onboardingCategoryId') && this.isFieldValid('teamName');
         }
 
         if (step === 2) {
@@ -763,8 +778,8 @@ export class Signup {
                 return this.form.countryCode === '+57' || this.form.address.trim().length >= 5;
             case 'city':
                 return this.form.countryCode === '+57' ? !!this.form.city.trim() : this.hasValidText(this.form.city, 2);
-            case 'categoryId':
-                return !!this.form.categoryId.trim();
+            case 'onboardingCategoryId':
+                return !!this.form.onboardingCategoryId.trim();
             case 'password':
                 return this.form.password.trim().length >= 8;
             case 'confirmPassword':
@@ -845,6 +860,37 @@ export class Signup {
         return department?.cities ?? [];
     }
 
+    categoryDisplayLabel(category?: Pick<PublicCategory, 'name' | 'minAge' | 'maxAge'> | null): string {
+        if (!category) {
+            return 'Seleccionar plantilla';
+        }
+
+        return `${category.name} (${category.minAge}-${category.maxAge} años)`;
+    }
+
+    private async loadPublicCategories(): Promise<void> {
+        this.categoriesLoading = true;
+        this.categoriesError = false;
+        this.categoriesEmpty = false;
+
+        this.auth.getPublicCategories().subscribe({
+            next: (categories) => {
+                this.publicCategories = categories;
+                this.categoriesEmpty = categories.length === 0;
+                this.categoriesError = false;
+                this.categoriesLoading = false;
+                this.cdr.detectChanges();
+            },
+            error: () => {
+                this.publicCategories = [];
+                this.categoriesEmpty = false;
+                this.categoriesError = true;
+                this.categoriesLoading = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
     private buildSignupPayload() {
         return {
             name: this.form.name,
@@ -856,7 +902,7 @@ export class Signup {
             department: this.form.department,
             address: this.form.address,
             city: this.form.city,
-            categoryId: this.form.categoryId,
+            onboardingCategoryId: this.form.onboardingCategoryId,
             teamName: this.form.teamName,
             acceptedTerms: this.accepted,
             acceptedDataProcessing: this.acceptedDataProcessing
