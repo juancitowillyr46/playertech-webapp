@@ -21,6 +21,7 @@ Incluye:
 * listado de jugadores;
 * detalle y resúmenes visibles del jugador;
 * ajuste de modelos y mocks de datos del dominio.
+* contacto opcional del jugador con email y celular.
 
 Excluye:
 
@@ -110,6 +111,8 @@ Antes de implementar, la feature debe tener:
 ## Dependencias
 
 * Depende de: contrato backend ya evolucionado para players
+* Referencia operativa adicional: `postman/PlayerTech.postman_collection.json`
+* Vacío conocido: la colección de `players` todavía muestra ejemplos viejos en create/update/show y debe sincronizarse con el contrato vigente antes de usarla como fuente primaria
 * Bloquea a: importación masiva y siguientes mejoras del perfil deportivo
 
 ## Estado de madurez
@@ -121,3 +124,4 @@ Antes de implementar, la feature debe tener:
 * `number` y `name` de camiseta quedan fuera del modelo base.
 * `position` sigue siendo una evolución deportiva posterior.
 * Si en una iteración futura el backend vuelve obligatorios `nationality`, `gender`, `federationId` o `dominantFoot`, la UI deberá subir su nivel de validación sin rehacer el dominio.
+* `email` y `phoneNumber` quedan como atributos opcionales del perfil base.

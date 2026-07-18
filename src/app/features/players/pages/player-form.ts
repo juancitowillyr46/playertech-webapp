@@ -103,6 +103,22 @@ import { CategoryOption, PlayerForm, PlayerPhoto } from '../models/player.model'
                             </div>
 
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo <span class="text-slate-400">(opcional)</span></label>
+                                <input pInputText id="email" type="text" [(ngModel)]="form.email" placeholder="Ej. jugador@correo.com" class="w-full" (keydown)="onEmailKeydown($event)" (paste)="onEmailPaste($event)" (input)="onEmailInput($event)" />
+                                @if (showError('email')) {
+                                    <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
+                                }
+                            </div>
+
+                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                <label for="phoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Celular <span class="text-slate-400">(opcional)</span></label>
+                                <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" placeholder="Ej. +51 987 654 321" class="w-full" (input)="onPhoneInput($event)" />
+                                @if (showError('phoneNumber')) {
+                                    <p-message severity="error" size="small">Ingresa un celular válido.</p-message>
+                                }
+                            </div>
+
+                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                 <label for="categoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categoría <span class="text-rose-500">*</span></label>
                                 <p-select id="categoryId" [(ngModel)]="form.categoryId" [options]="categories" optionLabel="name" optionValue="id" placeholder="Selecciona una categoría" class="w-full" />
                                 @if (showError('categoryId')) {
@@ -249,6 +265,35 @@ export class PlayerFormPage {
         input.value = this.form[field];
     }
 
+    onPhoneInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.form.phoneNumber = this.sanitizePhoneInput(input.value);
+        input.value = this.form.phoneNumber;
+    }
+
+    onEmailInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.form.email = this.sanitizeEmailInput(input.value);
+        input.value = this.form.email;
+    }
+
+    onEmailKeydown(event: KeyboardEvent) {
+        if (this.isAllowedEditingKey(event) || event.ctrlKey || event.metaKey || event.altKey) {
+            return;
+        }
+
+        if (!/^[a-zA-Z0-9@._%+\-]$/.test(event.key)) {
+            event.preventDefault();
+        }
+    }
+
+    onEmailPaste(event: ClipboardEvent) {
+        const pasted = event.clipboardData?.getData('text') ?? '';
+        if (pasted !== this.sanitizeEmailInput(pasted)) {
+            event.preventDefault();
+        }
+    }
+
     onPhotoSelected(event: Event) {
         const input = event.target as HTMLInputElement;
         const file = input.files?.[0];
@@ -313,12 +358,14 @@ export class PlayerFormPage {
             gender: '',
             federationId: '',
             dominantFoot: '',
+            email: '',
+            phoneNumber: '',
             categoryId: ''
         };
     }
 
     private isFormValid() {
-        return ['documentType', 'firstName', 'lastName', 'birthDate', 'documentNumber', 'categoryId'].every((field) => this.isFieldValid(field as keyof PlayerForm));
+        return ['documentType', 'firstName', 'lastName', 'birthDate', 'documentNumber', 'categoryId', 'email', 'phoneNumber'].every((field) => this.isFieldValid(field as keyof PlayerForm));
     }
 
     private isFieldValid(field: keyof PlayerForm) {
@@ -332,6 +379,10 @@ export class PlayerFormPage {
                 return !!this.form.birthDate;
             case 'documentNumber':
                 return this.form.documentNumber.trim().length >= 6;
+            case 'email':
+                return !this.form.email.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email.trim());
+            case 'phoneNumber':
+                return !this.form.phoneNumber.trim() || this.isValidPhoneNumber(this.form.phoneNumber);
             case 'categoryId':
                 return !!this.form.categoryId;
             default:
@@ -346,6 +397,19 @@ export class PlayerFormPage {
 
     private sanitizeNameInput(value: string) {
         return value.replace(/[^\p{L}\p{N}\s]/gu, '');
+    }
+
+    private sanitizePhoneInput(value: string) {
+        return value.replace(/[^\d\s()+-]/g, '');
+    }
+
+    private sanitizeEmailInput(value: string) {
+        return value.replace(/[^a-zA-Z0-9@._%+\-]/g, '').replace(/\s+/g, '');
+    }
+
+    private isValidPhoneNumber(phoneNumber: string) {
+        const digits = phoneNumber.replace(/\D/g, '');
+        return /^\+?[\d\s()+-]+$/.test(phoneNumber) && digits.length >= 7;
     }
 
     private isAllowedEditingKey(event: KeyboardEvent) {

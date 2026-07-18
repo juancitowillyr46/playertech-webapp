@@ -20,6 +20,8 @@ export interface Player {
     gender: string | null;
     federationId: string | null;
     dominantFoot: string | null;
+    email: string | null;
+    phoneNumber: string | null;
     status: 'ACTIVE' | 'INACTIVE';
     photo: PlayerPhoto | null;
 }
@@ -34,6 +36,8 @@ export interface PlayerForm {
     gender: string;
     federationId: string;
     dominantFoot: string;
+    email: string;
+    phoneNumber: string;
     categoryId: string;
 }
 

@@ -190,6 +190,17 @@ import { Subscription } from 'rxjs';
                                                 </div>
                                             </div>
 
+                                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Correo</p>
+                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0 break-all">{{ player.email || 'No configurado' }}</p>
+                                                </div>
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Celular</p>
+                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ player.phoneNumber || 'No configurado' }}</p>
+                                                </div>
+                                            </div>
+
                                             <div class="grid grid-cols-12 gap-4">
                                                 <div class="col-span-12">
                                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información del jugador</p>
@@ -254,6 +265,22 @@ import { Subscription } from 'rxjs';
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                                     <label for="dominantFoot" class="text-sm font-medium text-surface-700 dark:text-surface-200">Pie dominante <span class="text-slate-400">(opcional)</span></label>
                                                     <p-select id="dominantFoot" [(ngModel)]="form.dominantFoot" [options]="dominantFootOptions" optionLabel="label" optionValue="value" placeholder="Selecciona una opción" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo <span class="text-slate-400">(opcional)</span></label>
+                                                    <input pInputText id="email" type="text" [(ngModel)]="form.email" placeholder="Ej. jugador@correo.com" class="w-full" (keydown)="onPlayerEmailKeydown($event)" (paste)="onPlayerEmailPaste($event)" (input)="onPlayerEmailInput($event)" />
+                                                    @if (showError('email')) {
+                                                        <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
+                                                    }
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="phoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Celular <span class="text-slate-400">(opcional)</span></label>
+                                                    <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" placeholder="Ej. +51 987 654 321" class="w-full" (input)="onPhoneInput($event)" />
+                                                    @if (showError('phoneNumber')) {
+                                                        <p-message severity="error" size="small">Ingresa un celular válido.</p-message>
+                                                    }
                                                 </div>
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -1726,6 +1753,35 @@ export class PlayerDetailPage implements OnDestroy {
         input.value = this.form[field];
     }
 
+    onPhoneInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.form.phoneNumber = this.sanitizePhoneInput(input.value);
+        input.value = this.form.phoneNumber;
+    }
+
+    onPlayerEmailInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.form.email = this.sanitizeEmailInput(input.value);
+        input.value = this.form.email;
+    }
+
+    onPlayerEmailKeydown(event: KeyboardEvent) {
+        if (this.isAllowedEditingKey(event) || event.ctrlKey || event.metaKey || event.altKey) {
+            return;
+        }
+
+        if (!/^[a-zA-Z0-9@._%+\-]$/.test(event.key)) {
+            event.preventDefault();
+        }
+    }
+
+    onPlayerEmailPaste(event: ClipboardEvent) {
+        const pasted = event.clipboardData?.getData('text') ?? '';
+        if (pasted !== this.sanitizeEmailInput(pasted)) {
+            event.preventDefault();
+        }
+    }
+
     onGuardianNameInput(field: 'firstName' | 'lastName', event: Event) {
         const input = event.target as HTMLInputElement;
         this.guardianForm[field] = this.sanitizeNameInput(input.value);
@@ -1840,6 +1896,8 @@ export class PlayerDetailPage implements OnDestroy {
             gender: player.gender ?? '',
             federationId: player.federationId ?? '',
             dominantFoot: player.dominantFoot ?? '',
+            email: player.email ?? '',
+            phoneNumber: player.phoneNumber ?? '',
             categoryId: player.categoryId
         };
         this.photoPreviewUrl = player.photo?.url ?? null;
@@ -1882,7 +1940,7 @@ export class PlayerDetailPage implements OnDestroy {
     }
 
     private emptyForm(): PlayerForm {
-        return { documentType: '', firstName: '', lastName: '', birthDate: '', documentNumber: '', nationality: '', gender: '', federationId: '', dominantFoot: '', categoryId: '' };
+        return { documentType: '', firstName: '', lastName: '', birthDate: '', documentNumber: '', nationality: '', gender: '', federationId: '', dominantFoot: '', email: '', phoneNumber: '', categoryId: '' };
     }
 
     private emptyGuardianForm(): GuardianForm {
@@ -1906,7 +1964,7 @@ export class PlayerDetailPage implements OnDestroy {
     }
 
     private isFormValid() {
-        return ['documentType', 'firstName', 'lastName', 'birthDate', 'documentNumber', 'categoryId'].every((field) => this.isFieldValid(field as keyof PlayerForm));
+        return ['documentType', 'firstName', 'lastName', 'birthDate', 'documentNumber', 'categoryId', 'email', 'phoneNumber'].every((field) => this.isFieldValid(field as keyof PlayerForm));
     }
 
     private isFieldValid(field: keyof PlayerForm) {
@@ -1920,6 +1978,10 @@ export class PlayerDetailPage implements OnDestroy {
                 return !!this.form.birthDate;
             case 'documentNumber':
                 return this.form.documentNumber.trim().length >= 6;
+            case 'email':
+                return !this.form.email.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email.trim());
+            case 'phoneNumber':
+                return !this.form.phoneNumber.trim() || this.isValidPhoneNumber(this.form.phoneNumber);
             case 'categoryId':
                 return !!this.form.categoryId;
             default:
@@ -1987,8 +2049,17 @@ export class PlayerDetailPage implements OnDestroy {
         return value.replace(/[^\p{L}\p{N}\s]/gu, '');
     }
 
+    private sanitizePhoneInput(value: string) {
+        return value.replace(/[^\d\s()+-]/g, '');
+    }
+
     private sanitizeEmailInput(value: string) {
         return value.replace(/[^a-zA-Z0-9@._%+\-]/g, '').replace(/\s+/g, '');
+    }
+
+    private isValidPhoneNumber(phoneNumber: string) {
+        const digits = phoneNumber.replace(/\D/g, '');
+        return /^\+?[\d\s()+-]+$/.test(phoneNumber) && digits.length >= 7;
     }
 
     private isAllowedEditingKey(event: KeyboardEvent) {

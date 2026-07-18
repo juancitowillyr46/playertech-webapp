@@ -39,6 +39,8 @@ export class PlayerManagementService {
             gender: 'Masculino',
             federationId: 'F001',
             dominantFoot: 'Derecho',
+            email: 'juan.perez@example.com',
+            phoneNumber: '+51 987 654 321',
             status: 'ACTIVE',
             photo: null
         },
@@ -56,6 +58,8 @@ export class PlayerManagementService {
             gender: 'Masculino',
             federationId: 'F002',
             dominantFoot: 'Izquierdo',
+            email: 'mateo.garcia@example.com',
+            phoneNumber: '+51 912 345 678',
             status: 'ACTIVE',
             photo: null
         },
@@ -73,6 +77,8 @@ export class PlayerManagementService {
             gender: 'Femenino',
             federationId: 'F003',
             dominantFoot: 'Derecho',
+            email: 'sofia.lopez@example.com',
+            phoneNumber: '+57 301 555 8899',
             status: 'INACTIVE',
             photo: null
         }
@@ -365,6 +371,8 @@ export class PlayerManagementService {
             gender: this.normalizeOptionalText(payload.gender),
             federationId: this.normalizeOptionalText(payload.federationId),
             dominantFoot: this.normalizeOptionalText(payload.dominantFoot),
+            email: this.normalizeOptionalText(payload.email?.toLowerCase() ?? ''),
+            phoneNumber: this.normalizeOptionalText(payload.phoneNumber),
             status: 'ACTIVE',
             photo
         };
@@ -393,6 +401,8 @@ export class PlayerManagementService {
                 gender: this.normalizeOptionalText(payload.gender),
                 federationId: this.normalizeOptionalText(payload.federationId),
                 dominantFoot: this.normalizeOptionalText(payload.dominantFoot),
+                email: this.normalizeOptionalText(payload.email?.toLowerCase() ?? ''),
+                phoneNumber: this.normalizeOptionalText(payload.phoneNumber),
                 categoryId: payload.categoryId,
                 categoryName: category?.name ?? player.categoryName,
                 photo

@@ -16,6 +16,7 @@ Incluye:
 * foto;
 * preparación para matrícula, acudientes y equipos.
 * evolución del perfil base del jugador con `documentType`, `documentNumber`, `nationality`, `gender`, `federationId` y `dominantFoot`.
+* contacto opcional del jugador con `email` y `phoneNumber`.
 
 ## Fuente de verdad actual
 
@@ -27,6 +28,7 @@ Incluye:
 * [docs/backlog/frontend/EF-007-guardian-management.md](C:\Data\Source\Repos\playertech-webapp\docs\backlog\frontend\EF-007-guardian-management.md)
 * [docs/backlog/frontend/EF-008-team-management.md](C:\Data\Source\Repos\playertech-webapp\docs\backlog\frontend\EF-008-team-management.md)
 * [docs/backlog/frontend/EF-009-membership-management.md](C:\Data\Source\Repos\playertech-webapp\docs\backlog\frontend\EF-009-membership-management.md)
+* [postman/PlayerTech.postman_collection.json](C:\Data\Source\Repos\playertech\postman\PlayerTech.postman_collection.json) como referencia operativa, con la salvedad de que los ejemplos de `players` aún están desactualizados respecto al contrato nuevo
 
 ## Flujos
 
@@ -73,6 +75,7 @@ Incluye:
 * fecha de nacimiento requerida;
 * documento requerido;
 * nacionalidad, género, federación e pie dominante opcionales por ahora;
+* email y número de celular opcionales por ahora;
 * categoría obligatoria;
 * foto opcional;
 * no duplicar asignación activa al mismo equipo;
@@ -91,6 +94,8 @@ Incluye:
 * reglas oficiales de foto;
 * importación masiva;
 * estados de error por relación con acudientes y equipos.
+* sincronizar la colección de Postman de `players` con los campos base nuevos del jugador.
+* definir el catálogo formal de nacionalidades si el select queda cerrado.
 
 ## Trazabilidad inicial
 
