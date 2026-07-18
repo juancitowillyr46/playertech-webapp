@@ -280,9 +280,11 @@ interface CountryOption {
                                                 </div>
                                             </div>
 
-                                            <div class="space-y-1">
-                                                <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Información de contacto</p>
-                                                <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Agrupa el canal de contacto directo del jugador.</p>
+                                            <div class="border-t border-slate-200 pt-6 dark:border-surface-700">
+                                                <div class="space-y-1">
+                                                    <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Información de contacto</p>
+                                                    <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Agrupa el canal de contacto directo del jugador.</p>
+                                                </div>
                                             </div>
 
                                             <div class="grid grid-cols-12 gap-4">
@@ -300,8 +302,8 @@ interface CountryOption {
                                                                 appendTo="body"
                                                                 [scrollHeight]="'16rem'"
                                                             />
-                                                        <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" placeholder="Ej. 987 654 321" class="col-span-12 sm:col-span-8 w-full" (input)="onPhoneInput($event)" />
-                                                    </div>
+                                                            <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" placeholder="Ej. 987 654 321" class="col-span-12 sm:col-span-8 w-full" (input)="onPhoneInput($event)" />
+                                                        </div>
                                                     @if (showError('countryCode') || showError('phoneNumber')) {
                                                         <p-message severity="error" size="small">Ingresa un celular válido.</p-message>
                                                     }
@@ -316,9 +318,11 @@ interface CountryOption {
                                                 </div>
                                             </div>
 
-                                            <div class="space-y-1">
-                                                <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Detalle del jugador</p>
-                                                <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Agrega la categoría y los datos deportivos complementarios.</p>
+                                            <div class="border-t border-slate-200 pt-6 dark:border-surface-700">
+                                                <div class="space-y-1">
+                                                    <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Detalle del jugador</p>
+                                                    <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Agrega la categoría y los datos deportivos complementarios.</p>
+                                                </div>
                                             </div>
 
                                             <div class="grid grid-cols-12 gap-4">
