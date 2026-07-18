@@ -38,3 +38,62 @@ export interface ApiEnvelope<T> {
     meta?: unknown;
     message?: string;
 }
+
+export interface TenantSignupRequest {
+    name: string;
+    contactEmail: string;
+    contactName: string;
+    password: string;
+    phone: string;
+    country: string;
+    department: string;
+    address: string;
+    city: string;
+    categoryId: string;
+    teamName: string;
+    acceptedTerms: boolean;
+    acceptedDataProcessing: boolean;
+}
+
+export interface TenantSignupAcademy {
+    id?: string;
+    name?: string;
+    contactEmail?: string;
+    contactName?: string;
+    phone?: string;
+    country?: string;
+    department?: string;
+    address?: string;
+    city?: string;
+    categoryId?: string;
+    status?: string;
+}
+
+export interface TenantSignupAdmin {
+    id?: string;
+    fullName?: string;
+    email?: string;
+    role?: string;
+    status?: string;
+}
+
+export interface TenantSignupTeam {
+    id?: string;
+    name?: string;
+    categoryId?: string;
+    status?: string;
+}
+
+export interface TenantSignupResponse {
+    academy?: TenantSignupAcademy;
+    admin?: TenantSignupAdmin;
+    team?: TenantSignupTeam;
+    activationRequired?: boolean;
+    activationEmailSent?: boolean;
+    message?: string;
+}
+
+export interface TenantActivationRequest {
+    password: string;
+    passwordConfirmation: string;
+}

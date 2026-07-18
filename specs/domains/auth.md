@@ -25,6 +25,8 @@ Incluye:
 * [src/app/core/guards/guest.guard.ts](C:\Data\Source\Repos\playertech-webapp\src\app\core\guards\guest.guard.ts)
 * [src/app/features/auth/pages/login.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\auth\pages\login.ts)
 * [src/app/features/auth/pages/activate.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\auth\pages\activate.ts)
+* [src/app/features/auth/pages/signup.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\auth\pages\signup.ts)
+* [src/app/features/auth/pages/signup-success.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\auth\pages\signup-success.ts)
 * [src/app/features/auth/pages/forgot-password.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\auth\pages\forgot-password.ts)
 * [src/app/features/auth/pages/reset-password.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\auth\pages\reset-password.ts)
 * [src/app/features/account/pages/profile.ts](C:\Data\Source\Repos\playertech-webapp\src/app\features\account\pages\profile.ts)

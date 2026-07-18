@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
-import { ApiEnvelope, AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest } from './auth.models';
+import { ApiEnvelope, AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, TenantActivationRequest, TenantSignupRequest, TenantSignupResponse } from './auth.models';
 
 export interface AuthErrorLike {
     status: number;
@@ -35,6 +35,20 @@ export class AuthApiService {
         );
     }
 
+    signupTenant(payload: TenantSignupRequest): Observable<TenantSignupResponse> {
+        return this.http.post<ApiEnvelope<TenantSignupResponse> | TenantSignupResponse>('/api/v1/public/tenants/signup', payload).pipe(
+            map((response) => this.unwrapResponse(response)),
+            catchError((error) => throwError(() => this.normalizeError(error)))
+        );
+    }
+
+    activateTenant(token: string, payload: TenantActivationRequest): Observable<TenantSignupResponse> {
+        return this.http.post<ApiEnvelope<TenantSignupResponse> | TenantSignupResponse>(`/api/v1/public/tenants/activate/${encodeURIComponent(token)}`, payload).pipe(
+            map((response) => this.unwrapResponse(response)),
+            catchError((error) => throwError(() => this.normalizeError(error)))
+        );
+    }
+
     requestPasswordReset(payload: PasswordResetRequest): Observable<void> {
         return this.http.post<void>('/api/v1/public/users/password-reset/request', payload).pipe(catchError((error) => throwError(() => this.normalizeError(error))));
     }
@@ -56,6 +70,14 @@ export class AuthApiService {
         }
 
         return response as AuthUser;
+    }
+
+    private unwrapResponse<T>(response: ApiEnvelope<T> | T): T {
+        if (typeof response === 'object' && response !== null && 'data' in response && response.data) {
+            return response.data;
+        }
+
+        return response as T;
     }
 
     private normalizeError(error: unknown): AuthErrorLike {

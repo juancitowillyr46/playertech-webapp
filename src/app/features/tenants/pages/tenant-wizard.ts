@@ -109,7 +109,7 @@ interface LocationDepartment {
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                 <label for="phoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono <span class="text-rose-500">*</span></label>
                                 <div class="grid grid-cols-12 gap-3">
-                                    <p-select id="countryCode" [(ngModel)]="form.countryCode" name="countryCode" [options]="locationCountryOptions" optionLabel="name" optionValue="dialCode" [filter]="true" filterBy="name,dialCode" placeholder="Código" class="col-span-12 md:col-span-4 w-full" (onChange)="onPhoneCountryCodeChange()">
+                                    <p-select id="countryCode" [(ngModel)]="form.countryCode" name="countryCode" [options]="locationCountryOptions" optionLabel="name" optionValue="dialCode" [filter]="true" filterBy="name,dialCode" placeholder="Código" class="col-span-12 md:col-span-4 w-full" appendTo="body" (onChange)="onPhoneCountryCodeChange()">
                                         <ng-template #selectedItem let-option>
                                             <span class="flex items-center gap-2">
                                                 <img [src]="option?.flagFile ?? fallbackFlag" [alt]="option?.name ?? 'País'" class="h-4 w-6 rounded-sm object-cover" />
@@ -135,7 +135,7 @@ interface LocationDepartment {
 
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                 <label for="country" class="text-sm font-medium text-surface-700 dark:text-surface-200">País <span class="text-rose-500">*</span></label>
-                                <p-select id="country" [(ngModel)]="form.country" name="country" [options]="locationCountryOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name" placeholder="Selecciona país de operación" class="w-full" (onChange)="onLocationCountryChange()" />
+                                <p-select id="country" [(ngModel)]="form.country" name="country" [options]="locationCountryOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name" placeholder="Selecciona país de operación" class="w-full" appendTo="body" (onChange)="onLocationCountryChange()" />
                                 @if (showError('country')) {
                                     <p-message severity="error" size="small">Selecciona el país de operación.</p-message>
                                 }
@@ -143,7 +143,7 @@ interface LocationDepartment {
 
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                 <label for="department" class="text-sm font-medium text-surface-700 dark:text-surface-200">Departamento <span class="text-rose-500">*</span></label>
-                                <p-select id="department" [(ngModel)]="form.department" name="department" [options]="departmentOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name" placeholder="Selecciona un departamento" class="w-full" (onChange)="onDepartmentChange()" />
+                                <p-select id="department" [(ngModel)]="form.department" name="department" [options]="departmentOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name" placeholder="Selecciona un departamento" class="w-full" appendTo="body" (onChange)="onDepartmentChange()" />
                                 @if (showError('department')) {
                                     <p-message severity="error" size="small">Selecciona el departamento.</p-message>
                                 }
@@ -151,7 +151,7 @@ interface LocationDepartment {
 
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                 <label for="citySelect" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad <span class="text-rose-500">*</span></label>
-                                <p-select id="citySelect" [(ngModel)]="form.city" name="city" [options]="departmentCities" placeholder="Selecciona una ciudad" class="w-full" [filter]="true" />
+                                <p-select id="citySelect" [(ngModel)]="form.city" name="city" [options]="departmentCities" placeholder="Selecciona una ciudad" class="w-full" appendTo="body" [filter]="true" />
                                 @if (showError('city')) {
                                     <p-message severity="error" size="small">Selecciona la ciudad.</p-message>
                                 }
@@ -191,7 +191,7 @@ interface LocationDepartment {
                         <div class="grid grid-cols-12 gap-4">
                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                 <label for="categoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categoría inicial <span class="text-rose-500">*</span></label>
-                                <p-select id="categoryId" [(ngModel)]="form.categoryId" name="categoryId" [options]="categoryOptions" optionLabel="label" optionValue="id" placeholder="Selecciona una categoría" class="w-full" [filter]="true" filterBy="label" />
+                                <p-select id="categoryId" [(ngModel)]="form.categoryId" name="categoryId" [options]="categoryOptions" optionLabel="label" optionValue="id" placeholder="Selecciona una categoría" class="w-full" appendTo="body" [filter]="true" filterBy="label" />
                                 @if (showError('categoryId')) {
                                     <p-message severity="error" size="small">Selecciona la categoría inicial.</p-message>
                                 }

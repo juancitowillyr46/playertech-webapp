@@ -1,5 +1,6 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { AuthRole, AuthSessionState, AuthUser } from './auth.models';
+import { getAuthHomeRoute, getAuthRoleLabel, normalizeAuthSessionState, normalizeAuthUser } from './auth.mapper';
 
 const AUTH_SESSION_STORAGE_KEY = 'playertech.auth-session';
 
@@ -30,25 +31,7 @@ export class AuthSessionService {
     setSession(user: AuthUser) {
         this.state.set({
             authenticated: true,
-            user: this.normalizeUser(user)
-        });
-        this.persistState();
-    }
-
-    updateUser(patch: Partial<AuthUser>) {
-        const current = this.state().user;
-        if (!current) {
-            return;
-        }
-
-        this.state.set({
-            authenticated: true,
-            user: this.normalizeUser({
-                ...current,
-                ...patch,
-                roles: patch.roles ?? current.roles,
-                role: patch.role ?? current.role
-            })
+            user: normalizeAuthUser(user)
         });
         this.persistState();
     }
@@ -62,65 +45,11 @@ export class AuthSessionService {
     }
 
     getHomeRoute(): string {
-        const role = this.primaryRole();
-
-        switch (role) {
-            case 'ROLE_ROOT':
-                return '/';
-            case 'ROLE_ACADEMY_ADMIN':
-            case 'ROLE_COACH':
-                return '/academy';
-            default:
-                return '/account/profile';
-        }
+        return getAuthHomeRoute(this.primaryRole());
     }
 
     getRoleLabel(role: AuthRole): string {
-        switch (role) {
-            case 'ROLE_ROOT':
-                return 'Plataforma';
-            case 'ROLE_ACADEMY_ADMIN':
-                return 'Administrador de academia';
-            case 'ROLE_COACH':
-                return 'Entrenador';
-            case 'ROLE_USER':
-                return 'Usuario base';
-            default:
-                return role || 'Sin rol';
-        }
-    }
-
-    getContextLabel(): string {
-        const user = this.user();
-        if (!user) {
-            return 'Sin sesión';
-        }
-
-        if (user.role === 'ROLE_ROOT') {
-            return 'Contexto de plataforma';
-        }
-
-        return user.academyName ?? user.academyId ?? 'Contexto tenant';
-    }
-
-    hasTenantContext(): boolean {
-        const user = this.user();
-        return !!user?.academyId && user.role !== 'ROLE_ROOT';
-    }
-
-    private normalizeUser(user: AuthUser): AuthUser {
-        const roles = Array.from(new Set((user.roles?.length ? user.roles : [user.role]).filter(Boolean))) as AuthRole[];
-        return {
-            ...user,
-            roles,
-            role: user.role || roles[0] || 'ROLE_USER',
-            academyId: user.academyId ?? null,
-            academyName: user.academyName ?? null,
-            token: user.token ?? null,
-            accessToken: user.accessToken ?? null,
-            refreshToken: user.refreshToken ?? null,
-            status: user.status ?? null
-        };
+        return getAuthRoleLabel(role);
     }
 
     private readState(): AuthSessionState {
@@ -135,14 +64,7 @@ export class AuthSessionService {
 
         try {
             const parsed = JSON.parse(raw) as AuthSessionState;
-            if (!parsed?.user) {
-                return { authenticated: false, user: null };
-            }
-
-            return {
-                authenticated: !!parsed.authenticated,
-                user: this.normalizeUser(parsed.user)
-            };
+            return normalizeAuthSessionState(parsed);
         } catch {
             return { authenticated: false, user: null };
         }

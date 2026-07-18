@@ -111,6 +111,30 @@ Convertir el dominio de autenticación en flujos verificables con criterios de a
 * [x] Mensaje claro ante token inválido o expirado.
 * [x] Redirección al login al completar.
 
+## Signup de tenant
+
+### Pantalla
+
+* [src/app/features/auth/pages/signup.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\auth\pages\signup.ts)
+* [src/app/features/auth/pages/signup-success.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\auth\pages\signup-success.ts)
+
+### Criterios de aceptación
+
+* Dado un usuario público, cuando abre la pantalla de signup, entonces ve un onboarding de academia con datos claros y sin jerga técnica.
+* Dado un usuario público, cuando completa el formulario con datos válidos, entonces el frontend envía la solicitud pública de alta de tenant.
+* Dado un usuario público, cuando la respuesta es exitosa, entonces ve una pantalla de confirmación con resumen y siguiente paso.
+* Dado un usuario público, cuando el backend exige activación, entonces la UI lo explica en lenguaje simple.
+* Dado un usuario público con token de activación, cuando abre la pantalla de activación, entonces puede definir contraseña y confirmar el acceso.
+* Dado un usuario público con token inválido o expirado, cuando intenta activar, entonces ve un mensaje claro y no completa el acceso.
+
+### Checklist de verificación
+
+* [x] Consumo de `POST /api/v1/public/tenants/signup`.
+* [x] Consumo de `POST /api/v1/public/tenants/activate/{token}`.
+* [x] Validación visible por campo.
+* [x] Estado claro de cuenta creada y correo pendiente.
+* [x] Mensaje claro ante token inválido o expirado.
+
 ## Signup
 
 ### Pantalla
@@ -120,13 +144,13 @@ Convertir el dominio de autenticación en flujos verificables con criterios de a
 
 ### Criterios de aceptación
 
-* Dado un usuario público, cuando completa el signup, entonces el formulario debe exigir los campos definidos por la spec de auth.
-* Dado un usuario público, cuando la alta es exitosa, entonces se muestra confirmación de registro.
+* Dado un usuario público, cuando completa el signup, entonces el formulario debe exigir los campos del onboarding de tenant.
+* Dado un usuario público, cuando la alta es exitosa, entonces se muestra confirmación de registro y aviso de correo pendiente.
 
 ### Checklist de verificación
 
-* [ ] Mantener la spec de signup alineada con el contrato final.
-* [ ] Revisar si signup sigue siendo un flujo activo o queda como legado.
+* [x] Mantener la spec de signup alineada con el contrato final.
+* [x] Revisar si signup sigue siendo un flujo activo o queda como legado.
 
 ## Profile access
 

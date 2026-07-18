@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { firstValueFrom, Observable, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { AuthApiService } from '@/app/core/auth/auth-api.service';
 import { AuthSessionService } from '@/app/core/auth/auth-session.service';
-import { AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest } from '@/app/core/auth/auth.models';
+import { AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, TenantActivationRequest, TenantSignupRequest, TenantSignupResponse } from '@/app/core/auth/auth.models';
 
 @Injectable({
     providedIn: 'root'
@@ -25,11 +25,19 @@ export class AuthAccessService {
         return this.api.activateUser(token, payload).pipe(tap((user) => this.session.setSession(user)));
     }
 
-    requestPasswordReset(payload: PasswordResetRequest) {
+    signupTenant(payload: TenantSignupRequest): Observable<TenantSignupResponse> {
+        return this.api.signupTenant(payload);
+    }
+
+    activateTenant(token: string, payload: TenantActivationRequest): Observable<TenantSignupResponse> {
+        return this.api.activateTenant(token, payload);
+    }
+
+    requestPasswordReset(payload: PasswordResetRequest): Observable<void> {
         return this.api.requestPasswordReset(payload);
     }
 
-    confirmPasswordReset(token: string, payload: PasswordResetConfirm) {
+    confirmPasswordReset(token: string, payload: PasswordResetConfirm): Observable<void> {
         return this.api.confirmPasswordReset(token, payload);
     }
 
@@ -37,7 +45,7 @@ export class AuthAccessService {
         return this.api.updateName(fullName).pipe(tap((user) => this.session.setSession(user)));
     }
 
-    logout() {
+    logout(): void {
         this.session.clearSession();
     }
 

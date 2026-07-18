@@ -14,49 +14,69 @@ import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
     standalone: true,
     imports: [ButtonModule, CommonModule, FormsModule, MessageModule, PasswordModule, RouterModule],
     template: `
-        <div class="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.12),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(34,197,94,0.08),_transparent_25%),linear-gradient(180deg,_#f8fafc_0%,_#eef2f7_100%)] px-4 py-6 dark:bg-none dark:bg-surface-950 sm:px-6 lg:px-8">
-            <div class="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-2xl items-center justify-center">
-                <div class="w-full min-w-0 max-w-xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_28px_90px_-28px_rgba(15,23,42,0.24)] dark:border-surface-800 dark:bg-surface-900">
-                    <div class="min-w-0 px-5 py-6 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
-                        <div class="mb-6 text-center sm:mb-7">
-                            <p class="hidden text-sm font-medium uppercase tracking-[0.24em] text-sky-700 dark:text-sky-400 sm:block">Activación de usuario</p>
-                            <h1 class="mt-1 text-[clamp(1.55rem,6vw,1.9rem)] font-semibold tracking-tight text-surface-900 dark:text-surface-0">Definir contraseña</h1>
-                            <p class="mx-auto mt-2 max-w-[24rem] text-sm leading-6 text-slate-600 dark:text-slate-300 sm:max-w-xl">Crea tu contraseña inicial para completar la activación de la cuenta.</p>
-                        </div>
-
-                        @if (apiMessage) {
-                            <div class="mb-6">
-                                <p-message [severity]="apiMessage.severity" [text]="apiMessage.text" [closable]="false" />
-                            </div>
-                        }
-
-                        <div class="space-y-5 sm:space-y-6">
-                            <div class="flex flex-col gap-2">
-                                <label for="password" class="text-sm font-medium text-surface-700 dark:text-surface-200">Contraseña</label>
-                                <p-password inputId="password" [(ngModel)]="password" name="password" placeholder="Ingresa una contraseña" styleClass="w-full" inputStyleClass="w-full" [toggleMask]="true" [feedback]="false" />
-                                @if (showPasswordError()) {
-                                    <p-message severity="error" size="small">La contraseña debe tener al menos 8 caracteres.</p-message>
-                                }
-                            </div>
-
-                            <div class="flex flex-col gap-2">
-                                <label for="passwordConfirmation" class="text-sm font-medium text-surface-700 dark:text-surface-200">Confirmar contraseña</label>
-                                <p-password inputId="passwordConfirmation" [(ngModel)]="passwordConfirmation" name="passwordConfirmation" placeholder="Repite la contraseña" styleClass="w-full" inputStyleClass="w-full" [toggleMask]="true" [feedback]="false" />
-                                @if (showPasswordConfirmationError()) {
-                                    <p-message severity="error" size="small">Debes confirmar la contraseña.</p-message>
-                                }
-                                @if (showPasswordMismatchError()) {
-                                    <p-message severity="error" size="small">Las contraseñas deben coincidir.</p-message>
-                                }
-                            </div>
-
-                            <div class="pt-1">
-                                <p-button label="Activar cuenta" styleClass="w-full" type="button" (onClick)="submit()" />
+        <div class="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(15,118,110,0.14),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(217,119,6,0.10),_transparent_24%),linear-gradient(180deg,_#f8faf7_0%,_#eef4f1_100%)] px-4 py-6 sm:px-6 lg:px-8">
+            <div class="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-3xl items-center justify-center">
+                <div class="w-full overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-white shadow-[0_30px_90px_-30px_rgba(15,23,42,0.24)]">
+                    <div class="grid lg:grid-cols-[0.95fr_1.05fr]">
+                        <div class="bg-[linear-gradient(165deg,_#0f172a_0%,_#0f3d3a_48%,_#114f46_100%)] px-6 py-7 text-white sm:px-8 sm:py-10">
+                            <p class="text-xs uppercase tracking-[0.35em] text-emerald-100/80">Activación pública</p>
+                            <h1 class="mt-4 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">Confirma tu correo para terminar el alta de la academia.</h1>
+                            <p class="mt-4 max-w-md text-sm leading-6 text-emerald-50/85">El enlace de activación valida que tú controlas el correo registrado y deja lista la cuenta para el primer ingreso.</p>
+                            <div class="mt-8 grid gap-3">
+                                <div class="rounded-2xl border border-white/10 bg-white/8 p-4 backdrop-blur">
+                                    <p class="text-xs uppercase tracking-[0.22em] text-emerald-100/75">Paso 1</p>
+                                    <p class="mt-2 text-sm font-medium">Crea tu contraseña</p>
+                                </div>
+                                <div class="rounded-2xl border border-white/10 bg-white/8 p-4 backdrop-blur">
+                                    <p class="text-xs uppercase tracking-[0.22em] text-emerald-100/75">Paso 2</p>
+                                    <p class="mt-2 text-sm font-medium">Accede a la academia</p>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="mt-6 border-t border-slate-200 pt-5 text-center text-sm text-slate-600 dark:border-surface-800 dark:text-slate-300 sm:mt-7 sm:pt-6">
-                            <a routerLink="/auth/login" class="font-medium text-sky-700 hover:underline dark:text-sky-400">Volver al ingreso</a>
+                        <div class="px-5 py-6 sm:px-7 sm:py-8 lg:px-10 lg:py-10">
+                            <div class="mb-6 border-b border-slate-200 pb-5">
+                                <p class="text-xs uppercase tracking-[0.28em] text-slate-500">Activar acceso</p>
+                                <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Define tu contraseña</h2>
+                                <p class="mt-2 text-sm leading-6 text-slate-600">Si el token no es válido o ya expiró, te mostraremos el motivo y no completarás el acceso.</p>
+                            </div>
+
+                            @if (apiMessage) {
+                                <div class="mb-5">
+                                    <p-message [severity]="apiMessage.severity" [text]="apiMessage.text" [closable]="false" />
+                                </div>
+                            }
+
+                            <form class="space-y-5" (ngSubmit)="submit()">
+                                <div class="flex flex-col gap-2">
+                                    <label for="password" class="text-sm font-medium text-slate-700">Password</label>
+                                    <p-password inputId="password" [(ngModel)]="password" name="password" placeholder="Crea una contraseña" styleClass="w-full" inputStyleClass="w-full" [toggleMask]="true" [feedback]="false" />
+                                    @if (showPasswordError()) {
+                                        <p-message severity="error" size="small">La contraseña debe tener al menos 8 caracteres.</p-message>
+                                    }
+                                </div>
+
+                                <div class="flex flex-col gap-2">
+                                    <label for="passwordConfirmation" class="text-sm font-medium text-slate-700">Confirmar password</label>
+                                    <p-password inputId="passwordConfirmation" [(ngModel)]="passwordConfirmation" name="passwordConfirmation" placeholder="Repite la contraseña" styleClass="w-full" inputStyleClass="w-full" [toggleMask]="true" [feedback]="false" />
+                                    @if (showPasswordConfirmationError()) {
+                                        <p-message severity="error" size="small">Debes confirmar la contraseña.</p-message>
+                                    }
+                                    @if (showPasswordMismatchError()) {
+                                        <p-message severity="error" size="small">Las contraseñas no coinciden.</p-message>
+                                    }
+                                </div>
+
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                                    Esta pantalla solo completa la activación. Primero el signup crea la academia y luego este enlace confirma tu acceso.
+                                </div>
+
+                                <p-button label="Activar cuenta" styleClass="w-full" type="submit" [loading]="loading" [disabled]="loading" />
+                            </form>
+
+                            <div class="mt-6 border-t border-slate-200 pt-5 text-sm text-slate-600">
+                                <a routerLink="/auth/login" class="font-medium text-emerald-700 hover:underline">Volver al ingreso</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -69,6 +89,7 @@ export class ActivateUser {
     passwordConfirmation = '';
     token = '';
     submitted = false;
+    loading = false;
     apiMessage: { severity: 'success' | 'info' | 'warn' | 'error'; text: string } | null = null;
 
     constructor(
@@ -105,9 +126,11 @@ export class ActivateUser {
             return;
         }
 
+        this.loading = true;
+
         try {
             await firstValueFrom(
-                this.auth.activateUser(this.token, {
+                this.auth.activateTenant(this.token, {
                     password: this.password,
                     passwordConfirmation: this.passwordConfirmation
                 })
@@ -115,7 +138,7 @@ export class ActivateUser {
 
             this.apiMessage = {
                 severity: 'success',
-                text: 'Tu cuenta fue activada. Ahora puedes iniciar sesión.'
+                text: 'Tu cuenta fue activada. Ya puedes iniciar sesión.'
             };
 
             setTimeout(() => {
@@ -126,6 +149,8 @@ export class ActivateUser {
                 severity: 'error',
                 text: this.getTokenErrorMessage(error as AuthErrorLike | undefined)
             };
+        } finally {
+            this.loading = false;
         }
     }
 

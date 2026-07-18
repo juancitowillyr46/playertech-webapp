@@ -69,7 +69,7 @@ import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
                             </div>
 
                             <div class="pt-1">
-                                <p-button label="Ingresar" styleClass="w-full" type="button" (onClick)="submit()" />
+                                <p-button label="Ingresar" styleClass="w-full" type="button" [loading]="loading" [disabled]="loading" (onClick)="submit()" />
                             </div>
                         </div>
 
