@@ -42,13 +42,13 @@ interface CountryOption {
             <div class="content-width-compact mx-auto mt-4 w-full space-y-3">
                 <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                     <div class="space-y-4 p-3 sm:p-4">
-                        <div class="space-y-10">
-                            <div class="space-y-1">
+                        <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/60 sm:p-5">
+                            <div class="space-y-1.5">
                                 <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Información personal</p>
                                 <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Registra el documento, nombres, apellidos y datos base del jugador.</p>
                             </div>
 
-                            <div class="grid grid-cols-12 gap-4">
+                            <div class="mt-5 grid grid-cols-12 gap-4">
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="documentType" class="text-sm font-medium text-surface-700 dark:text-surface-200">Tipo de documento <span class="text-rose-500">*</span></label>
                                     <p-select id="documentType" [(ngModel)]="form.documentType" [options]="documentTypeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un tipo" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
@@ -116,14 +116,14 @@ interface CountryOption {
                                 </div>
                             </div>
 
-                            <div class="border-t border-slate-200 pt-6 dark:border-surface-700">
-                                <div class="space-y-1">
+                            <div class="mt-6 border-t border-slate-200 pt-5 dark:border-surface-700"></div>
+
+                            <div class="space-y-1.5">
                                 <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Información de contacto</p>
                                 <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Agrupa el canal de contacto directo del jugador.</p>
-                                </div>
                             </div>
 
-                            <div class="grid grid-cols-12 gap-4">
+                            <div class="mt-5 grid grid-cols-12 gap-4">
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="phoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Celular <span class="text-slate-400">(opcional)</span></label>
                                     <div class="grid grid-cols-12 gap-3">
@@ -171,15 +171,15 @@ interface CountryOption {
                                     }
                                 </div>
                             </div>
+                        </div>
 
-                                            <div class="border-t border-slate-200 pt-6 dark:border-surface-700">
-                                                <div class="space-y-1">
-                                                <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Detalle del jugador</p>
-                                                <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Agrega la categoría y los datos deportivos complementarios.</p>
-                                                </div>
-                                            </div>
+                        <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/60 sm:p-5">
+                            <div class="space-y-1.5">
+                                <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Detalle del jugador</p>
+                                <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Agrega la categoría y los datos deportivos complementarios.</p>
+                            </div>
 
-                            <div class="grid grid-cols-12 gap-4">
+                            <div class="mt-5 grid grid-cols-12 gap-4">
                                 <div class="col-span-12 flex flex-col gap-2">
                                     <label for="categoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categoría <span class="text-rose-500">*</span></label>
                                     <p-select id="categoryId" [(ngModel)]="form.categoryId" [options]="categories" optionLabel="name" optionValue="id" placeholder="Selecciona una categoría" class="w-full" />
@@ -198,8 +198,9 @@ interface CountryOption {
                                     <input pInputText id="federationId" type="text" [(ngModel)]="form.federationId" placeholder="Ej. F001" class="w-full" (input)="onTextInput('federationId', $event)" />
                                 </div>
                             </div>
+                        </div>
 
-                        <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/60">
+                        <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/60 sm:p-5">
                             <div class="flex flex-col gap-3">
                                 <div>
                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Foto del jugador</p>
