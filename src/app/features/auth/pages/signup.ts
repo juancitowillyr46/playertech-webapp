@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
@@ -10,6 +11,9 @@ import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
 import { TabsModule } from 'primeng/tabs';
+import { AuthAccessService } from '../data-access/auth-access.service';
+import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
+import { TenantSignupSummary } from '@/app/core/auth/auth.models';
 
 type CountryOption = {
     name: string;
@@ -76,6 +80,12 @@ type StepKey = 1 | 2 | 3;
                                 {{ currentStep }}/3
                             </div>
                         </div>
+
+                        @if (apiMessage) {
+                            <div class="mb-5">
+                                <p-message [severity]="apiMessage.severity" [text]="apiMessage.text" [closable]="false" />
+                            </div>
+                        }
 
                         <div class="mb-3 min-w-0 sm:mb-8">
                             @if (stepNavigationMessage) {
@@ -209,7 +219,7 @@ type StepKey = 1 | 2 | 3;
                                                         </div>
                                                     </ng-template>
                                                 </p-select>
-                                                <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" name="phoneNumber" placeholder="Ej. 3123456789" class="col-span-12 md:col-span-8 w-full" (input)="onPhoneInput($event)" (blur)="onPhoneBlur()" />
+                                                <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" name="phoneNumber" placeholder="Ej. 3123456789" class="col-span-12 md:col-span-8 w-full" (input)="onPhoneInput($event)" />
                                             </div>
                                             @if (showError('phoneNumber')) {
                                                 <p-message severity="error" size="small">Escribe un teléfono válido.</p-message>
@@ -305,6 +315,18 @@ type StepKey = 1 | 2 | 3;
                                                 <p-message severity="error" size="small">Acepta los términos para continuar.</p-message>
                                             </div>
                                         }
+
+                                        <div class="col-span-12 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-surface-800 dark:bg-surface-950">
+                                            <p-checkbox [(ngModel)]="acceptedDataProcessing" inputId="dataProcessing" name="dataProcessing" binary></p-checkbox>
+                                            <label for="dataProcessing" class="text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                                Acepto el tratamiento de mis datos personales.
+                                            </label>
+                                        </div>
+                                        @if (showError('dataProcessing')) {
+                                            <div class="col-span-12">
+                                                <p-message severity="error" size="small">Acepta el tratamiento de datos para continuar.</p-message>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                             }
@@ -372,15 +394,17 @@ export class Signup {
 
     confirmPassword = '';
     accepted = false;
+    acceptedDataProcessing = false;
     submitted = false;
+    loading = false;
     showTermsDialog = false;
+    apiMessage: { severity: 'success' | 'info' | 'warn' | 'error'; text: string } | null = null;
     stepNavigationMessage: string | null = null;
     stepSubmitted: Record<StepKey, boolean> = {
         1: false,
         2: false,
         3: false
     };
-    touched: Record<string, boolean> = {};
 
     categories = [
         { id: 'cat-sub-4', name: 'SUB 4 (3-4 años)' },
@@ -443,16 +467,6 @@ export class Signup {
         return 'Cerramos el alta con la contraseña inicial y la aceptación de condiciones.';
     }
 
-    stepDescription(step: StepKey): string {
-        if (step === 1) return 'Datos base';
-        if (step === 2) return 'Contacto y ubicación';
-        return 'Contraseña';
-    }
-
-    markTouched(field: string) {
-        this.touched[field] = true;
-    }
-
     openTerms(event: MouseEvent) {
         event.preventDefault();
         this.showTermsDialog = true;
@@ -494,23 +508,44 @@ export class Signup {
         this.stepNavigationMessage = null;
     }
 
-    constructor(private router: Router) {}
+    constructor(
+        private router: Router,
+        private readonly auth: AuthAccessService
+    ) {}
 
-    submit() {
+    async submit() {
         this.stepSubmitted[this.currentStep] = true;
         this.touchStepFields(3);
+        this.apiMessage = null;
 
         if (!this.isFormValid()) {
+            this.apiMessage = {
+                severity: 'error',
+                text: 'Revisa los campos marcados antes de continuar.'
+            };
             return;
         }
 
-        void this.router.navigate(['/auth/signup-success'], {
-            state: {
-                academyName: this.form.name,
-                contactEmail: this.form.contactEmail,
-                contactName: this.form.contactName
-            }
-        });
+        this.loading = true;
+
+        try {
+            const result = await firstValueFrom(this.auth.signupTenant(this.buildSignupPayload()));
+
+            this.apiMessage = {
+                severity: 'success',
+                text: result.activationRequired === false ? 'Cuenta creada correctamente.' : 'Cuenta creada. Revisa tu correo para activar el acceso.'
+            };
+            this.auth.saveSignupSummary(this.buildSignupSummary(result));
+            this.navigateToSuccess(result);
+        } catch (error) {
+            const authError = error as AuthErrorLike | undefined;
+            this.apiMessage = {
+                severity: 'error',
+                text: this.getSignupErrorMessage(authError)
+            };
+        } finally {
+            this.loading = false;
+        }
     }
 
     onAcademyNameInput(event: Event) {
@@ -523,10 +558,6 @@ export class Signup {
 
     onPhoneInput(event: Event) {
         this.form.phoneNumber = this.sanitizePhoneInput((event.target as HTMLInputElement).value);
-    }
-
-    onPhoneBlur() {
-        this.touched['phoneNumber'] = true;
     }
 
     onEmailInput() {
@@ -596,13 +627,13 @@ export class Signup {
     }
 
     private touchStepFields(step: StepKey) {
+        void step;
         const fieldsByStep: Record<StepKey, string[]> = {
             1: ['name', 'categoryId', 'teamName'],
             2: ['contactName', 'contactEmail', 'countryCode', 'phoneNumber', 'department', 'address', 'city'],
-            3: ['password', 'confirmPassword', 'terms']
+            3: ['password', 'confirmPassword', 'terms', 'dataProcessing']
         };
-
-        fieldsByStep[step].forEach((field) => (this.touched[field] = true));
+        void fieldsByStep;
     }
 
     private getFieldStep(field: string): StepKey {
@@ -626,7 +657,7 @@ export class Signup {
             return this.isFieldValid('contactName') && this.isFieldValid('contactEmail') && this.isFieldValid('phoneNumber') && this.isFieldValid('department') && this.isFieldValid('address') && this.isFieldValid('city');
         }
 
-        return this.isFieldValid('password') && this.isFieldValid('confirmPassword') && this.isFieldValid('terms');
+        return this.isFieldValid('password') && this.isFieldValid('confirmPassword') && this.isFieldValid('terms') && this.isFieldValid('dataProcessing');
     }
 
     private getStepNavigationMessage(step: StepKey): string {
@@ -677,6 +708,8 @@ export class Signup {
                 return this.form.password.trim().length >= 8 && this.form.password === this.confirmPassword;
             case 'terms':
                 return this.accepted;
+            case 'dataProcessing':
+                return this.acceptedDataProcessing;
             default:
                 return true;
         }
@@ -747,6 +780,67 @@ export class Signup {
     get departmentCities(): string[] {
         const department = this.colombiaDepartments.find((item) => item.name === this.form.department);
         return department?.cities ?? [];
+    }
+
+    private buildSignupPayload() {
+        return {
+            name: this.form.name,
+            contactEmail: this.form.contactEmail,
+            contactName: this.form.contactName,
+            password: this.form.password,
+            phone: this.buildPhoneNumber(),
+            country: this.getSelectedCountryName(),
+            department: this.form.department,
+            address: this.form.address,
+            city: this.form.city,
+            categoryId: this.form.categoryId,
+            teamName: this.form.teamName,
+            acceptedTerms: this.accepted,
+            acceptedDataProcessing: this.acceptedDataProcessing
+        };
+    }
+
+    private buildPhoneNumber(): string {
+        return this.form.countryCode ? `${this.form.countryCode} ${this.form.phoneNumber}`.trim() : this.form.phoneNumber;
+    }
+
+    private getSelectedCountryName(): string {
+        return this.countryCodes.find((country) => country.dialCode === this.form.countryCode)?.name ?? 'Colombia';
+    }
+
+    private navigateToSuccess(result: { academy?: { name?: string }; admin?: { email?: string; fullName?: string }; team?: { name?: string }; activationRequired?: boolean }) {
+        void this.router.navigate(['/auth/signup-success'], {
+            state: {
+                academyName: result.academy?.name ?? this.form.name,
+                contactEmail: result.admin?.email ?? this.form.contactEmail,
+                contactName: result.admin?.fullName ?? this.form.contactName,
+                teamName: result.team?.name ?? this.form.teamName,
+                activationRequired: result.activationRequired ?? true
+            }
+        });
+    }
+
+    private buildSignupSummary(result: { academy?: { name?: string }; admin?: { email?: string; fullName?: string }; team?: { name?: string }; activationRequired?: boolean; activationEmailSent?: boolean }): TenantSignupSummary {
+        return {
+            academyName: result.academy?.name ?? this.form.name,
+            contactEmail: result.admin?.email ?? this.form.contactEmail,
+            contactName: result.admin?.fullName ?? this.form.contactName,
+            teamName: result.team?.name ?? this.form.teamName,
+            activationRequired: result.activationRequired ?? true,
+            activationEmailSent: result.activationEmailSent ?? !!(result.activationRequired ?? true)
+        };
+    }
+
+    private getSignupErrorMessage(error?: AuthErrorLike): string {
+        if (error?.status === 400) {
+            return 'Revisa los datos ingresados. Hay información que no cumple el formato esperado.';
+        }
+
+        if (error?.status === 409) {
+            return 'Ya existe una academia o correo con esos datos.';
+        }
+
+        return 'No fue posible crear la academia. Intenta nuevamente.';
     }
 
 }

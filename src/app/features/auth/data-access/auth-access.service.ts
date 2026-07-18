@@ -2,12 +2,14 @@ import { Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { AuthApiService } from '@/app/core/auth/auth-api.service';
 import { AuthSessionService } from '@/app/core/auth/auth-session.service';
-import { AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, TenantActivationRequest, TenantSignupRequest, TenantSignupResponse } from '@/app/core/auth/auth.models';
+import { AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, TenantActivationRequest, TenantSignupRequest, TenantSignupResponse, TenantSignupSummary } from '@/app/core/auth/auth.models';
 
 @Injectable({
     providedIn: 'root'
 })
 export class AuthAccessService {
+    private readonly signupSummaryStorageKey = 'playertech.signup.summary';
+
     constructor(
         private readonly api: AuthApiService,
         private readonly session: AuthSessionService
@@ -31,6 +33,18 @@ export class AuthAccessService {
 
     activateTenant(token: string, payload: TenantActivationRequest): Observable<TenantSignupResponse> {
         return this.api.activateTenant(token, payload);
+    }
+
+    saveSignupSummary(summary: TenantSignupSummary): void {
+        this.writeSignupSummary(summary);
+    }
+
+    loadSignupSummary(): TenantSignupSummary | null {
+        return this.readSignupSummary();
+    }
+
+    clearSignupSummary(): void {
+        this.writeSignupSummary(null);
     }
 
     requestPasswordReset(payload: PasswordResetRequest): Observable<void> {
@@ -63,5 +77,39 @@ export class AuthAccessService {
 
     getHomeRoute(): string {
         return this.session.getHomeRoute();
+    }
+
+    private readSignupSummary(): TenantSignupSummary | null {
+        if (!this.canUseStorage()) {
+            return null;
+        }
+
+        const raw = window.localStorage.getItem(this.signupSummaryStorageKey);
+        if (!raw) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(raw) as TenantSignupSummary;
+        } catch {
+            return null;
+        }
+    }
+
+    private writeSignupSummary(summary: TenantSignupSummary | null): void {
+        if (!this.canUseStorage()) {
+            return;
+        }
+
+        if (!summary) {
+            window.localStorage.removeItem(this.signupSummaryStorageKey);
+            return;
+        }
+
+        window.localStorage.setItem(this.signupSummaryStorageKey, JSON.stringify(summary));
+    }
+
+    private canUseStorage(): boolean {
+        return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
     }
 }

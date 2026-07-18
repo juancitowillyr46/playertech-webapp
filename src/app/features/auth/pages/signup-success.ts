@@ -5,14 +5,10 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
 import { AppFloatingConfigurator } from '../../../layout/component/app.floatingconfigurator';
+import { AuthAccessService } from '../data-access/auth-access.service';
+import { TenantSignupSummary } from '@/app/core/auth/auth.models';
 
-type SignupSuccessState = {
-    academyName?: string;
-    contactEmail?: string;
-    contactName?: string;
-    teamName?: string;
-    activationRequired?: boolean;
-};
+type SignupSuccessState = Partial<TenantSignupSummary>;
 
 @Component({
     selector: 'app-signup-success',
@@ -31,7 +27,7 @@ type SignupSuccessState = {
                         <p class="text-xs uppercase tracking-[0.32em] text-slate-500">Cuenta creada</p>
                         <h1 class="mt-3 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">Tu academia ya está registrada</h1>
                         <p class="mt-4 text-sm leading-6 text-slate-600 sm:text-base">
-                            La creación fue exitosa. Si la activación está pendiente, revisa tu correo y confirma el enlace para completar el acceso.
+                            {{ activationEmailSent ? 'Enviamos el correo de activación. Revisa tu bandeja para completar el acceso.' : 'La creación fue exitosa. Revisa tu correo y confirma el enlace para completar el acceso.' }}
                         </p>
 
                         <p-card class="mt-8 block w-full text-left" styleClass="border border-slate-200 shadow-sm">
@@ -79,15 +75,22 @@ export class SignupSuccess {
     contactName = 'Contacto principal';
     teamName = 'Primer equipo';
     activationRequired = true;
+    activationEmailSent = true;
 
-    constructor(private readonly router: Router) {
+    constructor(
+        private readonly router: Router,
+        private readonly auth: AuthAccessService
+    ) {
         const state = this.router.getCurrentNavigation()?.extras.state as SignupSuccessState | undefined;
-        if (state) {
-            this.academyName = state.academyName || this.academyName;
-            this.contactEmail = state.contactEmail || this.contactEmail;
-            this.contactName = state.contactName || this.contactName;
-            this.teamName = state.teamName || this.teamName;
-            this.activationRequired = state.activationRequired ?? this.activationRequired;
+        const summary = state ?? this.auth.loadSignupSummary();
+
+        if (summary) {
+            this.academyName = summary.academyName || this.academyName;
+            this.contactEmail = summary.contactEmail || this.contactEmail;
+            this.contactName = summary.contactName || this.contactName;
+            this.teamName = summary.teamName || this.teamName;
+            this.activationRequired = summary.activationRequired ?? this.activationRequired;
+            this.activationEmailSent = summary.activationEmailSent ?? this.activationEmailSent;
         }
     }
 }

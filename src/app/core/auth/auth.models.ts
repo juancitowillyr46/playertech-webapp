@@ -97,3 +97,12 @@ export interface TenantActivationRequest {
     password: string;
     passwordConfirmation: string;
 }
+
+export interface TenantSignupSummary {
+    academyName: string;
+    contactEmail: string;
+    contactName: string;
+    teamName: string;
+    activationRequired: boolean;
+    activationEmailSent: boolean;
+}

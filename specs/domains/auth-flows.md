@@ -135,6 +135,12 @@ Convertir el dominio de autenticación en flujos verificables con criterios de a
 * [x] Estado claro de cuenta creada y correo pendiente.
 * [x] Mensaje claro ante token inválido o expirado.
 
+### Vacíos detectados
+
+* La respuesta pública de signup expone `activationEmailSent`, pero la UI no la usa todavía para diferenciar entre "cuenta creada" y "correo enviado".
+* La pantalla de confirmación depende de `router state` para mostrar el resumen, por lo que pierde contexto si el usuario recarga o entra directo por URL.
+* El componente de signup todavía conserva estado y helpers heredados que no aportan comportamiento visible, aunque no rompen el flujo.
+
 ## Signup
 
 ### Pantalla
@@ -151,6 +157,8 @@ Convertir el dominio de autenticación en flujos verificables con criterios de a
 
 * [x] Mantener la spec de signup alineada con el contrato final.
 * [x] Revisar si signup sigue siendo un flujo activo o queda como legado.
+* [x] Reemplazar el resumen de éxito basado solo en navegación por un estado persistente o una respuesta rehidratable.
+* [x] Consumir `activationEmailSent` para ajustar el mensaje de confirmación cuando el backend lo devuelva.
 
 ## Profile access
 

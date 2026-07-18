@@ -67,6 +67,10 @@ La experiencia debe ser simple y comprensible para usuarios con poca familiarida
 * Resultado exitoso del backend al registrar el tenant.
 * Mensaje de confirmación asociado al flujo de onboarding.
 
+#### Deuda detectada
+
+* Resuelta: el cierre de signup ahora persiste el resumen y diferencia entre cuenta creada y correo enviado.
+
 ## Reglas de UX Relacionadas
 
 * Mostrar pasos del onboarding de forma secuencial.
