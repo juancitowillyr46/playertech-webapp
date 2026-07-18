@@ -345,7 +345,7 @@ interface CountryOption {
                                                 </div>
                                             </div>
 
-                        <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/60">
+                        <div class="rounded-[0.9rem] border border-slate-200 bg-white p-4 dark:border-surface-700 dark:bg-surface-900">
                                                 <div class="flex flex-col gap-3">
                                                     <div>
                                                         <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Foto del jugador</p>
@@ -720,7 +720,7 @@ interface CountryOption {
                                                     </div>
                                                 </div>
                                             } @else {
-                                                <div class="rounded-[0.75rem] border border-dashed border-slate-300 bg-slate-50 p-3 dark:border-surface-700 dark:bg-surface-900/60 sm:p-4">
+                                                <div class="rounded-[0.75rem] border border-dashed border-slate-300 bg-white p-3 dark:border-surface-700 dark:bg-surface-900 sm:p-4">
                                                     <div class="space-y-4">
                                                         <div class="space-y-1">
                                                             <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Crear matrícula</p>
@@ -1052,7 +1052,7 @@ interface CountryOption {
                                     <p-message severity="error" size="small">Selecciona el equipo que vas a asignar.</p-message>
                                 }
                             } @else {
-                                <div class="rounded-[0.85rem] border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-sm leading-6 text-slate-500 dark:border-surface-700 dark:bg-surface-900/60 dark:text-slate-400">
+                                <div class="rounded-[0.85rem] border border-dashed border-slate-300 bg-white px-3 py-3 text-sm leading-6 text-slate-500 dark:border-surface-700 dark:bg-surface-900 dark:text-slate-400">
                                     No hay equipos activos disponibles para asignar en esta iteración.
                                 </div>
                             }
@@ -1067,7 +1067,7 @@ interface CountryOption {
                         </div>
 
                         <div class="col-span-12 md:col-span-6 flex items-end">
-                            <div class="flex w-full items-start gap-3 rounded-[0.85rem] border border-slate-200 bg-slate-50 px-3 py-3 dark:border-surface-700 dark:bg-surface-900/60">
+                            <div class="flex w-full items-start gap-3 rounded-[0.85rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900">
                                 <p-checkbox inputId="teamAssignmentPrimary" [(ngModel)]="teamAssignmentForm.markAsPrimary" [binary]="true" />
                                 <div class="space-y-1">
                                     <label for="teamAssignmentPrimary" class="cursor-pointer text-sm font-medium text-surface-900 dark:text-surface-0">Definir como equipo principal</label>
