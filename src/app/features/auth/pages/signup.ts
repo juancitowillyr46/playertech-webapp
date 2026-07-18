@@ -127,7 +127,7 @@ type StepKey = 1 | 2 | 3;
 
                                         <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                             <label for="categoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categoría del equipo</label>
-                                            <p-select id="categoryId" [(ngModel)]="form.categoryId" name="categoryId" [options]="categories" optionLabel="name" optionValue="id" placeholder="Seleccionar categoría" class="w-full"></p-select>
+                                            <p-select id="categoryId" [(ngModel)]="form.categoryId" name="categoryId" [options]="categories" optionLabel="name" optionValue="id" placeholder="Seleccionar categoría" class="w-full" appendTo="body" [scrollHeight]="'16rem'"></p-select>
                                             @if (showError('categoryId')) {
                                                 <p-message severity="error" size="small">Selecciona la categoría del equipo.</p-message>
                                             }
@@ -228,6 +228,7 @@ type StepKey = 1 | 2 | 3;
                                                     optionValue="name"
                                                     placeholder="Selecciona un departamento"
                                                     class="w-full"
+                                                    appendTo="body"
                                                     (onChange)="form.city = ''">
                                                 </p-select>
                                                 @if (showError('department')) {
@@ -245,7 +246,8 @@ type StepKey = 1 | 2 | 3;
                                                     name="city"
                                                     [options]="departmentCities"
                                                     placeholder="Selecciona una ciudad"
-                                                    class="w-full">
+                                                    class="w-full"
+                                                    appendTo="body">
                                                 </p-select>
                                                 @if (showError('city')) {
                                                     <p-message severity="error" size="small">Selecciona la ciudad.</p-message>
@@ -391,7 +393,13 @@ export class Signup {
         { id: 'cat-sub-11', name: 'SUB 11 (10-11 años)' },
         { id: 'cat-sub-12', name: 'SUB 12 (11-12 años)' },
         { id: 'cat-sub-13', name: 'SUB 13 (12-13 años)' },
-        { id: 'cat-sub-14', name: 'SUB 14 (13-14 años)' }
+        { id: 'cat-sub-14', name: 'SUB 14 (13-14 años)' },
+        { id: 'cat-sub-15', name: 'SUB 15 (14-15 años)' },
+        { id: 'cat-sub-16', name: 'SUB 16 (15-16 años)' },
+        { id: 'cat-sub-17', name: 'SUB 17 (16-17 años)' },
+        { id: 'cat-sub-18', name: 'SUB 18 (17-18 años)' },
+        { id: 'cat-sub-19', name: 'SUB 19 (18-19 años)' },
+        { id: 'cat-sub-20', name: 'SUB 20 (19-20 años)' }
     ];
 
     countryCodes: CountryOption[] = [
