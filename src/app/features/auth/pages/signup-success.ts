@@ -32,28 +32,26 @@ type SignupSuccessState = Partial<TenantSignupSummary>;
 
                         <p-card class="mt-8 block w-full text-left" styleClass="border border-slate-200 shadow-sm">
                             <ng-template pTemplate="content">
-                                <div class="grid gap-5 sm:grid-cols-2">
-                                    <div class="rounded-2xl bg-slate-50 p-4">
+                                <div class="space-y-3">
+                                    <div class="flex items-start justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
                                         <p class="text-xs uppercase tracking-[0.22em] text-slate-500">Academia</p>
-                                        <p class="mt-2 font-medium text-slate-900">{{ academyName }}</p>
+                                        <p class="max-w-[18rem] text-right font-medium text-slate-900">{{ academyName }}</p>
                                     </div>
-                                    <div class="rounded-2xl bg-slate-50 p-4">
-                                        <p class="text-xs uppercase tracking-[0.22em] text-slate-500">Correo de contacto</p>
-                                        <p class="mt-2 font-medium text-slate-900">{{ contactEmail }}</p>
+                                    <div class="flex items-start justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                                        <p class="text-xs uppercase tracking-[0.22em] text-slate-500">Contacto</p>
+                                        <p class="max-w-[18rem] text-right font-medium text-slate-900">{{ contactName }}</p>
                                     </div>
-                                    <div class="rounded-2xl bg-slate-50 p-4">
-                                        <p class="text-xs uppercase tracking-[0.22em] text-slate-500">Contacto principal</p>
-                                        <p class="mt-2 font-medium text-slate-900">{{ contactName }}</p>
+                                    <div class="flex items-start justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                                        <p class="text-xs uppercase tracking-[0.22em] text-slate-500">Correo</p>
+                                        <p class="max-w-[18rem] truncate text-right font-medium text-slate-900">{{ contactEmail }}</p>
                                     </div>
-                                    <div class="rounded-2xl bg-slate-50 p-4">
-                                        <p class="text-xs uppercase tracking-[0.22em] text-slate-500">Primer equipo</p>
-                                        <p class="mt-2 font-medium text-slate-900">{{ teamName }}</p>
+                                    <div class="flex items-start justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                                        <p class="text-xs uppercase tracking-[0.22em] text-slate-500">Equipo inicial</p>
+                                        <p class="max-w-[18rem] text-right font-medium text-slate-900">{{ teamName }}</p>
                                     </div>
                                 </div>
 
-                                <p-divider />
-
-                                <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-900">
+                                <div class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900">
                                     {{ activationRequired ? 'La cuenta queda pendiente hasta confirmar el correo.' : 'La cuenta ya puede usarse, pero siempre recomendamos revisar el correo de activación.' }}
                                 </div>
                             </ng-template>

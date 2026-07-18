@@ -289,14 +289,6 @@ type StepKey = 1 | 2 | 3;
                                                 }
                                             </div>
                                         } @else {
-                                            <div class="col-span-12 flex flex-col gap-2">
-                                                <label for="address" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección</label>
-                                                <input pInputText id="address" type="text" [(ngModel)]="form.address" name="address" placeholder="Ej. Jr. Secundario 789" class="w-full" />
-                                                @if (showError('address')) {
-                                                    <p-message severity="error" size="small">Escribe la dirección.</p-message>
-                                                }
-                                            </div>
-
                                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                                 <label for="city" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad</label>
                                                 <input pInputText id="city" type="text" [(ngModel)]="form.city" name="city" placeholder="Ej. Arequipa" class="w-full" />
@@ -451,7 +443,6 @@ export class Signup implements OnInit {
         countryCode: '+57',
         phoneNumber: '',
         department: '',
-        address: '',
         city: '',
         onboardingCategoryId: '',
         teamName: ''
@@ -669,7 +660,6 @@ export class Signup implements OnInit {
     onCountryCodeChange() {
         this.form.department = '';
         this.form.city = '';
-        this.form.address = '';
     }
 
     onRestrictedNameKeydown(event: KeyboardEvent) {
@@ -701,7 +691,7 @@ export class Signup implements OnInit {
         void step;
         const fieldsByStep: Record<StepKey, string[]> = {
             1: ['name', 'onboardingCategoryId', 'teamName'],
-            2: ['contactName', 'contactEmail', 'countryCode', 'phoneNumber', 'department', 'address', 'city'],
+            2: ['contactName', 'contactEmail', 'countryCode', 'phoneNumber', 'department', 'city'],
             3: ['password', 'confirmPassword', 'terms', 'dataProcessing']
         };
         void fieldsByStep;
@@ -712,7 +702,7 @@ export class Signup implements OnInit {
             return 1;
         }
 
-        if (['contactName', 'contactEmail', 'countryCode', 'phoneNumber', 'department', 'address', 'city'].includes(field)) {
+        if (['contactName', 'contactEmail', 'countryCode', 'phoneNumber', 'department', 'city'].includes(field)) {
             return 2;
         }
 
@@ -725,7 +715,7 @@ export class Signup implements OnInit {
         }
 
         if (step === 2) {
-            return this.isFieldValid('contactName') && this.isFieldValid('contactEmail') && this.isFieldValid('phoneNumber') && this.isFieldValid('department') && this.isFieldValid('address') && this.isFieldValid('city');
+            return this.isFieldValid('contactName') && this.isFieldValid('contactEmail') && this.isFieldValid('phoneNumber') && this.isFieldValid('department') && this.isFieldValid('city');
         }
 
         return this.isFieldValid('password') && this.isFieldValid('confirmPassword') && this.isFieldValid('terms') && this.isFieldValid('dataProcessing');
@@ -774,8 +764,6 @@ export class Signup implements OnInit {
                 return this.isValidPhoneNumber(this.form.countryCode, this.form.phoneNumber);
             case 'department':
                 return this.form.countryCode !== '+57' || !!this.form.department.trim();
-            case 'address':
-                return this.form.countryCode === '+57' || this.form.address.trim().length >= 5;
             case 'city':
                 return this.form.countryCode === '+57' ? !!this.form.city.trim() : this.hasValidText(this.form.city, 2);
             case 'onboardingCategoryId':
@@ -900,7 +888,6 @@ export class Signup implements OnInit {
             phone: this.buildPhoneNumber(),
             country: this.getSelectedCountryName(),
             department: this.form.department,
-            address: this.form.address,
             city: this.form.city,
             onboardingCategoryId: this.form.onboardingCategoryId,
             teamName: this.form.teamName,

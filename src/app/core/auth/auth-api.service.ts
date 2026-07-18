@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
-import { ApiEnvelope, AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, PublicCategory, PublicCategoryListResponse, TenantActivationRequest, TenantSignupRequest, TenantSignupResponse } from './auth.models';
+import { ApiEnvelope, AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, PublicCategory, PublicCategoryListResponse, TenantActivationRequest, TenantActivationStatusResponse, TenantSignupRequest, TenantSignupResponse } from './auth.models';
 import { environment } from '../../../environments/environment';
 
 export interface AuthErrorLike {
@@ -59,11 +59,8 @@ export class AuthApiService {
         );
     }
 
-    checkTenantActivation(token: string): Observable<TenantSignupResponse> {
-        return this.http.get<ApiEnvelope<TenantSignupResponse> | TenantSignupResponse>(this.url(`/api/v1/public/tenants/activate/${encodeURIComponent(token)}`)).pipe(
-            map((response) => this.unwrapResponse(response)),
-            catchError((error) => throwError(() => this.normalizeError(error)))
-        );
+    checkTenantActivation(token: string): Observable<TenantActivationStatusResponse> {
+        return this.http.get<TenantActivationStatusResponse>(this.url(`/api/v1/public/tenants/activate/${encodeURIComponent(token)}`)).pipe(catchError((error) => throwError(() => this.normalizeError(error))));
     }
 
     requestPasswordReset(payload: PasswordResetRequest): Observable<void> {
@@ -82,7 +79,7 @@ export class AuthApiService {
     }
 
     private unwrapUser(response: ApiEnvelope<AuthUser> | AuthUser): AuthUser {
-        if (typeof response === 'object' && response !== null && 'data' in response && response.data) {
+        if (typeof response === 'object' && response !== null && 'data' in response && response.data !== undefined) {
             return response.data;
         }
 
@@ -90,7 +87,7 @@ export class AuthApiService {
     }
 
     private unwrapResponse<T>(response: ApiEnvelope<T> | T): T {
-        if (typeof response === 'object' && response !== null && 'data' in response && response.data) {
+        if (typeof response === 'object' && response !== null && 'data' in response && response.data !== undefined) {
             return response.data;
         }
 

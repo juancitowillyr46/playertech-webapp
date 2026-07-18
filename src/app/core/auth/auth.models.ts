@@ -39,6 +39,20 @@ export interface ApiEnvelope<T> {
     message?: string;
 }
 
+export interface PublicCategory {
+    id: string;
+    code: string;
+    name: string;
+    minAge: number;
+    maxAge: number;
+    description: string;
+    status: string;
+}
+
+export interface PublicCategoryListResponse {
+    data: PublicCategory[];
+}
+
 export interface TenantSignupRequest {
     name: string;
     contactEmail: string;
@@ -47,9 +61,8 @@ export interface TenantSignupRequest {
     phone: string;
     country: string;
     department: string;
-    address: string;
     city: string;
-    categoryId: string;
+    onboardingCategoryId: string;
     teamName: string;
     acceptedTerms: boolean;
     acceptedDataProcessing: boolean;
@@ -63,7 +76,6 @@ export interface TenantSignupAcademy {
     phone?: string;
     country?: string;
     department?: string;
-    address?: string;
     city?: string;
     categoryId?: string;
     status?: string;
@@ -96,6 +108,18 @@ export interface TenantSignupResponse {
 export interface TenantActivationRequest {
     password: string;
     passwordConfirmation: string;
+}
+
+export interface TenantActivationStatus {
+    email?: string;
+    status?: string;
+    activated?: boolean;
+    alreadyActivated?: boolean;
+}
+
+export interface TenantActivationStatusResponse {
+    data?: TenantActivationStatus;
+    meta?: unknown;
 }
 
 export interface TenantSignupSummary {
