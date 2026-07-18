@@ -40,6 +40,7 @@ export class PlayerManagementService {
             federationId: 'F001',
             dominantFoot: 'Derecho',
             email: 'juan.perez@example.com',
+            countryCode: '+51',
             phoneNumber: '+51 987 654 321',
             status: 'ACTIVE',
             photo: null
@@ -59,6 +60,7 @@ export class PlayerManagementService {
             federationId: 'F002',
             dominantFoot: 'Izquierdo',
             email: 'mateo.garcia@example.com',
+            countryCode: '+51',
             phoneNumber: '+51 912 345 678',
             status: 'ACTIVE',
             photo: null
@@ -78,6 +80,7 @@ export class PlayerManagementService {
             federationId: 'F003',
             dominantFoot: 'Derecho',
             email: 'sofia.lopez@example.com',
+            countryCode: '+57',
             phoneNumber: '+57 301 555 8899',
             status: 'INACTIVE',
             photo: null
@@ -372,6 +375,7 @@ export class PlayerManagementService {
             federationId: this.normalizeOptionalText(payload.federationId),
             dominantFoot: this.normalizeOptionalText(payload.dominantFoot),
             email: this.normalizeOptionalText(payload.email?.toLowerCase() ?? ''),
+            countryCode: this.normalizeOptionalText(payload.countryCode),
             phoneNumber: this.normalizeOptionalText(payload.phoneNumber),
             status: 'ACTIVE',
             photo
@@ -402,6 +406,7 @@ export class PlayerManagementService {
                 federationId: this.normalizeOptionalText(payload.federationId),
                 dominantFoot: this.normalizeOptionalText(payload.dominantFoot),
                 email: this.normalizeOptionalText(payload.email?.toLowerCase() ?? ''),
+                countryCode: this.normalizeOptionalText(payload.countryCode),
                 phoneNumber: this.normalizeOptionalText(payload.phoneNumber),
                 categoryId: payload.categoryId,
                 categoryName: category?.name ?? player.categoryName,
