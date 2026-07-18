@@ -209,8 +209,8 @@ interface CountryOption {
 
                                             <div class="grid grid-cols-12 gap-4">
                                                 <div class="col-span-12">
-                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información personal</p>
-                                                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Registra el documento, nombres, apellidos y datos base del jugador.</p>
+                                                    <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Información personal</p>
+                                                    <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Registra el documento, nombres, apellidos y datos base del jugador.</p>
                                                 </div>
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -281,26 +281,26 @@ interface CountryOption {
                                             </div>
 
                                             <div class="space-y-1">
-                                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información de contacto</p>
-                                                <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Agrupa el canal de contacto directo del jugador.</p>
+                                                <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Información de contacto</p>
+                                                <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Agrupa el canal de contacto directo del jugador.</p>
                                             </div>
 
                                             <div class="grid grid-cols-12 gap-4">
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                                     <label for="phoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Celular <span class="text-slate-400">(opcional)</span></label>
-                                                    <div class="grid grid-cols-12 gap-3">
-                                                        <p-select
-                                                            id="countryCode"
-                                                            [(ngModel)]="form.countryCode"
-                                                            [options]="countryOptions"
-                                                            optionLabel="label"
-                                                            optionValue="value"
-                                                            placeholder="Código"
-                                                            class="col-span-12 md:col-span-4 w-full"
-                                                            appendTo="body"
-                                                            [scrollHeight]="'16rem'"
-                                                        />
-                                                        <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" placeholder="Ej. 987 654 321" class="col-span-12 md:col-span-8 w-full" (input)="onPhoneInput($event)" />
+                                                        <div class="grid grid-cols-12 gap-3">
+                                                            <p-select
+                                                                id="countryCode"
+                                                                [(ngModel)]="form.countryCode"
+                                                                [options]="countryOptions"
+                                                                optionLabel="label"
+                                                                optionValue="value"
+                                                                placeholder="Código"
+                                                                class="col-span-12 sm:col-span-4 w-full"
+                                                                appendTo="body"
+                                                                [scrollHeight]="'16rem'"
+                                                            />
+                                                        <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" placeholder="Ej. 987 654 321" class="col-span-12 sm:col-span-8 w-full" (input)="onPhoneInput($event)" />
                                                     </div>
                                                     @if (showError('countryCode') || showError('phoneNumber')) {
                                                         <p-message severity="error" size="small">Ingresa un celular válido.</p-message>
@@ -317,8 +317,8 @@ interface CountryOption {
                                             </div>
 
                                             <div class="space-y-1">
-                                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Detalle del jugador</p>
-                                                <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Agrega la categoría y los datos deportivos complementarios.</p>
+                                                <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Detalle del jugador</p>
+                                                <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Agrega la categoría y los datos deportivos complementarios.</p>
                                             </div>
 
                                             <div class="grid grid-cols-12 gap-4">

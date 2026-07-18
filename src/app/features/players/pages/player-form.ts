@@ -42,10 +42,10 @@ interface CountryOption {
             <div class="content-width-compact mx-auto mt-4 w-full space-y-3">
                 <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                     <div class="space-y-4 p-3 sm:p-4">
-                        <div class="space-y-3">
+                        <div class="space-y-12">
                             <div class="space-y-1">
-                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información personal</p>
-                                <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Registra el documento, nombres, apellidos y datos base del jugador.</p>
+                                <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Información personal</p>
+                                <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Registra el documento, nombres, apellidos y datos base del jugador.</p>
                             </div>
 
                             <div class="grid grid-cols-12 gap-4">
@@ -116,6 +116,11 @@ interface CountryOption {
                                 </div>
                             </div>
 
+                            <div class="space-y-1">
+                                <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Información de contacto</p>
+                                <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Agrupa el canal de contacto directo del jugador.</p>
+                            </div>
+
                             <div class="grid grid-cols-12 gap-4">
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="phoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Celular <span class="text-slate-400">(opcional)</span></label>
@@ -129,7 +134,7 @@ interface CountryOption {
                                             [filter]="true"
                                             filterBy="name,dialCode"
                                             placeholder="Código"
-                                            class="col-span-12 md:col-span-4 w-full"
+                                            class="col-span-12 sm:col-span-4 w-full"
                                             appendTo="body"
                                             [scrollHeight]="'16rem'"
                                         >
@@ -149,7 +154,7 @@ interface CountryOption {
                                                 </div>
                                             </ng-template>
                                         </p-select>
-                                        <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" placeholder="Ej. 987 654 321" class="col-span-12 md:col-span-8 w-full" (input)="onPhoneInput($event)" />
+                                        <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" placeholder="Ej. 987 654 321" class="col-span-12 sm:col-span-8 w-full" (input)="onPhoneInput($event)" />
                                     </div>
                                     @if (showError('countryCode') || showError('phoneNumber')) {
                                         <p-message severity="error" size="small">Ingresa un celular válido.</p-message>
@@ -166,8 +171,8 @@ interface CountryOption {
                             </div>
 
                             <div class="space-y-1">
-                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Detalle del jugador</p>
-                                <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Agrega la categoría y los datos deportivos complementarios.</p>
+                                <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Detalle del jugador</p>
+                                <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Agrega la categoría y los datos deportivos complementarios.</p>
                             </div>
 
                             <div class="grid grid-cols-12 gap-4">
