@@ -43,6 +43,12 @@ Incluye:
 * `POST /api/v1/public/users/password-reset/confirm/{token}`
 * `PUT /api/v1/auth/me/name`
 
+### UI legal asociada al signup
+
+* El signup público debe exponer diálogos modales separados para `Términos y condiciones` y `Tratamiento de datos personales`.
+* Cada diálogo debe permitir lectura extensa con scroll interno y sin recortar el contenedor del onboarding.
+* El cierre del diálogo no debe borrar el progreso del formulario.
+
 ### Roles visibles en frontend
 
 * `ROLE_ROOT`

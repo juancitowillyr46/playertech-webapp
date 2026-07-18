@@ -160,6 +160,26 @@ Convertir el dominio de autenticación en flujos verificables con criterios de a
 * [x] Reemplazar el resumen de éxito basado solo en navegación por un estado persistente o una respuesta rehidratable.
 * [x] Consumir `activationEmailSent` para ajustar el mensaje de confirmación cuando el backend lo devuelva.
 
+## Legal dialogs del signup
+
+### Pantalla
+
+* [src/app/features/auth/pages/signup.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\auth\pages\signup.ts)
+
+### Criterios de aceptación
+
+* Dado un usuario público en el signup, cuando abre el enlace de términos y condiciones, entonces el frontend debe mostrar un diálogo modal con contenido largo, navegable y separado del formulario.
+* Dado un usuario público en el signup, cuando abre el enlace de tratamiento de datos personales, entonces el frontend debe mostrar un diálogo modal distinto con contenido largo, navegable y separado del formulario.
+* Dado un usuario público, cuando el contenido excede el alto visible, entonces el diálogo debe permitir scroll interno sin romper el layout del onboarding.
+* Dado un usuario público, cuando cierra cualquiera de los diálogos legales, entonces vuelve exactamente al formulario sin perder el progreso.
+
+### Checklist de verificación
+
+* [x] Diálogo independiente para términos y condiciones.
+* [x] Diálogo independiente para tratamiento de datos personales.
+* [x] Contenido largo con estructura tipo documento legal.
+* [x] Scroll interno sin recortar el signup.
+
 ## Profile access
 
 ### Pantalla

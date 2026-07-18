@@ -308,6 +308,8 @@ type StepKey = 1 | 2 | 3;
                                             <label for="terms" class="text-sm leading-6 text-slate-600 dark:text-slate-300">
                                                 Acepto los
                                                 <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openTerms($event)">términos y condiciones</a>
+                                                y
+                                                <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openDataProcessing($event)">tratamiento de datos personales</a>
                                             </label>
                                         </div>
                                         @if (showError('terms')) {
@@ -319,7 +321,8 @@ type StepKey = 1 | 2 | 3;
                                         <div class="col-span-12 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-surface-800 dark:bg-surface-950">
                                             <p-checkbox [(ngModel)]="acceptedDataProcessing" inputId="dataProcessing" name="dataProcessing" binary></p-checkbox>
                                             <label for="dataProcessing" class="text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                                Acepto el tratamiento de mis datos personales.
+                                                Acepto el
+                                                <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openDataProcessing($event)">tratamiento de mis datos personales</a>
                                             </label>
                                         </div>
                                         @if (showError('dataProcessing')) {
@@ -357,14 +360,43 @@ type StepKey = 1 | 2 | 3;
             </div>
         </div>
 
-        <p-dialog [(visible)]="showTermsDialog" header="Términos y condiciones" [modal]="true" [style]="{ width: '42rem' }" [breakpoints]="{ '960px': '90vw', '640px': '95vw' }">
-            <div class="space-y-4 text-sm leading-6 text-surface-700 dark:text-surface-200">
-                <p>Estos términos describen el uso inicial de la cuenta de demostración mientras se valida la experiencia de registro y acceso.</p>
-                <p>La información ingresada en este formulario será tratada como datos de configuración de una academia dentro de la plataforma PlayerTech.</p>
-                <p>Este contenido es una referencia temporal para la iteración de UX y podrá evolucionar cuando se conecte el flujo real de onboarding.</p>
+        <p-dialog [(visible)]="showTermsDialog" header="Términos y condiciones" [modal]="true" [style]="{ width: '46rem' }" [breakpoints]="{ '960px': '90vw', '640px': '95vw' }" [contentStyle]="{ 'max-height': '70vh', overflow: 'auto' }">
+            <div class="space-y-5 text-sm leading-6 text-surface-700 dark:text-surface-200">
+                <p>Estos términos regulan el acceso y uso inicial de la plataforma PlayerTech durante el proceso de registro público de academias. Al continuar, el usuario declara que ha leído, comprendido y aceptado las condiciones aquí descritas.</p>
+                <p>1. Objeto. El formulario de signup permite crear una cuenta de academia, un usuario administrador inicial y un equipo base. Esta funcionalidad está orientada a fines operativos, administrativos y de configuración inicial dentro del ecosistema PlayerTech.</p>
+                <p>2. Alcance del servicio. La plataforma puede almacenar información de contacto, ubicación, categoría deportiva, nombre del equipo inicial y demás datos ingresados por el usuario para habilitar el acceso al servicio y completar el onboarding.</p>
+                <p>3. Responsabilidad del usuario. Quien envía el formulario declara que la información proporcionada es veraz, actual y que tiene facultades para registrar la academia y aceptar estas condiciones en nombre de la organización.</p>
+                <p>4. Uso aceptable. El usuario se compromete a no ingresar información falsa, ofensiva, ilícita o que infrinja derechos de terceros. PlayerTech podrá restringir el acceso si detecta abuso, manipulación de datos o uso indebido del sistema de alta.</p>
+                <p>5. Cuentas y credenciales. La contraseña creada durante el onboarding debe mantenerse bajo reserva. El usuario es responsable por toda actividad realizada con sus credenciales, salvo que notifique un incidente de seguridad conforme a los canales habilitados.</p>
+                <p>6. Disponibilidad. PlayerTech podrá suspender temporalmente el servicio por mantenimiento, mejoras de seguridad, correcciones técnicas o actualización de dependencias, procurando minimizar afectaciones al proceso de registro.</p>
+                <p>7. Propiedad y licencia. La marca, el software, los diseños, los textos y el material de la plataforma pertenecen a PlayerTech o a sus licenciantes. El uso del servicio no transfiere propiedad intelectual alguna al usuario.</p>
+                <p>8. Actualizaciones. Estos términos podrán modificarse cuando el producto evolucione. La versión publicada al momento del envío del formulario será la aplicable, salvo que un cambio normativo exija su actualización inmediata.</p>
+                <p>9. Suspensión y terminación. PlayerTech podrá limitar, suspender o cancelar el acceso ante incumplimientos, fraude, uso malicioso o requerimientos legales. El usuario podrá dejar de usar la plataforma en cualquier momento.</p>
+                <p>10. Legislación aplicable. La interpretación de estos términos se regirá por la normativa aplicable al lugar de operación y por las políticas internas del servicio, sin perjuicio de las obligaciones legales que correspondan.</p>
+                <p>11. Contacto. Para consultas sobre estos términos, incidencias del onboarding o aclaraciones sobre el uso del servicio, el usuario podrá contactar a soporte a través de los canales oficiales de la plataforma.</p>
             </div>
             <ng-template #footer>
                 <p-button label="Cerrar" (click)="showTermsDialog = false" />
+            </ng-template>
+        </p-dialog>
+
+        <p-dialog [(visible)]="showDataProcessingDialog" header="Tratamiento de datos personales" [modal]="true" [style]="{ width: '46rem' }" [breakpoints]="{ '960px': '90vw', '640px': '95vw' }" [contentStyle]="{ 'max-height': '70vh', overflow: 'auto' }">
+            <div class="space-y-5 text-sm leading-6 text-surface-700 dark:text-surface-200">
+                <p>Mediante este documento se informa al usuario sobre el tratamiento de datos personales que realiza PlayerTech en el contexto del signup público de academias. La aceptación expresa de este apartado autoriza el procesamiento de la información ingresada para las finalidades descritas a continuación.</p>
+                <p>1. Responsable del tratamiento. PlayerTech actúa como responsable de la información suministrada por el usuario en el formulario, incluyendo nombre de la academia, datos del contacto, teléfono, ubicación, categoría deportiva y otros campos asociados al registro.</p>
+                <p>2. Finalidades. Los datos se usarán para crear la cuenta, habilitar el acceso inicial, gestionar comunicación operativa, validar identidad organizacional, prestar soporte, prevenir fraude, ejecutar mejoras del servicio y cumplir obligaciones legales o contractuales.</p>
+                <p>3. Autorización. El usuario autoriza de manera previa, expresa e informada el tratamiento de sus datos personales y de los datos de la academia para las finalidades indicadas. Esta autorización comprende almacenamiento, consulta, organización, actualización, transmisión y demás operaciones necesarias para operar el servicio.</p>
+                <p>4. Datos tratados. La plataforma puede recolectar información de identificación, contacto, datos de ubicación, credenciales de acceso, registros de actividad y metadatos técnicos asociados a la sesión o al dispositivo desde el cual se realiza el onboarding.</p>
+                <p>5. Derechos del titular. El usuario podrá acceder, actualizar, rectificar, solicitar supresión cuando proceda, revocar la autorización y presentar consultas o reclamos sobre sus datos conforme a los canales de atención disponibles y a la normativa aplicable.</p>
+                <p>6. Seguridad. PlayerTech aplica medidas razonables de seguridad administrativas, técnicas y organizativas para proteger la confidencialidad e integridad de los datos. Ningún sistema es infalible, por lo que el usuario también debe proteger sus credenciales y dispositivos.</p>
+                <p>7. Conservación. Los datos serán conservados durante el tiempo necesario para cumplir las finalidades del tratamiento, las obligaciones legales y el soporte operativo del servicio. Posteriormente podrán ser eliminados o anonimizados conforme a la política aplicable.</p>
+                <p>8. Transferencia y transmisión. Cuando resulte necesario para operar el servicio, PlayerTech podrá compartir datos con proveedores tecnológicos, infraestructura de nube, herramientas de mensajería o servicios de soporte, siempre bajo condiciones de confidencialidad y protección acordes al propósito del tratamiento.</p>
+                <p>9. Menores de edad. Si el registro incluye datos relacionados con categorías deportivas o equipos de menores, el usuario declara contar con la autorización correspondiente para proporcionar dicha información y para que sea tratada bajo los fines del servicio.</p>
+                <p>10. Canales de atención. El usuario puede solicitar aclaraciones, ejercer derechos o presentar requerimientos relacionados con protección de datos a través de los canales oficiales de PlayerTech y del correo de soporte establecido para tales efectos.</p>
+                <p>11. Vigencia. Esta autorización permanecerá vigente mientras exista una relación activa con la plataforma o durante el tiempo adicional requerido por obligaciones legales, contractuales o de seguridad documental.</p>
+            </div>
+            <ng-template #footer>
+                <p-button label="Cerrar" (click)="showDataProcessingDialog = false" />
             </ng-template>
         </p-dialog>
     `
@@ -398,6 +430,7 @@ export class Signup {
     submitted = false;
     loading = false;
     showTermsDialog = false;
+    showDataProcessingDialog = false;
     apiMessage: { severity: 'success' | 'info' | 'warn' | 'error'; text: string } | null = null;
     stepNavigationMessage: string | null = null;
     stepSubmitted: Record<StepKey, boolean> = {
@@ -470,6 +503,11 @@ export class Signup {
     openTerms(event: MouseEvent) {
         event.preventDefault();
         this.showTermsDialog = true;
+    }
+
+    openDataProcessing(event: MouseEvent) {
+        event.preventDefault();
+        this.showDataProcessingDialog = true;
     }
 
     nextStep() {
