@@ -1,13 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { ToastModule } from 'primeng/toast';
 import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
+import { AuthAccessService } from '@/app/features/auth/data-access/auth-access.service';
 import { ProfileService } from '../data-access/profile.service';
 import { UserProfile } from '../models/profile.model';
 
@@ -20,7 +21,7 @@ import { UserProfile } from '../models/profile.model';
         <p-toast />
 
         <div class="space-y-4">
-            <app-page-header [breadcrumbs]="breadcrumbs" title="Perfil" subtitle="Consulta tu información de acceso y actualiza tu nombre."></app-page-header>
+            <app-page-header [breadcrumbs]="breadcrumbs" title="Perfil" subtitle="Consulta tu información y actualiza tu nombre."></app-page-header>
 
             <div class="content-width-compact mx-auto mt-4 w-full space-y-3">
                 <div class="rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
@@ -43,26 +44,6 @@ import { UserProfile } from '../models/profile.model';
                                 <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo electrónico</label>
                                 <input pInputText id="email" type="text" [ngModel]="profile.email" name="email" class="w-full" [disabled]="true" />
                             </div>
-
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="primaryRole" class="text-sm font-medium text-surface-700 dark:text-surface-200">Rol principal</label>
-                                <input pInputText id="primaryRole" type="text" [ngModel]="profile.primaryRoleLabel" name="primaryRole" class="w-full" [disabled]="true" />
-                            </div>
-
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="status" class="text-sm font-medium text-surface-700 dark:text-surface-200">Estado</label>
-                                <input pInputText id="status" type="text" [ngModel]="profile.statusLabel" name="status" class="w-full" [disabled]="true" />
-                            </div>
-
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="roles" class="text-sm font-medium text-surface-700 dark:text-surface-200">Roles asociados</label>
-                                <input pInputText id="roles" type="text" [ngModel]="profile.roles.join(', ')" name="roles" class="w-full" [disabled]="true" />
-                            </div>
-
-                            <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                <label for="context" class="text-sm font-medium text-surface-700 dark:text-surface-200">Contexto</label>
-                                <input pInputText id="context" type="text" [ngModel]="profile.contextLabel" name="context" class="w-full" [disabled]="true" />
-                            </div>
                         </div>
 
                         <div class="rounded-[0.9rem] border border-slate-200 bg-white p-4 dark:border-surface-700 dark:bg-surface-900">
@@ -71,7 +52,7 @@ import { UserProfile } from '../models/profile.model';
                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Seguridad</p>
                                     <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Si necesitas una nueva contraseña, te enviaremos un enlace a tu correo registrado.</p>
                                 </div>
-                                <p-button label="Restablecer contraseña" severity="secondary" outlined styleClass="w-full sm:w-auto" (onClick)="sendResetLink()" />
+                                <p-button label="Restablecer contraseña" severity="secondary" outlined styleClass="w-full justify-center whitespace-nowrap sm:w-auto sm:min-w-[16rem]" [loading]="resetLinkLoading" loadingIcon="pi pi-spinner pi-spin" [disabled]="resetLinkLoading" (onClick)="sendResetLink()" />
                             </div>
                         </div>
                     </div>
@@ -79,7 +60,7 @@ import { UserProfile } from '../models/profile.model';
                     <div class="border-t border-slate-200 p-4 dark:border-surface-800">
                         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
                             <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" routerLink="/" />
-                            <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full sm:w-auto" (onClick)="saveProfile()" />
+                            <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full sm:w-auto" [loading]="saving" loadingIcon="pi pi-spinner pi-spin" [disabled]="saving" (onClick)="saveProfile()" />
                         </div>
                     </div>
                 </div>
@@ -94,11 +75,13 @@ export class Profile implements OnInit {
     profile!: UserProfile;
     editableFullName = '';
     loading = false;
+    saving = false;
+    resetLinkLoading = false;
 
     constructor(
         private readonly profileService: ProfileService,
-        private readonly messageService: MessageService,
-        private readonly router: Router
+        private readonly authAccess: AuthAccessService,
+        private readonly messageService: MessageService
     ) {
         this.profile = this.profileService.getCurrentProfile();
         this.editableFullName = this.profile.fullName;
@@ -136,30 +119,51 @@ export class Profile implements OnInit {
             return;
         }
 
+        this.saving = true;
         this.profileService.updateCurrentProfileName(this.editableFullName).subscribe({
             next: (profile) => {
                 this.profile = profile;
                 this.editableFullName = profile.fullName;
                 this.messageService.add({
-                    severity: 'success',
-                    summary: 'Perfil actualizado',
-                    detail: 'Tu nombre fue actualizado correctamente.'
+                    severity: 'info',
+                    summary: 'Nombre actualizado',
+                    detail: 'Tu nombre se actualizó correctamente.'
                 });
+                this.saving = false;
             },
             error: () => {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'No se pudo actualizar',
-                    detail: 'Revisa tu conexión e inténtalo otra vez.'
+                    detail: 'Intenta nuevamente en unos segundos.'
                 });
+                this.saving = false;
             }
         });
     }
 
     sendResetLink() {
-        void this.router.navigate(['/auth/forgot-password'], {
-            queryParams: {
-                email: this.profile.email
+        if (this.resetLinkLoading) {
+            return;
+        }
+
+        this.resetLinkLoading = true;
+        this.authAccess.requestCurrentUserPasswordReset().subscribe({
+            next: () => {
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Enlace enviado',
+                    detail: 'Se envió un enlace al correo registrado.'
+                });
+                this.resetLinkLoading = false;
+            },
+            error: () => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No se pudo enviar',
+                    detail: 'Intenta nuevamente en unos segundos.'
+                });
+                this.resetLinkLoading = false;
             }
         });
     }

@@ -68,6 +68,10 @@ export class AuthApiService {
         return this.http.post<void>(this.url('/api/v1/public/users/password-reset/request'), payload).pipe(catchError((error) => throwError(() => this.normalizeError(error))));
     }
 
+    requestCurrentUserPasswordReset(): Observable<void> {
+        return this.http.post<void>(this.url('/api/v1/auth/me/password-reset/request'), undefined).pipe(catchError((error) => throwError(() => this.normalizeError(error))));
+    }
+
     confirmPasswordReset(token: string, payload: PasswordResetConfirm): Observable<void> {
         return this.http.post<void>(this.url(`/api/v1/public/users/password-reset/confirm/${encodeURIComponent(token)}`), payload).pipe(catchError((error) => throwError(() => this.normalizeError(error))));
     }

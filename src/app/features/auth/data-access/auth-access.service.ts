@@ -59,6 +59,10 @@ export class AuthAccessService {
         return this.api.requestPasswordReset(payload);
     }
 
+    requestCurrentUserPasswordReset(): Observable<void> {
+        return this.api.requestCurrentUserPasswordReset();
+    }
+
     confirmPasswordReset(token: string, payload: PasswordResetConfirm): Observable<void> {
         return this.api.confirmPasswordReset(token, payload);
     }

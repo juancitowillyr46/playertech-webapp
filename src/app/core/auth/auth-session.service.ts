@@ -3,6 +3,7 @@ import { AuthRole, AuthSessionState, AuthUser } from './auth.models';
 import { getAuthHomeRoute, getAuthRoleLabel, normalizeAuthSessionState, normalizeAuthUser } from './auth.mapper';
 
 const AUTH_SESSION_STORAGE_KEY = 'playertech.auth-session';
+const AUTH_STORAGE_KEY_PATTERNS = [/^playertech\./, /^md_jwt$/, /^sb-/];
 
 @Injectable({
     providedIn: 'root'
@@ -42,6 +43,7 @@ export class AuthSessionService {
             user: null
         });
         this.persistState();
+        this.clearAuthArtifacts();
     }
 
     getHomeRoute(): string {
@@ -76,5 +78,33 @@ export class AuthSessionService {
         }
 
         localStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(this.state()));
+    }
+
+    clearAuthArtifacts() {
+        this.clearMatchingStorageKeys(localStorage);
+        this.clearMatchingStorageKeys(sessionStorage);
+    }
+
+    private clearMatchingStorageKeys(storage: Storage) {
+        if (typeof storage === 'undefined') {
+            return;
+        }
+
+        const keysToRemove: string[] = [];
+
+        for (let index = 0; index < storage.length; index++) {
+            const key = storage.key(index);
+            if (!key) {
+                continue;
+            }
+
+            if (AUTH_STORAGE_KEY_PATTERNS.some((pattern) => pattern.test(key))) {
+                keysToRemove.push(key);
+            }
+        }
+
+        for (const key of keysToRemove) {
+            storage.removeItem(key);
+        }
     }
 }
