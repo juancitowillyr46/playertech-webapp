@@ -1,4 +1,4 @@
-import { AuthRole, AuthSessionState, AuthUser } from './auth.models';
+import { AcademyContext, AuthRole, AuthSessionState, AuthUser } from './auth.models';
 
 const ROLE_LABELS: Record<Extract<AuthRole, 'ROLE_ROOT' | 'ROLE_ACADEMY_ADMIN' | 'ROLE_COACH' | 'ROLE_USER'>, string> = {
     ROLE_ROOT: 'Plataforma',
@@ -30,6 +30,15 @@ export function normalizeAuthUser(user: AuthUser): AuthUser {
     };
 }
 
+export function normalizeAcademyContext(context: AcademyContext): AcademyContext {
+    return {
+        ...context,
+        academyId: context.academyId ?? null,
+        roles: Array.from(new Set((context.roles?.length ? context.roles : [context.role]).filter(Boolean))) as AuthRole[],
+        role: context.role || context.roles?.[0] || 'ROLE_USER'
+    };
+}
+
 export function normalizeAuthSessionState(state: AuthSessionState): AuthSessionState {
     if (!state?.user) {
         return { authenticated: false, user: null };
@@ -37,7 +46,8 @@ export function normalizeAuthSessionState(state: AuthSessionState): AuthSessionS
 
     return {
         authenticated: !!state.authenticated,
-        user: normalizeAuthUser(state.user)
+        user: normalizeAuthUser(state.user),
+        tenantContext: state.tenantContext ? normalizeAcademyContext(state.tenantContext) : null
     };
 }
 

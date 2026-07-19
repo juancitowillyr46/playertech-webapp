@@ -32,6 +32,9 @@ Levantar el servidor de desarrollo:
 npx ng serve
 ```
 
+El servidor de desarrollo usa `proxy.conf.json`, por lo que las llamadas a `/api/*`
+se redirigen automáticamente a `http://localhost:8081`.
+
 Abrir la app en:
 
 ```text
@@ -82,6 +85,8 @@ La documentación que gobierna la arquitectura y la forma de trabajo del fronten
 - [`specs/07-frontend-development-flow.md`](specs/07-frontend-development-flow.md)
 - [`specs/08-frontend-testing-strategy.md`](specs/08-frontend-testing-strategy.md)
 - [`specs/09-frontend-migration-plan.md`](specs/09-frontend-migration-plan.md)
+- [`specs/11-frontend-simple-implementation-standard.md`](specs/11-frontend-simple-implementation-standard.md)
+- [`specs/12-frontend-finance-navigation.md`](specs/12-frontend-finance-navigation.md)
 
 ## Notes
 
@@ -103,4 +108,3 @@ La documentación que gobierna la arquitectura y la forma de trabajo del fronten
 2. Vaciar la carpeta heredada `pages/` a medida que se creen features reales.
 3. Construir `core`, `shared` y la primera feature fundacional.
 4. Mantener la documentación sincronizada con la evolución del repo.
-

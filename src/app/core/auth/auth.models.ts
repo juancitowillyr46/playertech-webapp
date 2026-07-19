@@ -31,6 +31,7 @@ export interface AuthUser {
 export interface AuthSessionState {
     authenticated: boolean;
     user: AuthUser | null;
+    tenantContext?: AcademyContext | null;
 }
 
 export interface ApiEnvelope<T> {
@@ -129,4 +130,17 @@ export interface TenantSignupSummary {
     teamName: string;
     activationRequired: boolean;
     activationEmailSent: boolean;
+}
+
+export interface AcademyContext {
+    mode: 'tenant' | 'platform' | string;
+    userId: string;
+    academyId: string | null;
+    role: AuthRole;
+    roles: AuthRole[];
+}
+
+export interface AcademyContextResponse {
+    data?: AcademyContext;
+    meta?: unknown;
 }

@@ -1,6 +1,6 @@
 import { computed, Injectable, signal } from '@angular/core';
-import { AuthRole, AuthSessionState, AuthUser } from './auth.models';
-import { getAuthHomeRoute, getAuthRoleLabel, normalizeAuthSessionState, normalizeAuthUser } from './auth.mapper';
+import { AcademyContext, AuthRole, AuthSessionState, AuthUser } from './auth.models';
+import { getAuthHomeRoute, getAuthRoleLabel, normalizeAcademyContext, normalizeAuthSessionState, normalizeAuthUser } from './auth.mapper';
 
 const AUTH_SESSION_STORAGE_KEY = 'playertech.auth-session';
 const AUTH_STORAGE_KEY_PATTERNS = [/^playertech\./, /^md_jwt$/, /^sb-/];
@@ -13,6 +13,7 @@ export class AuthSessionService {
 
     readonly session = computed(() => this.state());
     readonly user = computed(() => this.state().user);
+    readonly tenantContext = computed(() => this.state().tenantContext ?? null);
     readonly isAuthenticated = computed(() => this.state().authenticated);
     readonly roles = computed(() => this.state().user?.roles ?? []);
     readonly primaryRole = computed<AuthRole | null>(() => this.state().user?.role ?? null);
@@ -30,17 +31,32 @@ export class AuthSessionService {
     }
 
     setSession(user: AuthUser) {
+        const current = this.state();
         this.state.set({
             authenticated: true,
-            user: normalizeAuthUser(user)
+            user: normalizeAuthUser(user),
+            tenantContext: current.tenantContext ?? null
         });
         this.persistState();
+    }
+
+    setTenantContext(context: AcademyContext | null) {
+        this.state.update((current) => ({
+            ...current,
+            tenantContext: context ? normalizeAcademyContext(context) : null
+        }));
+        this.persistState();
+    }
+
+    getTenantContext(): AcademyContext | null {
+        return this.tenantContext();
     }
 
     clearSession() {
         this.state.set({
             authenticated: false,
-            user: null
+            user: null,
+            tenantContext: null
         });
         this.persistState();
         this.clearAuthArtifacts();

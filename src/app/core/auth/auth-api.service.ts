@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
-import { ApiEnvelope, AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, PublicCategory, PublicCategoryListResponse, TenantActivationRequest, TenantActivationStatusResponse, TenantSignupRequest, TenantSignupResponse } from './auth.models';
+import { AcademyContext, AcademyContextResponse, ApiEnvelope, AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, PublicCategory, PublicCategoryListResponse, TenantActivationRequest, TenantActivationStatusResponse, TenantSignupRequest, TenantSignupResponse } from './auth.models';
 import { environment } from '../../../environments/environment';
 
 export interface AuthErrorLike {
@@ -28,6 +28,13 @@ export class AuthApiService {
     me(): Observable<AuthUser> {
         return this.http.get<ApiEnvelope<AuthUser> | AuthUser>(this.url('/api/v1/auth/me')).pipe(
             map((response) => this.unwrapUser(response)),
+            catchError((error) => throwError(() => this.normalizeError(error)))
+        );
+    }
+
+    academyContext(): Observable<AcademyContext> {
+        return this.http.get<ApiEnvelope<AcademyContext> | AcademyContextResponse | AcademyContext>(this.url('/api/v1/academy/context')).pipe(
+            map((response) => this.unwrapAcademyContext(response)),
             catchError((error) => throwError(() => this.normalizeError(error)))
         );
     }
@@ -97,6 +104,14 @@ export class AuthApiService {
         }
 
         return response as T;
+    }
+
+    private unwrapAcademyContext(response: ApiEnvelope<AcademyContext> | AcademyContextResponse | AcademyContext): AcademyContext {
+        if (typeof response === 'object' && response !== null && 'data' in response && response.data !== undefined) {
+            return response.data as AcademyContext;
+        }
+
+        return response as AcademyContext;
     }
 
     private unwrapArrayResponse(response: ApiEnvelope<PublicCategory[]> | PublicCategoryListResponse | PublicCategory[]): PublicCategory[] {

@@ -45,16 +45,22 @@ export class AppMenu {
                               { label: 'Jugadores', icon: 'pi pi-fw pi-users', routerLink: ['/players'] },
                               { label: 'Acudientes', icon: 'pi pi-fw pi-id-card', routerLink: ['/guardians'] }
                           ]
-                        : []),
-                    ...(canManagePayments
-                        ? [
+                        : [])
+                ]
+            },
+            ...(canManagePayments
+                ? [
+                      {
+                          label: 'Finanzas',
+                          items: [
+                              { label: 'Información fiscal', icon: 'pi pi-fw pi-file-edit', routerLink: ['/academy'], queryParams: { tab: 'tax' } },
                               { label: 'Conceptos de cobro', icon: 'pi pi-fw pi-wallet', routerLink: ['/payments/concepts'] },
                               { label: 'Cargos y deuda', icon: 'pi pi-fw pi-receipt', routerLink: ['/payments/charges'] },
                               { label: 'Pagos', icon: 'pi pi-fw pi-credit-card', routerLink: ['/payments/history'] }
                           ]
-                        : [])
-                ]
-            },
+                      }
+                  ]
+                : []),
             ...(isRoot
                 ? [
                       {

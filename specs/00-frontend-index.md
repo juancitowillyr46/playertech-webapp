@@ -189,6 +189,32 @@ Documentos:
 
 ---
 
+## 11. Frontend Simple Implementation Standard
+
+Define una guía mínima y repetible para implementar cambios pequeños sin sobrecargar la arquitectura.
+
+Incluye:
+
+* ubicación correcta por capa;
+* uso de `data-access`;
+* loading, empty y error states;
+* reglas simples para formularios y feedback;
+* anti-patrones de implementación innecesaria.
+
+---
+
+## 12. Frontend Finance Navigation
+
+Define cómo exponer Finanzas como grupo principal y separar el contexto operativo de academia.
+
+Incluye:
+
+* menú principal `Finanzas`;
+* submenús para información fiscal, cobros, cargos y pagos;
+* regla de transición para pantallas reutilizadas temporalmente.
+
+---
+
 # Orden Recomendado de Redacción
 
 1. `01-frontend-architecture.md`

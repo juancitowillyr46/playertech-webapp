@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -12,17 +12,21 @@ import { MenuModule } from 'primeng/menu';
 import { MessageModule } from 'primeng/message';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SelectModule } from 'primeng/select';
+import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { MockAuthService } from '@/app/core/auth/mock-auth.service';
+import { catchError, finalize, of } from 'rxjs';
+import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
+import { AuthSessionService } from '@/app/core/auth/auth-session.service';
+import { AuthAccessService } from '@/app/features/auth/data-access/auth-access.service';
 import { ImageCropperComponent, ImageCropperFileError, ImageCropperResult } from '@/app/shared/ui/image-cropper/image-cropper';
 import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
 import { AcademyProfileService } from '../data-access/academy-profile.service';
-import { AcademyProfile, AcademyTaxProfile } from '../models/academy.model';
+import { AcademyProfile, AcademyProfileUpdateRequest, AcademyTaxProfile, AcademyTaxProfileUpdateRequest } from '../models/academy.model';
 import { Menu } from 'primeng/menu';
 
 interface CountryOption {
@@ -121,10 +125,27 @@ interface AcademyTeamStaffForm {
 @Component({
     selector: 'app-academy-profile-page',
     standalone: true,
-    imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, ImageCropperComponent, InputIconModule, InputTextModule, MenuModule, MessageModule, PageHeader, RadioButtonModule, RouterModule, SelectModule, TableModule, TabsModule, TagModule, TextareaModule, ToastModule, TooltipModule],
+    imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, ImageCropperComponent, InputIconModule, InputTextModule, MenuModule, MessageModule, PageHeader, RadioButtonModule, RouterModule, SelectModule, SkeletonModule, TableModule, TabsModule, TagModule, TextareaModule, ToastModule, TooltipModule],
     providers: [MessageService],
     template: `
         <p-toast />
+        <p-dialog
+            header="Sesión expirada"
+            [modal]="true"
+            [closable]="false"
+            [dismissableMask]="false"
+            [visible]="sessionExpiredDialogVisible()"
+            (visibleChange)="sessionExpiredDialogVisible.set($event)"
+            [style]="{ width: 'min(28rem, calc(100vw - 2rem))' }"
+        >
+            <p class="m-0 text-sm leading-6 text-slate-600 dark:text-slate-300">Tu sesión expiró. Vuelve a iniciar sesión para continuar.</p>
+            <ng-template pTemplate="footer">
+                <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                    <p-button label="Cerrar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="sessionExpiredDialogVisible.set(false)" />
+                    <p-button label="Iniciar sesión" styleClass="w-full sm:w-auto" (onClick)="goToLogin()" />
+                </div>
+            </ng-template>
+        </p-dialog>
         <app-image-cropper
             #shieldCropper
             title="Ajustar escudo institucional"
@@ -136,9 +157,17 @@ interface AcademyTeamStaffForm {
         />
 
         <div class="space-y-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0">
-            <app-page-header [breadcrumbs]="breadcrumbs" title="Academia" subtitle="Actualiza la información principal y los datos de contacto de tu academia."></app-page-header>
+            <app-page-header [breadcrumbs]="breadcrumbs" title="Academia" subtitle="Actualiza la información principal, fiscal y visual de tu academia."></app-page-header>
 
-            @if (!academy) {
+            @if (informationLoadError() && activeTab === 'information') {
+                <div class="rounded-[0.75rem] border border-rose-200 bg-rose-50 p-5 text-rose-900 shadow-sm dark:border-rose-900/50 dark:bg-rose-950/20 dark:text-rose-100">
+                    <p class="m-0 text-base font-semibold">No pudimos cargar la academia</p>
+                    <p class="mt-1 text-sm leading-6">{{ informationLoadError() }}</p>
+                    <div class="mt-4">
+                        <p-button label="Reintentar" severity="danger" outlined styleClass="w-full sm:w-auto" [loading]="informationLoading()" loadingIcon="pi pi-spinner pi-spin" (onClick)="loadInformation()" />
+                    </div>
+                </div>
+            } @else if (!academy && activeTab === 'information' && !informationLoading()) {
                 <div class="rounded-[0.75rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-surface-800 dark:bg-surface-900">
                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Sin academia asociada</p>
                     <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Este usuario no tiene una academia vinculada. Este panel aplica para owner o administrador de academia.</p>
@@ -158,7 +187,7 @@ interface AcademyTeamStaffForm {
                                         <span>Información</span>
                                     </span>
                                 </p-tab>
-                                <p-tab value="tax" (click)="activeTab = 'tax'">
+                                <p-tab value="tax" (click)="onTabSelected('tax')">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-file-edit text-sm"></i>
                                         <span>Información fiscal</span>
@@ -192,7 +221,65 @@ interface AcademyTeamStaffForm {
                             <p-tabpanels>
                                 <p-tabpanel value="information">
                                     <div class="space-y-4 p-3 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:p-4 sm:pb-4">
-                                        <div class="grid grid-cols-12 gap-4">
+                                        @if (informationLoading()) {
+                                            <div class="space-y-5 p-1">
+                                                <div class="space-y-3">
+                                                    <p-skeleton width="10rem" height="1.1rem"></p-skeleton>
+                                                    <p-skeleton width="22rem" height="0.9rem"></p-skeleton>
+                                                </div>
+                                                <div class="grid grid-cols-12 gap-4">
+                                                    <div class="col-span-12 flex flex-col gap-2">
+                                                        <p-skeleton width="9rem" height="0.9rem"></p-skeleton>
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                        <p-skeleton width="8rem" height="0.9rem"></p-skeleton>
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                        <p-skeleton width="7rem" height="0.9rem"></p-skeleton>
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                        <p-skeleton width="7rem" height="0.9rem"></p-skeleton>
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                        <p-skeleton width="7rem" height="0.9rem"></p-skeleton>
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
+                                                    </div>
+                                                </div>
+                                                <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/40">
+                                                    <div class="flex flex-col gap-2">
+                                                        <p-skeleton width="11rem" height="1rem"></p-skeleton>
+                                                        <p-skeleton width="18rem" height="0.85rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="mt-4 flex flex-col gap-4 rounded-[0.85rem] border border-dashed border-slate-300 bg-white p-4 dark:border-surface-600 dark:bg-surface-900">
+                                                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                                            <p-skeleton width="5rem" height="5rem" borderRadius="1rem"></p-skeleton>
+                                                            <div class="min-w-0 flex-1 space-y-2">
+                                                                <p-skeleton width="12rem" height="1rem"></p-skeleton>
+                                                                <p-skeleton width="18rem" height="0.85rem"></p-skeleton>
+                                                                <p-skeleton width="10rem" height="0.85rem"></p-skeleton>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex flex-col gap-2 sm:flex-row">
+                                                            <p-skeleton width="10rem" height="2.5rem"></p-skeleton>
+                                                            <p-skeleton width="9rem" height="2.5rem"></p-skeleton>
+                                                            <p-skeleton width="8rem" height="2.5rem"></p-skeleton>
+                                                        </div>
+                                                        <p-skeleton width="11rem" height="2.5rem"></p-skeleton>
+                                                    </div>
+                                                </div>
+                                                <div class="sticky bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:border-surface-800 dark:bg-surface-900/95 sm:static sm:bg-transparent sm:p-4 sm:backdrop-blur-0">
+                                                    <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center sm:justify-end">
+                                                        <p-skeleton width="7rem" height="2.5rem"></p-skeleton>
+                                                        <p-skeleton width="9rem" height="2.5rem"></p-skeleton>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        } @else {
+                                            <div class="grid grid-cols-12 gap-4">
                                             <div class="col-span-12">
                                                 <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información general</p>
                                                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Estos datos identifican a tu academia dentro de la plataforma.</p>
@@ -271,89 +358,56 @@ interface AcademyTeamStaffForm {
                                                 @if (showError('address')) {
                                                     <p-message severity="error" size="small">Ingresa la dirección.</p-message>
                                                 }
-                                            </div>
-                                        </div>
-
-                                        <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/40">
-                                            <div class="flex flex-col gap-2">
-                                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Escudo institucional</p>
-                                                <p class="text-sm leading-6 text-slate-500 dark:text-slate-400">Elige una imagen clara y ajústala antes de guardarla.</p>
-                                            </div>
-
-                                            <div class="mt-4 flex flex-col gap-4 rounded-[0.85rem] border border-dashed border-slate-300 bg-white p-4 dark:border-surface-600 dark:bg-surface-900">
-                                                <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-                                                    <div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 dark:border-surface-700 dark:bg-surface-900/60">
-                                                        @if (shieldPreviewUrl) {
-                                                            <img [src]="shieldPreviewUrl" alt="Escudo institucional" class="h-full w-full object-cover" />
-                                                        } @else {
-                                                            <span class="text-xl font-semibold text-sky-700 dark:text-sky-300">{{ academyInitials }}</span>
-                                                        }
-                                                    </div>
-
-                                                    <div class="min-w-0 flex-1">
-                                                        <p class="m-0 text-sm font-medium text-surface-900 dark:text-surface-0">{{ shieldFileName }}</p>
-                                                        <p class="mt-1 text-xs leading-5 text-slate-400 dark:text-slate-500">
-                                                            @if (hasPendingShieldChanges) {
-                                                                Imagen lista para guardarse.
-                                                            } @else {
-                                                                Formatos recomendados: PNG o SVG.
-                                                            }
-                                                        </p>
-                                                        <p class="mt-1 text-xs leading-5 text-slate-400 dark:text-slate-500">Tamaño máximo: 3 MB.</p>
-                                                    </div>
-                                                </div>
-
-                                                <div class="flex flex-col gap-2 sm:flex-row">
-                                                    <input #shieldInput type="file" class="hidden" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml" (change)="onShieldSelected($event)" />
-                                                    <p-button label="Seleccionar archivo" severity="secondary" outlined styleClass="w-full sm:w-auto" (onClick)="shieldInput.click()" />
-                                                    @if (shieldPreviewUrl) {
-                                                        <p-button label="Ajustar imagen" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="reopenShieldDialog()" />
-                                                        <p-button label="Quitar imagen" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="removeShield()" />
-                                                    }
                                                 </div>
                                             </div>
-                                        </div>
+                                        }
                                     </div>
 
                                     <div class="sticky bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:border-surface-800 dark:bg-surface-900/95 sm:static sm:bg-transparent sm:p-4 sm:backdrop-blur-0">
                                         <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center sm:justify-end">
-                                            <p-button label="Cancelar" severity="secondary" text styleClass="w-full" routerLink="/" />
-                                            <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full" (onClick)="save()" />
+                                            <p-button label="Cancelar" severity="secondary" text styleClass="w-full" [disabled]="informationLoading()" routerLink="/" />
+                                            <p-button label="Guardar datos" icon="pi pi-check" styleClass="w-full" [loading]="saving" loadingIcon="pi pi-spinner pi-spin" [disabled]="saving || informationLoading()" (onClick)="save()" />
                                         </div>
                                     </div>
                                 </p-tabpanel>
 
                                 <p-tabpanel value="tax">
                                     <div class="space-y-4 p-3 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:p-4 sm:pb-4">
-                                        <div class="form-width-2col mx-auto space-y-4">
-                                            <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/60">
-                                                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                                                    <div class="space-y-1">
-                                                        <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Resumen fiscal</p>
-                                                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Verifica la identificación, la facturación y la ubicación fiscal que hoy tiene configurada la academia.</p>
-                                                    </div>
-                                                    <span class="inline-flex items-center self-start rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 dark:border-surface-700 dark:bg-surface-900 dark:text-slate-300">
-                                                        {{ isTaxSummaryConfigured ? 'Configurado' : 'Pendiente de completar' }}
-                                                    </span>
+                                        @if (taxLoading()) {
+                                            <div class="space-y-5 p-1">
+                                                <div class="space-y-3">
+                                                    <p-skeleton width="10rem" height="1.1rem"></p-skeleton>
+                                                    <p-skeleton width="22rem" height="0.9rem"></p-skeleton>
                                                 </div>
-
-                                                <div class="mt-4 grid gap-3 md:grid-cols-3">
-                                                    <div class="rounded-[0.85rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900">
-                                                        <p class="m-0 text-xs font-medium text-slate-500 dark:text-slate-400">Razón social</p>
-                                                        <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ taxForm.legalName || 'No configurado' }}</p>
+                                                <div class="grid gap-3 md:grid-cols-3">
+                                                    <p-skeleton height="6rem"></p-skeleton>
+                                                    <p-skeleton height="6rem"></p-skeleton>
+                                                    <p-skeleton height="6rem"></p-skeleton>
+                                                </div>
+                                                <div class="grid grid-cols-12 gap-4">
+                                                    <div class="col-span-12">
+                                                        <p-skeleton width="11rem" height="1rem"></p-skeleton>
+                                                        <p-skeleton class="mt-2" height="0.9rem"></p-skeleton>
                                                     </div>
-                                                    <div class="rounded-[0.85rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900">
-                                                        <p class="m-0 text-xs font-medium text-slate-500 dark:text-slate-400">Identificación</p>
-                                                        <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ taxIdentificationSummary }}</p>
+                                                    <div class="col-span-12 md:col-span-6">
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
                                                     </div>
-                                                    <div class="rounded-[0.85rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900">
-                                                        <p class="m-0 text-xs font-medium text-slate-500 dark:text-slate-400">Facturación</p>
-                                                        <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ taxBillingSummary }}</p>
-                                                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ taxLocationSummary }}</p>
+                                                    <div class="col-span-12 md:col-span-6">
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="col-span-12 md:col-span-6">
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="col-span-12 md:col-span-6">
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="col-span-12">
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
                                                     </div>
                                                 </div>
                                             </div>
-
+                                        } @else {
+                                        <div class="form-width-2col mx-auto space-y-4">
                                             <div class="grid grid-cols-12 gap-4">
                                                 <div class="col-span-12">
                                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información fiscal</p>
@@ -421,6 +475,7 @@ interface AcademyTeamStaffForm {
                                                 </div>
                                             </div>
                                         </div>
+                                        }
                                     </div>
 
                                     <div class="border-t border-slate-200 p-4 dark:border-surface-800">
@@ -1189,7 +1244,7 @@ interface AcademyTeamStaffForm {
         </div>
     `
 })
-export class AcademyProfilePage {
+export class AcademyProfilePage implements OnInit {
     @ViewChild('shieldCropper') shieldCropper?: ImageCropperComponent;
 
     readonly breadcrumbs: PageHeaderBreadcrumb[] = [{ label: 'Inicio', routerLink: '/' }, { label: 'Academia' }];
@@ -1236,6 +1291,12 @@ export class AcademyProfilePage {
 
     submitted = false;
     taxSubmitted = false;
+    readonly informationLoading = signal(true);
+    readonly informationLoadCompleted = signal(false);
+    readonly informationLoadError = signal<string | null>(null);
+    readonly taxLoading = signal(false);
+    readonly taxLoadCompleted = signal(false);
+    readonly taxLoadError = signal<string | null>(null);
     activeTab: 'information' | 'tax' | 'venues' | 'categories' | 'teams' | 'staff' = 'information';
     academy: AcademyProfile | null;
     form: AcademyProfile;
@@ -1245,6 +1306,10 @@ export class AcademyProfilePage {
     shieldPreviewUrl: string | null = null;
     hasPendingShieldChanges = false;
     shieldCroppedBlob: Blob | null = null;
+    saving = false;
+    taxSaving = false;
+    shieldSaving = false;
+    readonly sessionExpiredDialogVisible = signal(false);
     selectedVenue: AcademyVenue | null = null;
     venueSearch = '';
     venueSubmitted = false;
@@ -1583,14 +1648,29 @@ export class AcademyProfilePage {
 
     constructor(
         private readonly academyService: AcademyProfileService,
-        private readonly auth: MockAuthService,
-        private readonly messageService: MessageService
+        private readonly auth: AuthSessionService,
+        private readonly authAccess: AuthAccessService,
+        private readonly route: ActivatedRoute,
+        private readonly messageService: MessageService,
+        private readonly router: Router
     ) {
         this.academy = this.academyService.getCurrentAcademy();
         this.form = this.academy ?? this.emptyForm();
         this.taxProfile = this.academyService.getCurrentTaxProfile();
         this.taxForm = this.taxProfile ?? this.emptyTaxForm();
         this.selectedTeam = this.teams[0] ?? null;
+    }
+
+    ngOnInit() {
+        void this.loadTenantContextSilently();
+        const tab = this.route.snapshot.queryParamMap.get('tab');
+        if (tab === 'tax') {
+            this.activeTab = 'tax';
+            this.loadTaxProfile();
+            return;
+        }
+
+        this.loadInformation();
     }
 
     get academyInitials(): string {
@@ -1696,6 +1776,82 @@ export class AcademyProfilePage {
         return this.staffMembers.filter((staff) => staff.status === 'ACTIVE' && !assignedIds.has(staff.id));
     }
 
+    loadInformation() {
+        this.informationLoading.set(true);
+        this.informationLoadError.set(null);
+
+        this.academyService
+            .loadCurrentAcademy()
+            .pipe(
+                finalize(() => {
+                    this.informationLoading.set(false);
+                    this.informationLoadCompleted.set(true);
+                })
+            )
+            .subscribe({
+                next: (academy) => {
+                    const nextAcademy = academy ?? this.academyService.getCurrentAcademy();
+                    this.academy = nextAcademy;
+                    this.form = nextAcademy ?? this.emptyForm();
+                    this.applyShieldState(nextAcademy);
+                },
+                error: (error: AuthErrorLike) => {
+                    if (error.status === 401) {
+                        this.showSessionExpiredDialog();
+                        return;
+                    }
+
+                    this.informationLoadError.set(this.resolveErrorMessage(error, 'No pudimos cargar la información de la academia.'));
+                }
+            });
+    }
+
+    loadTaxProfile() {
+        this.taxLoading.set(true);
+        this.taxLoadError.set(null);
+
+        this.academyService
+            .loadCurrentTaxProfile()
+            .pipe(
+                finalize(() => {
+                    this.taxLoading.set(false);
+                    this.taxLoadCompleted.set(true);
+                })
+            )
+            .subscribe({
+                next: (taxProfile) => {
+                    const nextTaxProfile = taxProfile ?? this.academyService.getCurrentTaxProfile();
+                    this.taxProfile = nextTaxProfile;
+                    this.taxForm = nextTaxProfile ?? this.emptyTaxForm();
+                },
+                error: (error: AuthErrorLike) => {
+                    this.taxLoadError.set(this.resolveErrorMessage(error, 'No pudimos cargar la información fiscal.'));
+                }
+            });
+    }
+
+    onTabSelected(tab: 'information' | 'tax' | 'venues' | 'categories' | 'teams' | 'staff') {
+        this.activeTab = tab;
+
+        if (tab === 'information' && !this.informationLoadCompleted() && !this.informationLoading()) {
+            this.loadInformation();
+        }
+
+        if (tab === 'tax' && !this.taxLoadCompleted() && !this.taxLoading()) {
+            this.loadTaxProfile();
+        }
+    }
+
+    private loadTenantContextSilently() {
+        return this.authAccess.loadTenantContext().pipe(catchError(() => of(null))).subscribe();
+    }
+
+    private showSessionExpiredDialog(): void {
+        this.informationLoading.set(false);
+        this.taxLoading.set(false);
+        this.sessionExpiredDialogVisible.set(true);
+    }
+
     save() {
         this.submitted = true;
 
@@ -1708,17 +1864,30 @@ export class AcademyProfilePage {
             return;
         }
 
-        this.academyService.updateCurrentAcademy(this.form);
-        this.academy = this.academyService.getCurrentAcademy();
-        this.form = this.academy ?? this.emptyForm();
-
-        this.messageService.add({
-            severity: 'success',
-            summary: 'Academia actualizada',
-            detail: this.hasPendingShieldChanges ? 'Los datos y la nueva imagen quedaron listos en esta iteración mock.' : 'Los datos generales de la academia fueron actualizados.'
+        this.saving = true;
+        this.academyService.updateCurrentAcademy(this.buildAcademyUpdatePayload()).subscribe({
+            next: (academy) => {
+                this.academy = academy;
+                this.form = academy;
+                this.applyShieldState(academy);
+                this.taxProfile = this.taxProfile ?? this.emptyTaxForm();
+                this.taxForm = this.taxProfile;
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Academia actualizada',
+                    detail: 'Los datos generales se guardaron correctamente.'
+                });
+                this.saving = false;
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No se pudo guardar',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+                this.saving = false;
+            }
         });
-
-        this.hasPendingShieldChanges = false;
     }
 
     saveTaxProfile() {
@@ -1733,14 +1902,57 @@ export class AcademyProfilePage {
             return;
         }
 
-        this.academyService.updateCurrentTaxProfile(this.taxForm);
-        this.taxProfile = this.academyService.getCurrentTaxProfile();
-        this.taxForm = this.taxProfile ?? this.emptyTaxForm();
+        this.taxSaving = true;
+        this.academyService.updateCurrentTaxProfile(this.buildTaxProfileUpdatePayload()).subscribe({
+            next: (taxProfile) => {
+                this.taxProfile = taxProfile;
+                this.taxForm = taxProfile;
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Información fiscal actualizada',
+                    detail: 'Los datos fiscales se guardaron correctamente.'
+                });
+                this.taxSaving = false;
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No se pudo guardar',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+                this.taxSaving = false;
+            }
+        });
+    }
 
-        this.messageService.add({
-            severity: 'success',
-            summary: 'Información fiscal actualizada',
-            detail: 'Los datos fiscales quedaron listos en esta iteración mock.'
+    saveShield() {
+        if (!this.shieldCroppedBlob || this.shieldSaving) {
+            return;
+        }
+
+        this.shieldSaving = true;
+        this.academyService.updateCurrentShield(this.shieldCroppedBlob).subscribe({
+            next: (academy) => {
+                this.academy = academy;
+                this.form = academy;
+                this.applyShieldState(academy);
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Escudo actualizado',
+                    detail: 'La imagen se guardó correctamente.'
+                });
+                this.shieldSaving = false;
+                this.hasPendingShieldChanges = false;
+                this.shieldCroppedBlob = null;
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No se pudo guardar',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+                this.shieldSaving = false;
+            }
         });
     }
 
@@ -1947,6 +2159,49 @@ export class AcademyProfilePage {
             severity: 'info',
             summary: 'Imagen quitada',
             detail: 'El cambio quedó listo para guardarse con el formulario.'
+        });
+    }
+
+    private buildAcademyUpdatePayload(): AcademyProfileUpdateRequest {
+        return {
+            name: this.form.name.trim(),
+            contactEmail: this.form.contactEmail.trim(),
+            phone: `${this.form.countryCode.trim()}${this.form.phoneNumber.trim()}`.trim(),
+            country: this.form.country.trim(),
+            department: this.form.department.trim(),
+            city: this.form.city.trim(),
+            address: this.form.address.trim()
+        };
+    }
+
+    private buildTaxProfileUpdatePayload(): AcademyTaxProfileUpdateRequest {
+        return {
+            taxIdType: this.taxForm.taxIdType.trim(),
+            taxIdNumber: this.taxForm.taxIdNumber.trim(),
+            taxCheckDigit: this.taxForm.taxCheckDigit.trim(),
+            taxRegime: this.taxForm.taxRegime.trim(),
+            billingEmail: this.taxForm.billingEmail.trim()
+        };
+    }
+
+    private applyShieldState(academy: AcademyProfile | null) {
+        this.shieldPreviewUrl = academy?.shieldUrl ?? null;
+        this.shieldFileName = academy?.shieldFileName ?? (academy?.shieldUrl ? 'Escudo actual' : 'Sin imagen seleccionada');
+        this.hasPendingShieldChanges = false;
+        this.shieldCroppedBlob = null;
+    }
+
+    private resolveErrorMessage(error: AuthErrorLike | undefined, fallback: string): string {
+        return error?.detail?.trim() || error?.message?.trim() || fallback;
+    }
+
+    goToLogin() {
+        this.sessionExpiredDialogVisible.set(false);
+        this.auth.clearSession();
+        void this.router.navigate(['/auth/login'], {
+            queryParams: {
+                returnUrl: '/academy'
+            }
         });
     }
 
@@ -2616,7 +2871,7 @@ export class AcademyProfilePage {
     }
 
     private canEditAcademy(): boolean {
-        return ['tenant_owner', 'academy_admin'].includes(this.auth.getRole());
+        return ['tenant_owner', 'academy_admin'].includes(this.auth.getRole() ?? '');
     }
 
     private isFormValid(): boolean {

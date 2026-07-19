@@ -16,6 +16,7 @@ Los dominios iniciales son:
 
 * Auth
 * Academy
+* Finance
 * Users
 * Sports
 * Membership
@@ -63,6 +64,28 @@ Representa la gestión de la academia y su configuración operativa.
 * gestión de pagos;
 * gestión competitiva;
 * autenticación.
+
+---
+
+# Finance
+
+## Scope
+
+Agrupa la configuración y consulta financiera de la academia.
+
+## Includes
+
+* información fiscal;
+* conceptos de cobro;
+* cargos y deudas;
+* pagos;
+* navegación financiera visible en UI.
+
+## Excludes
+
+* gestión operativa de la academia;
+* autenticación;
+* gestión competitiva.
 
 ---
 
@@ -187,4 +210,3 @@ Dominios futuros posibles:
 * Parent Portal.
 
 Estos dominios no deben contaminar la estructura inicial del frontend.
-

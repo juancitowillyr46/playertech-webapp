@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { AuthApiService } from '@/app/core/auth/auth-api.service';
 import { AuthSessionService } from '@/app/core/auth/auth-session.service';
-import { AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, PublicCategory, TenantActivationRequest, TenantActivationStatusResponse, TenantSignupRequest, TenantSignupResponse, TenantSignupSummary } from '@/app/core/auth/auth.models';
+import { AcademyContext, AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, PublicCategory, TenantActivationRequest, TenantActivationStatusResponse, TenantSignupRequest, TenantSignupResponse, TenantSignupSummary } from '@/app/core/auth/auth.models';
 
 @Injectable({
     providedIn: 'root'
@@ -21,6 +21,10 @@ export class AuthAccessService {
 
     loadSession(): Observable<AuthUser> {
         return this.api.me().pipe(tap((user) => this.session.setSession(user)));
+    }
+
+    loadTenantContext(): Observable<AcademyContext> {
+        return this.api.academyContext().pipe(tap((context) => this.session.setTenantContext(context)));
     }
 
     activateUser(token: string, payload: PasswordResetConfirm): Observable<AuthUser> {
