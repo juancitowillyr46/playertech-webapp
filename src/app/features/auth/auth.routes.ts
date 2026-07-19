@@ -14,6 +14,7 @@ export default [
             { path: 'access', loadComponent: () => import('./pages/access').then((m) => m.Access) },
             { path: 'error', loadComponent: () => import('./pages/error').then((m) => m.Error) },
             { path: 'login', loadComponent: () => import('./pages/login').then((m) => m.Login) },
+            { path: 'reset-password-success', loadComponent: () => import('./pages/reset-password-success').then((m) => m.ResetPasswordSuccess) },
             { path: 'signup', loadComponent: () => import('./pages/signup').then((m) => m.Signup) },
             { path: 'signup-success', loadComponent: () => import('./pages/signup-success').then((m) => m.SignupSuccess) }
         ]

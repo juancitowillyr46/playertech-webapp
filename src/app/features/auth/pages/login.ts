@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -11,6 +11,7 @@ import { PasswordModule } from 'primeng/password';
 import { Router } from '@angular/router';
 import { AuthAccessService } from '../data-access/auth-access.service';
 import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
+import { AuthRequestState } from '../utils/auth-request-state';
 
 @Component({
     selector: 'app-login',
@@ -27,9 +28,9 @@ import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
                             <p class="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">Ingresa con tu correo y contraseña para continuar.</p>
                         </div>
 
-                        @if (apiMessage) {
+                        @if (feedbackMessage()) {
                             <div class="mb-6">
-                                <p-message [severity]="apiMessage.severity" [text]="apiMessage.text" [closable]="false" />
+                                <p-message [severity]="feedbackMessage()!.severity" [closable]="false">{{ feedbackMessage()!.text }}</p-message>
                             </div>
                         }
 
@@ -69,8 +70,8 @@ import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
                             </div>
 
                             <div class="pt-1">
-                            <p-button label="Ingresar" styleClass="w-full" type="button" [loading]="loading" loadingIcon="pi pi-spinner pi-spin" [disabled]="loading" (onClick)="submit()" />
-                        </div>
+                                <p-button label="Ingresar" styleClass="w-full" type="button" [loading]="requestState.loading()" loadingIcon="pi pi-spinner pi-spin" [disabled]="requestState.loading()" (onClick)="submit()" />
+                            </div>
                     </div>
 
                         <div class="mt-7 border-t border-slate-200 pt-6 text-center text-sm text-slate-600 dark:border-surface-800 dark:text-slate-300">
@@ -90,13 +91,13 @@ export class Login {
 
     checked: boolean = false;
 
-    apiMessage: { severity: 'success' | 'info' | 'warn' | 'error'; text: string } | null = null;
+    requestState = new AuthRequestState();
+    readonly feedbackMessage = computed(() => this.requestState.message());
 
-    submitted = false;
-
-    loading = false;
-
-    constructor(private router: Router, private auth: AuthAccessService) {}
+    constructor(
+        private router: Router,
+        private auth: AuthAccessService
+    ) {}
 
     handleEmailKeydown(event: KeyboardEvent) {
         const allowedControlKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
@@ -130,43 +131,31 @@ export class Login {
     }
 
     showError(field: string): boolean {
-        return this.submitted && !this.isFieldValid(field);
+        return this.requestState.submitted() && !this.isFieldValid(field);
     }
 
     async submit() {
-        this.submitted = true;
-        this.apiMessage = null;
+        this.requestState.submitted.set(true);
+        this.requestState.resetMessage();
 
         if (!this.isFieldValid('email') || !this.isFieldValid('password')) {
-            this.apiMessage = {
-                severity: 'error',
-                text: 'Revisa los datos antes de continuar.'
-            };
+            this.requestState.setError('Revisa los datos antes de continuar.');
             return;
         }
 
-        this.loading = true;
+        this.requestState.start();
 
         try {
-            const user = await firstValueFrom(this.auth.login({
+            await firstValueFrom(this.auth.login({
                 email: this.email.trim(),
                 password: this.password
             }));
 
-            const destination = this.auth.getHomeRoute();
-            this.apiMessage = {
-                severity: 'success',
-                text: `Sesión iniciada para ${user.fullName}.`
-            };
-            void this.router.navigateByUrl(destination);
+            void this.router.navigateByUrl(this.auth.getHomeRoute());
         } catch (error) {
-            const authError = error as AuthErrorLike | undefined;
-            this.apiMessage = {
-                severity: 'error',
-                text: this.getLoginErrorMessage(authError)
-            };
+            this.requestState.resolveError(error, (authError) => this.getLoginErrorMessage(authError));
         } finally {
-            this.loading = false;
+            this.requestState.stop();
         }
     }
 

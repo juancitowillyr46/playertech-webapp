@@ -147,7 +147,7 @@ export class ResetPassword {
             };
 
             setTimeout(() => {
-                void this.router.navigate(['/auth/login']);
+                void this.router.navigate(['/auth/reset-password-success']);
             }, 1200);
         } catch (error) {
             this.apiMessage = {

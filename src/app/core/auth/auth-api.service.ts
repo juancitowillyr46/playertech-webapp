@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
 export interface AuthErrorLike {
     status: number;
     message: string;
+    detail?: string;
 }
 
 @Injectable({
@@ -108,11 +109,28 @@ export class AuthApiService {
 
     private normalizeError(error: unknown): AuthErrorLike {
         if (error instanceof HttpErrorResponse) {
-            const message = typeof error.error?.message === 'string' ? error.error.message : error.statusText || 'Request failed';
-            return { status: error.status, message };
+            const payload = error.error;
+            const detail = this.extractErrorText(payload, ['detail', 'message', 'title']);
+            const message = detail ?? error.statusText ?? 'Request failed';
+            return { status: error.status, message, detail };
         }
 
         return { status: 0, message: 'Unexpected error' };
+    }
+
+    private extractErrorText(payload: unknown, keys: string[]): string | undefined {
+        if (!payload || typeof payload !== 'object') {
+            return undefined;
+        }
+
+        for (const key of keys) {
+            const value = (payload as Record<string, unknown>)[key];
+            if (typeof value === 'string' && value.trim()) {
+                return value.trim();
+            }
+        }
+
+        return undefined;
     }
 
     private url(path: string): string {
