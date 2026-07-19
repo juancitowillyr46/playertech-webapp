@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MenuItem, MessageService } from 'primeng/api';
@@ -141,7 +141,6 @@ interface AcademyTeamStaffForm {
             <p class="m-0 text-sm leading-6 text-slate-600 dark:text-slate-300">Tu sesión expiró. Vuelve a iniciar sesión para continuar.</p>
             <ng-template pTemplate="footer">
                 <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                    <p-button label="Cerrar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="sessionExpiredDialogVisible.set(false)" />
                     <p-button label="Iniciar sesión" styleClass="w-full sm:w-auto" (onClick)="goToLogin()" />
                 </div>
             </ng-template>
@@ -175,7 +174,7 @@ interface AcademyTeamStaffForm {
             } @else {
                 <div
                     class="mx-auto mt-4 w-full space-y-3 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"
-                    [class.content-width-compact]="activeTab === 'information' || activeTab === 'tax' || activeTab === 'venues' || activeTab === 'categories' || activeTab === 'teams'"
+                    [class.content-width-compact]="activeTab === 'information' || activeTab === 'venues' || activeTab === 'categories' || activeTab === 'teams'"
                     [class.content-width-full]="activeTab === 'staff'"
                 >
                     <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
@@ -185,12 +184,6 @@ interface AcademyTeamStaffForm {
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-building text-sm"></i>
                                         <span>Información</span>
-                                    </span>
-                                </p-tab>
-                                <p-tab value="tax" (click)="onTabSelected('tax')">
-                                    <span class="inline-flex items-center gap-2 whitespace-nowrap">
-                                        <i class="pi pi-file-edit text-sm"></i>
-                                        <span>Información fiscal</span>
                                     </span>
                                 </p-tab>
                                 <p-tab value="venues" (click)="activeTab = 'venues'">
@@ -278,8 +271,9 @@ interface AcademyTeamStaffForm {
                                                     </div>
                                                 </div>
                                             </div>
-                                        } @else {
-                                            <div class="grid grid-cols-12 gap-4">
+                                        }
+
+                                        <div class="grid grid-cols-12 gap-4" [hidden]="informationLoading()">
                                             <div class="col-span-12">
                                                 <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información general</p>
                                                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Estos datos identifican a tu academia dentro de la plataforma.</p>
@@ -358,9 +352,41 @@ interface AcademyTeamStaffForm {
                                                 @if (showError('address')) {
                                                     <p-message severity="error" size="small">Ingresa la dirección.</p-message>
                                                 }
+                                            </div>
+
+                                            <div class="col-span-12 rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/40">
+                                                <div class="flex flex-col gap-2">
+                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Escudo institucional</p>
+                                                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Sube un logo claro para identificar tu academia en la plataforma.</p>
+                                                </div>
+
+                                                <div class="mt-4 flex flex-col gap-4 rounded-[0.85rem] border border-dashed border-slate-300 bg-white p-4 dark:border-surface-600 dark:bg-surface-900">
+                                                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                                        <div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-100 dark:border-surface-700 dark:bg-surface-800">
+                                                            @if (shieldPreviewUrl) {
+                                                                <img [src]="shieldPreviewUrl" alt="Escudo institucional" class="h-full w-full object-cover" />
+                                                            } @else {
+                                                                <i class="pi pi-image text-2xl text-slate-400"></i>
+                                                            }
+                                                        </div>
+
+                                                        <div class="min-w-0 flex-1 space-y-1">
+                                                            <p class="m-0 truncate text-sm font-semibold text-surface-900 dark:text-surface-0">{{ shieldFileName }}</p>
+                                                            <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Selecciona una imagen cuadrada o vertical para mejorar su lectura.</p>
+                                                            @if (hasPendingShieldChanges) {
+                                                                <p class="m-0 text-xs font-medium text-amber-600 dark:text-amber-400">Hay cambios listos para guardar.</p>
+                                                            }
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="flex flex-col gap-2 sm:flex-row">
+                                                        <input #shieldInput type="file" accept="image/png,image/jpeg,image/jpg,image/svg+xml" class="hidden" (change)="onShieldSelected($event)" />
+                                                        <p-button label="Seleccionar archivo" icon="pi pi-upload" styleClass="w-full sm:w-auto" severity="secondary" [disabled]="shieldSaving" (onClick)="shieldInput.click()" />
+                                                        <p-button label="Cambiar imagen" icon="pi pi-refresh" styleClass="w-full sm:w-auto" severity="secondary" text [disabled]="!shieldPreviewUrl || shieldSaving" (onClick)="reopenShieldDialog()" />
+                                                        <p-button label="Quitar imagen" icon="pi pi-trash" styleClass="w-full sm:w-auto" severity="danger" text [disabled]="!shieldPreviewUrl || shieldSaving" (onClick)="removeShield()" />
+                                                    </div>
                                                 </div>
                                             </div>
-                                        }
                                     </div>
 
                                     <div class="sticky bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:border-surface-800 dark:bg-surface-900/95 sm:static sm:bg-transparent sm:p-4 sm:backdrop-blur-0">
@@ -369,120 +395,6 @@ interface AcademyTeamStaffForm {
                                             <p-button label="Guardar datos" icon="pi pi-check" styleClass="w-full" [loading]="saving" loadingIcon="pi pi-spinner pi-spin" [disabled]="saving || informationLoading()" (onClick)="save()" />
                                         </div>
                                     </div>
-                                </p-tabpanel>
-
-                                <p-tabpanel value="tax">
-                                    <div class="space-y-4 p-3 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:p-4 sm:pb-4">
-                                        @if (taxLoading()) {
-                                            <div class="space-y-5 p-1">
-                                                <div class="space-y-3">
-                                                    <p-skeleton width="10rem" height="1.1rem"></p-skeleton>
-                                                    <p-skeleton width="22rem" height="0.9rem"></p-skeleton>
-                                                </div>
-                                                <div class="grid gap-3 md:grid-cols-3">
-                                                    <p-skeleton height="6rem"></p-skeleton>
-                                                    <p-skeleton height="6rem"></p-skeleton>
-                                                    <p-skeleton height="6rem"></p-skeleton>
-                                                </div>
-                                                <div class="grid grid-cols-12 gap-4">
-                                                    <div class="col-span-12">
-                                                        <p-skeleton width="11rem" height="1rem"></p-skeleton>
-                                                        <p-skeleton class="mt-2" height="0.9rem"></p-skeleton>
-                                                    </div>
-                                                    <div class="col-span-12 md:col-span-6">
-                                                        <p-skeleton height="2.75rem"></p-skeleton>
-                                                    </div>
-                                                    <div class="col-span-12 md:col-span-6">
-                                                        <p-skeleton height="2.75rem"></p-skeleton>
-                                                    </div>
-                                                    <div class="col-span-12 md:col-span-6">
-                                                        <p-skeleton height="2.75rem"></p-skeleton>
-                                                    </div>
-                                                    <div class="col-span-12 md:col-span-6">
-                                                        <p-skeleton height="2.75rem"></p-skeleton>
-                                                    </div>
-                                                    <div class="col-span-12">
-                                                        <p-skeleton height="2.75rem"></p-skeleton>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        } @else {
-                                        <div class="form-width-2col mx-auto space-y-4">
-                                            <div class="grid grid-cols-12 gap-4">
-                                                <div class="col-span-12">
-                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información fiscal</p>
-                                                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Mantén al día los datos que se usarán en comprobantes y procesos de facturación.</p>
-                                                </div>
-
-                                                <div class="col-span-12 flex flex-col gap-2">
-                                                    <label for="legalName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Razón social <span class="text-rose-500">*</span></label>
-                                                    <input pInputText id="legalName" type="text" [(ngModel)]="taxForm.legalName" placeholder="Ej. Academia PlayerTech Demo SAS" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onTaxLegalNameInput($event)" />
-                                                    @if (showTaxError('legalName')) {
-                                                        <p-message severity="error" size="small">Ingresa la razón social.</p-message>
-                                                    }
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="taxIdType" class="text-sm font-medium text-surface-700 dark:text-surface-200">Tipo de identificación <span class="text-rose-500">*</span></label>
-                                                    <p-select id="taxIdType" [(ngModel)]="taxForm.taxIdType" [options]="taxIdTypeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un tipo" class="w-full" appendTo="body" />
-                                                    @if (showTaxError('taxIdType')) {
-                                                        <p-message severity="error" size="small">Selecciona el tipo de identificación.</p-message>
-                                                    }
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="taxIdNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Número de identificación <span class="text-rose-500">*</span></label>
-                                                    <input pInputText id="taxIdNumber" type="text" [(ngModel)]="taxForm.taxIdNumber" placeholder="Ej. 901234567" class="w-full" (input)="onTaxIdNumberInput($event)" />
-                                                    @if (showTaxError('taxIdNumber')) {
-                                                        <p-message severity="error" size="small">Ingresa el número de identificación.</p-message>
-                                                    }
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="taxCheckDigit" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dígito de verificación <span class="text-slate-400">(opcional)</span></label>
-                                                    <input pInputText id="taxCheckDigit" type="text" [(ngModel)]="taxForm.taxCheckDigit" placeholder="Ej. 8" class="w-full" maxlength="2" (input)="onTaxCheckDigitInput($event)" />
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="taxRegime" class="text-sm font-medium text-surface-700 dark:text-surface-200">Régimen fiscal <span class="text-rose-500">*</span></label>
-                                                    <p-select id="taxRegime" [(ngModel)]="taxForm.taxRegime" [options]="taxRegimeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un régimen" class="w-full" appendTo="body" />
-                                                    @if (showTaxError('taxRegime')) {
-                                                        <p-message severity="error" size="small">Selecciona el régimen fiscal.</p-message>
-                                                    }
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="billingEmail" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo para facturación <span class="text-rose-500">*</span></label>
-                                                    <input pInputText id="billingEmail" type="text" [(ngModel)]="taxForm.billingEmail" placeholder="Ej. facturacion@academia.com" class="w-full" (keydown)="onEmailKeydown($event)" (paste)="onEmailPaste($event)" (input)="onBillingEmailInput()" />
-                                                    @if (showTaxError('billingEmail')) {
-                                                        <p-message severity="error" size="small">Ingresa un correo válido para facturación.</p-message>
-                                                    }
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="fiscalCountry" class="text-sm font-medium text-surface-700 dark:text-surface-200">País</label>
-                                                    <p-select id="fiscalCountry" [(ngModel)]="taxForm.fiscalCountry" [options]="countryOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name" placeholder="Selecciona un país" class="w-full" appendTo="body" />
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="fiscalCity" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad</label>
-                                                    <input pInputText id="fiscalCity" type="text" [(ngModel)]="taxForm.fiscalCity" placeholder="Ej. Pereira" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onFiscalCityInput($event)" />
-                                                </div>
-
-                                                <div class="col-span-12 flex flex-col gap-2">
-                                                    <label for="fiscalAddress" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección fiscal</label>
-                                                    <input pInputText id="fiscalAddress" type="text" [(ngModel)]="taxForm.fiscalAddress" placeholder="Ej. Calle 10 # 20-30" class="w-full" (keydown)="onAddressKeydown($event)" (paste)="onAddressPaste($event)" (input)="onFiscalAddressInput($event)" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        }
-                                    </div>
-
-                                    <div class="border-t border-slate-200 p-4 dark:border-surface-800">
-                                        <div class="form-width-2col mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-                                            <p-button label="Restablecer" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetTaxForm()" />
-                                            <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full sm:w-auto" (onClick)="saveTaxProfile()" />
-                                        </div>
                                     </div>
                                 </p-tabpanel>
 
@@ -1244,7 +1156,7 @@ interface AcademyTeamStaffForm {
         </div>
     `
 })
-export class AcademyProfilePage implements OnInit {
+export class AcademyProfilePage implements OnInit, OnDestroy {
     @ViewChild('shieldCropper') shieldCropper?: ImageCropperComponent;
 
     readonly breadcrumbs: PageHeaderBreadcrumb[] = [{ label: 'Inicio', routerLink: '/' }, { label: 'Academia' }];
@@ -1310,6 +1222,7 @@ export class AcademyProfilePage implements OnInit {
     taxSaving = false;
     shieldSaving = false;
     readonly sessionExpiredDialogVisible = signal(false);
+    private sessionExpiredTimeoutId: ReturnType<typeof setTimeout> | null = null;
     selectedVenue: AcademyVenue | null = null;
     venueSearch = '';
     venueSubmitted = false;
@@ -1663,14 +1576,11 @@ export class AcademyProfilePage implements OnInit {
 
     ngOnInit() {
         void this.loadTenantContextSilently();
-        const tab = this.route.snapshot.queryParamMap.get('tab');
-        if (tab === 'tax') {
-            this.activeTab = 'tax';
-            this.loadTaxProfile();
-            return;
-        }
-
         this.loadInformation();
+    }
+
+    ngOnDestroy() {
+        this.clearSessionExpiredTimeout();
     }
 
     get academyInitials(): string {
@@ -1830,15 +1740,11 @@ export class AcademyProfilePage implements OnInit {
             });
     }
 
-    onTabSelected(tab: 'information' | 'tax' | 'venues' | 'categories' | 'teams' | 'staff') {
+    onTabSelected(tab: 'information' | 'venues' | 'categories' | 'teams' | 'staff') {
         this.activeTab = tab;
 
         if (tab === 'information' && !this.informationLoadCompleted() && !this.informationLoading()) {
             this.loadInformation();
-        }
-
-        if (tab === 'tax' && !this.taxLoadCompleted() && !this.taxLoading()) {
-            this.loadTaxProfile();
         }
     }
 
@@ -1850,6 +1756,12 @@ export class AcademyProfilePage implements OnInit {
         this.informationLoading.set(false);
         this.taxLoading.set(false);
         this.sessionExpiredDialogVisible.set(true);
+        this.clearSessionExpiredTimeout();
+        this.sessionExpiredTimeoutId = setTimeout(() => {
+            if (this.sessionExpiredDialogVisible()) {
+                this.goToLogin();
+            }
+        }, 30000);
     }
 
     save() {
@@ -2197,12 +2109,20 @@ export class AcademyProfilePage implements OnInit {
 
     goToLogin() {
         this.sessionExpiredDialogVisible.set(false);
+        this.clearSessionExpiredTimeout();
         this.auth.clearSession();
         void this.router.navigate(['/auth/login'], {
             queryParams: {
                 returnUrl: '/academy'
             }
         });
+    }
+
+    private clearSessionExpiredTimeout() {
+        if (this.sessionExpiredTimeoutId) {
+            clearTimeout(this.sessionExpiredTimeoutId);
+            this.sessionExpiredTimeoutId = null;
+        }
     }
 
     openVenueDialog(venue?: AcademyVenue) {

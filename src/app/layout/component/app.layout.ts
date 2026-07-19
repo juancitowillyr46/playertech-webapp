@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AppTopbar } from './app.topbar';
@@ -34,6 +34,17 @@ export class AppLayout {
                 document.body.classList.remove('blocked-scroll');
             }
         });
+    }
+
+    @HostListener('window:resize')
+    onWindowResize() {
+        if (this.layoutService.isDesktop()) {
+            this.layoutService.layoutState.update((state) => ({
+                ...state,
+                mobileMenuActive: false,
+                overlayMenuActive: false
+            }));
+        }
     }
 
     containerClass = computed(() => {

@@ -14,6 +14,7 @@ export const appRoutes: Routes = [
         children: [
             { path: '', component: Dashboard },
             { path: 'academy', loadChildren: () => import('./app/features/academy/academy.routes') },
+            { path: 'finance', loadChildren: () => import('./app/features/finance/finance.routes') },
             { path: 'account', loadChildren: () => import('./app/features/account/account.routes') },
             { path: 'guardians', loadChildren: () => import('./app/features/guardians/guardians.routes') },
             { path: 'payments', loadChildren: () => import('./app/features/payments/payments.routes') },

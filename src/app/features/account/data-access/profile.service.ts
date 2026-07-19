@@ -83,8 +83,7 @@ export class ProfileService {
         return this.authApi.me().pipe(
             map((user) => mapUserToProfile(user)),
             tap((profile) => {
-                this.currentProfile.set(profile);
-                this.session.setSession(this.toAuthUser(profile, this.session.getUser()));
+                this.scheduleProfileSync(profile);
             })
         );
     }
@@ -93,10 +92,16 @@ export class ProfileService {
         return this.authApi.updateName(fullName).pipe(
             map((user) => mapUserToProfile(user)),
             tap((profile) => {
-                this.currentProfile.set(profile);
-                this.session.setSession(this.toAuthUser(profile, this.session.getUser()));
+                this.scheduleProfileSync(profile);
             })
         );
+    }
+
+    private scheduleProfileSync(profile: UserProfile): void {
+        queueMicrotask(() => {
+            this.currentProfile.set(profile);
+            this.session.setSession(this.toAuthUser(profile, this.session.getUser()));
+        });
     }
 
     private toAuthUser(profile: UserProfile, previousUser: AuthUser | null): AuthUser {

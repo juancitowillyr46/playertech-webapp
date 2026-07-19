@@ -98,6 +98,12 @@ import { filter } from 'rxjs/operators';
 
             :host-context(.layout-mobile-active) a {
                 justify-content: flex-start !important;
+                width: 100%;
+                min-width: 0;
+                white-space: normal;
+                overflow: visible;
+                text-overflow: clip;
+                align-items: flex-start;
             }
 
             :host-context(.layout-mobile-active) .layout-menuitem-root-text,
@@ -107,6 +113,10 @@ import { filter } from 'rxjs/operators';
                     transform 180ms ease;
                 opacity: 0.96;
                 transform: translateX(-0.15rem);
+                white-space: normal;
+                overflow: visible;
+                text-overflow: clip;
+                line-height: 1.25;
             }
 
             :host-context(.layout-mobile-active) .layout-submenu-toggler {
@@ -114,6 +124,7 @@ import { filter } from 'rxjs/operators';
                     opacity 180ms ease,
                     transform 180ms ease;
                 opacity: 0.96;
+                flex-shrink: 0;
             }
 
             .p-submenu-enter {
