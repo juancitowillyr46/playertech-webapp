@@ -16,9 +16,9 @@ import { TenantActivationStatusResponse } from '@/app/core/auth/auth.models';
         <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(15,118,110,0.14),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(217,119,6,0.10),_transparent_24%),linear-gradient(180deg,_#f8faf7_0%,_#eef4f1_100%)] px-4 py-8 sm:px-6 lg:px-8">
             <div class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-2xl items-center">
                 <div class="w-full rounded-[2rem] border border-emerald-950/10 bg-white px-6 py-8 shadow-[0_30px_90px_-30px_rgba(15,23,42,0.24)] sm:px-8 sm:py-10 lg:px-10">
-                    <p class="text-xs uppercase tracking-[0.35em] text-emerald-700/80">PlayerTech</p>
+                    <p class="text-xs uppercase tracking-[0.32em] text-emerald-700">PlayerTech</p>
 
-                    <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+                    <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
                         @if (loading) {
                             Activando tu cuenta
                         } @else if (activationSucceeded) {
@@ -34,11 +34,7 @@ import { TenantActivationStatusResponse } from '@/app/core/auth/auth.models';
                         @if (loading) {
                             Un momento, estamos procesando el enlace.
                         } @else if (activationSucceeded) {
-                            @if (alreadyActivated) {
-                                Ya puedes iniciar sesión.
-                            } @else {
-                                Ya puedes iniciar sesión.
-                            }
+                            Ya puedes iniciar sesión.
                         } @else if (tokenLoaded) {
                             Este enlace ya no es válido o expiró.
                         } @else {
@@ -58,9 +54,15 @@ import { TenantActivationStatusResponse } from '@/app/core/auth/auth.models';
                                 Ir a iniciar sesión
                             </a>
                         } @else {
-                            <button type="button" class="inline-flex items-center justify-center rounded-md bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60" [disabled]="loading || !tokenLoaded" (click)="loadActivation()">
-                                Reintentar
-                            </button>
+                            <p-button
+                                label="Reintentar"
+                                styleClass="inline-flex"
+                                type="button"
+                                [loading]="loading"
+                                loadingIcon="pi pi-spinner pi-spin"
+                                [disabled]="loading || !tokenLoaded"
+                                (onClick)="loadActivation()"
+                            />
                             <a class="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50" routerLink="/landing">
                                 Volver al inicio
                             </a>

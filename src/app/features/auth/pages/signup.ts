@@ -38,8 +38,8 @@ type StepKey = 1 | 2 | 3;
                             <div class="absolute inset-0 bg-[linear-gradient(transparent_95%,rgba(99,102,241,0.08)_95%),linear-gradient(90deg,transparent_95%,rgba(99,102,241,0.08)_95%)] bg-[size:100%_64px,64px_100%] dark:bg-[linear-gradient(transparent_95%,rgba(255,255,255,0.05)_95%),linear-gradient(90deg,transparent_95%,rgba(255,255,255,0.05)_95%)]"></div>
                         </div>
                         <div class="relative flex min-h-0 h-full flex-col items-center justify-center text-center lg:min-h-[28rem]">
-                            <h2 class="mt-4 max-w-sm text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Registra tu academia</h2>
-                            <p class="mt-4 max-w-sm text-sm leading-6 text-slate-600 dark:text-white/70">Completa la información para comenzar.</p>
+                            <h1 class="mt-4 max-w-sm text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl">Registra tu academia</h1>
+                            <p class="mt-4 max-w-sm text-sm leading-6 text-slate-600 dark:text-white/70 sm:text-base">Completa la información para comenzar.</p>
 
                             <div class="mt-6 w-full max-w-sm text-left lg:mt-10">
                                 <div class="space-y-4 rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/6 sm:p-5">
@@ -72,9 +72,9 @@ type StepKey = 1 | 2 | 3;
                     <div class="min-w-0 px-5 py-6 sm:px-6 sm:py-7 lg:px-10 lg:py-10">
                         <div class="mb-4 flex min-w-0 flex-col gap-2 text-center sm:mb-8 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:text-left">
                             <div class="flex min-w-0 flex-col items-center sm:items-start">
-                                <p class="hidden text-[0.7rem] uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400 sm:block sm:text-xs">Registro</p>
-                                <h1 class="mx-auto mt-1 max-w-[11ch] text-balance !text-[1.35rem] font-semibold leading-[1.08] tracking-tight text-surface-900 dark:text-surface-0 sm:mx-0 sm:max-w-none sm:!text-[clamp(1.5rem,3vw,2rem)]">{{ stepTitle }}</h1>
-                                <p class="mx-auto mt-1.5 max-w-[28ch] text-[0.9rem] leading-5 text-slate-600 dark:text-slate-300 sm:mx-0 sm:mt-2 sm:max-w-xl sm:text-sm sm:leading-6">{{ stepSubtitle }}</p>
+                                <p class="hidden text-xs uppercase tracking-[0.32em] text-emerald-700 dark:text-emerald-400 sm:block">Registro</p>
+                                <h1 class="mx-auto mt-2 max-w-[12ch] text-3xl font-semibold leading-[1.08] tracking-tight text-surface-900 dark:text-surface-0 sm:mx-0 sm:max-w-none sm:text-4xl">{{ stepTitle }}</h1>
+                                <p class="mx-auto mt-1.5 max-w-[28ch] text-[0.9rem] leading-5 text-slate-600 dark:text-slate-300 sm:mx-0 sm:mt-2 sm:max-w-xl sm:text-base sm:leading-6">{{ stepSubtitle }}</p>
                             </div>
                             <div class="shrink-0 self-start rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-surface-800 dark:bg-surface-950 dark:text-slate-200 sm:px-4 sm:py-2 sm:text-sm">
                                 {{ currentStep }}/3
@@ -177,9 +177,9 @@ type StepKey = 1 | 2 | 3;
                                         </div>
                                     </div>
 
-                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600 dark:border-surface-800 dark:bg-surface-950 dark:text-slate-300">
-                                        Completa la información principal de la academia.
-                                    </div>
+                            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600 dark:border-surface-800 dark:bg-surface-950 dark:text-slate-300">
+                                Completa la información principal de la academia.
+                            </div>
                                 </div>
                             }
 
@@ -356,16 +356,16 @@ type StepKey = 1 | 2 | 3;
                                         <p-button label="Continuar" styleClass="w-full sm:w-auto" type="button" (onClick)="nextStep()" />
                                     }
                                     @if (currentStep === 3) {
-                                        <p-button [label]="loading ? 'Enviando...' : 'Crear academia'" styleClass="w-full sm:w-auto" type="submit" [disabled]="loading" />
+                                        <p-button label="Crear academia" styleClass="w-full sm:w-auto" type="submit" [loading]="loading" loadingIcon="pi pi-spinner pi-spin" [disabled]="loading" />
                                     }
                                 </div>
 
                                 <div class="flex items-center justify-center sm:justify-end">
-                                    <p class="text-sm text-slate-600 dark:text-slate-300">
-                                        ¿Ya tienes una cuenta?
-                                        <a routerLink="/auth/login" class="font-medium text-sky-600 hover:underline dark:text-sky-400">Iniciar sesión</a>
-                                    </p>
-                                </div>
+                                        <p class="text-sm text-slate-600 dark:text-slate-300">
+                                            ¿Ya tienes una cuenta?
+                                            <a routerLink="/auth/login" class="font-medium text-emerald-700 hover:underline dark:text-emerald-400">Iniciar sesión</a>
+                                        </p>
+                                    </div>
                             </div>
 
                             @if (loading) {

@@ -21,10 +21,10 @@ import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
             <div class="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-2xl items-center justify-center">
                 <div class="w-full min-w-0 max-w-xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_28px_90px_-28px_rgba(15,23,42,0.24)] dark:border-surface-800 dark:bg-surface-900">
                     <div class="min-w-0 px-5 py-6 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
-                        <div class="mb-7 text-center">
-                            <p class="text-sm font-medium uppercase tracking-[0.24em] text-sky-700 dark:text-sky-400">Inicio de sesión</p>
-                            <h2 class="mt-2 text-[1.9rem] font-semibold tracking-tight text-surface-900 dark:text-surface-0">Bienvenido de nuevo</h2>
-                            <p class="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">Ingresa con tu correo y contraseña para continuar.</p>
+                        <div class="mb-7 text-center sm:mb-8">
+                            <p class="text-xs font-medium uppercase tracking-[0.32em] text-emerald-700 dark:text-emerald-400">Inicio de sesión</p>
+                            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-surface-900 dark:text-surface-0 sm:text-4xl">Bienvenido de nuevo</h1>
+                            <p class="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">Ingresa con tu correo y contraseña para continuar.</p>
                         </div>
 
                         @if (apiMessage) {
@@ -69,13 +69,13 @@ import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
                             </div>
 
                             <div class="pt-1">
-                                <p-button label="Ingresar" styleClass="w-full" type="button" [loading]="loading" [disabled]="loading" (onClick)="submit()" />
-                            </div>
+                            <p-button label="Ingresar" styleClass="w-full" type="button" [loading]="loading" loadingIcon="pi pi-spinner pi-spin" [disabled]="loading" (onClick)="submit()" />
                         </div>
+                    </div>
 
                         <div class="mt-7 border-t border-slate-200 pt-6 text-center text-sm text-slate-600 dark:border-surface-800 dark:text-slate-300">
                             ¿No tienes una cuenta?
-                            <a routerLink="/auth/signup" class="font-medium text-sky-700 hover:underline dark:text-sky-400">Crear academia</a>
+                            <a routerLink="/auth/signup" class="font-medium text-emerald-700 hover:underline dark:text-emerald-400">Crear academia</a>
                         </div>
                     </div>
                 </div>

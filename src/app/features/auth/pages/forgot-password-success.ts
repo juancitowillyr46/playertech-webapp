@@ -30,27 +30,15 @@ type ForgotPasswordSuccessState = {
 
                         <p-card class="mt-7 w-full text-left sm:mt-8" styleClass="border border-slate-200 shadow-sm dark:border-surface-800">
                             <ng-template pTemplate="content">
-                                <div class="space-y-5">
-                                    <div class="flex items-start gap-3">
-                                        <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 dark:bg-sky-400/15 dark:text-sky-300">
-                                            <i class="pi pi-at"></i>
-                                        </span>
-                                        <div class="min-w-0">
-                                            <p class="text-xs uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Correo</p>
-                                            <p class="font-medium text-surface-900 dark:text-surface-0">{{ email }}</p>
-                                        </div>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                                        <p class="text-[0.7rem] uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Correo</p>
+                                        <p class="max-w-[18rem] truncate text-right font-medium text-slate-900 dark:text-surface-0">{{ email }}</p>
                                     </div>
 
-                                    <p-divider />
-
-                                    <div class="flex items-start gap-3">
-                                        <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 dark:bg-sky-400/15 dark:text-sky-300">
-                                            <i class="pi pi-clock"></i>
-                                        </span>
-                                        <div class="min-w-0">
-                                            <p class="text-xs uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Siguiente paso</p>
-                                            <p class="font-medium text-surface-900 dark:text-surface-0">Abre el mensaje y sigue las instrucciones.</p>
-                                        </div>
+                                    <div class="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                                        <p class="text-[0.7rem] uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Siguiente paso</p>
+                                        <p class="max-w-[18rem] text-right font-medium text-slate-900 dark:text-surface-0">Abre el mensaje y sigue las instrucciones.</p>
                                     </div>
                                 </div>
                             </ng-template>

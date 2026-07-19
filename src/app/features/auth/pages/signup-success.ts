@@ -24,8 +24,8 @@ type SignupSuccessState = Partial<TenantSignupSummary>;
                             <i class="pi pi-check text-2xl"></i>
                         </div>
 
-                        <p class="text-xs uppercase tracking-[0.32em] text-slate-500">Cuenta creada</p>
-                        <h1 class="mt-3 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">Tu academia ya está registrada</h1>
+                        <p class="text-xs uppercase tracking-[0.32em] text-emerald-700">Cuenta creada</p>
+                        <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Tu academia ya está registrada</h1>
                         <p class="mt-4 text-sm leading-6 text-slate-600 sm:text-base">
                             {{ activationEmailSent ? 'Enviamos el correo de activación. Revisa tu bandeja para completar el acceso.' : 'La creación fue exitosa. Revisa tu correo y confirma el enlace para completar el acceso.' }}
                         </p>
@@ -33,21 +33,21 @@ type SignupSuccessState = Partial<TenantSignupSummary>;
                         <p-card class="mt-8 block w-full text-left" styleClass="border border-slate-200 shadow-sm">
                             <ng-template pTemplate="content">
                                 <div class="space-y-3">
-                                    <div class="flex items-start justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
-                                        <p class="text-xs uppercase tracking-[0.22em] text-slate-500">Academia</p>
-                                        <p class="max-w-[18rem] text-right font-medium text-slate-900">{{ academyName }}</p>
+                                    <div class="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                                        <p class="text-[0.7rem] uppercase tracking-[0.28em] text-slate-500">Academia</p>
+                                        <p class="max-w-[18rem] truncate text-right font-medium text-slate-900">{{ academyName }}</p>
                                     </div>
-                                    <div class="flex items-start justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
-                                        <p class="text-xs uppercase tracking-[0.22em] text-slate-500">Contacto</p>
-                                        <p class="max-w-[18rem] text-right font-medium text-slate-900">{{ contactName }}</p>
+                                    <div class="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                                        <p class="text-[0.7rem] uppercase tracking-[0.28em] text-slate-500">Contacto</p>
+                                        <p class="max-w-[18rem] truncate text-right font-medium text-slate-900">{{ contactName }}</p>
                                     </div>
-                                    <div class="flex items-start justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
-                                        <p class="text-xs uppercase tracking-[0.22em] text-slate-500">Correo</p>
+                                    <div class="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                                        <p class="text-[0.7rem] uppercase tracking-[0.28em] text-slate-500">Correo</p>
                                         <p class="max-w-[18rem] truncate text-right font-medium text-slate-900">{{ contactEmail }}</p>
                                     </div>
-                                    <div class="flex items-start justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
-                                        <p class="text-xs uppercase tracking-[0.22em] text-slate-500">Equipo inicial</p>
-                                        <p class="max-w-[18rem] text-right font-medium text-slate-900">{{ teamName }}</p>
+                                    <div class="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                                        <p class="text-[0.7rem] uppercase tracking-[0.28em] text-slate-500">Equipo inicial</p>
+                                        <p class="max-w-[18rem] truncate text-right font-medium text-slate-900">{{ teamName }}</p>
                                     </div>
                                 </div>
 
