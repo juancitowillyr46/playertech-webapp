@@ -1370,6 +1370,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     editingVenueId: string | null = null;
     venueForm: AcademyVenueForm = this.emptyVenueForm();
     readonly venueLoading = signal(false);
+    readonly venueLoaded = signal(false);
     venueSaving = false;
     readonly venueError = signal<string | null>(null);
     venueListMeta: VenueApiMeta | null = null;
@@ -1896,8 +1897,8 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
 
         if (tab === 'information' && !this.informationLoadCompleted() && !this.informationLoading()) {
             this.loadInformation();
-        } else if (tab === 'venues' && !this.venueLoading()) {
-            this.loadVenues();
+        } else if (tab === 'venues') {
+            this.ensureVenuesLoaded();
         }
     }
 
@@ -1914,16 +1915,6 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         return this.authAccess.loadTenantContext().pipe(catchError(() => of(null))).subscribe();
     }
 
-    private applyInitialTabFromFragment() {
-        const fragment = this.route.snapshot.fragment as 'information' | 'venues' | 'categories' | 'teams' | 'staff' | null;
-        if (fragment === 'venues' || fragment === 'categories' || fragment === 'teams' || fragment === 'staff' || fragment === 'information') {
-            this.onTabSelected(fragment);
-            return;
-        }
-
-        this.onTabSelected('information');
-    }
-
     private showSessionExpiredDialog(): void {
         this.informationLoading.set(false);
         this.taxLoading.set(false);
@@ -1934,6 +1925,16 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
                 this.goToLogin();
             }
         }, 30000);
+    }
+
+    private applyInitialTabFromFragment() {
+        const fragment = this.route.snapshot.fragment as 'information' | 'venues' | 'categories' | 'teams' | 'staff' | null;
+        if (fragment === 'venues' || fragment === 'categories' || fragment === 'teams' || fragment === 'staff' || fragment === 'information') {
+            this.onTabSelected(fragment);
+            return;
+        }
+
+        this.onTabSelected('information');
     }
 
     save() {
@@ -2349,11 +2350,25 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
             next: (response) => {
                 this.venues = response.data;
                 this.venueListMeta = response.meta;
+                this.venueLoaded.set(true);
             },
             error: (error: AuthErrorLike) => {
                 this.venueError.set(this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.'));
             }
         });
+    }
+
+    ensureVenuesLoaded() {
+        if (this.venueLoaded() || this.venueLoading()) {
+            return;
+        }
+
+        this.loadVenues();
+    }
+
+    refreshVenues() {
+        this.venueLoaded.set(false);
+        this.loadVenues();
     }
 
     openVenueDialog(venue?: VenueApiVenue) {
@@ -2516,7 +2531,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
                     detail: 'Los cambios quedaron guardados correctamente.'
                 });
                 this.resetVenueDialog();
-                this.loadVenues();
+                this.refreshVenues();
             },
             error: (error: AuthErrorLike) => {
                 this.messageService.add({
@@ -2820,7 +2835,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
                     summary: nextAction === 'inactivate' ? 'Sede desactivada' : 'Sede activada',
                     detail: 'El listado se refrescó con el estado más reciente.'
                 });
-                this.loadVenues();
+                this.refreshVenues();
             },
             error: (error: AuthErrorLike) => {
                 this.messageService.add({

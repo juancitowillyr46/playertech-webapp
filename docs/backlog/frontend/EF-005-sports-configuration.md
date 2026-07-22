@@ -368,3 +368,15 @@ Como owner o administrador de academia, quiero activar o inactivar una categorí
 ## Estado
 
 Done (Mock UI).
+
+## Nota operativa de caché
+
+Para `Sedes`, el frontend debe usar cache simple en memoria con `signals`.
+
+Comportamiento esperado:
+
+* la API se consume la primera vez que el usuario entra al tab `Sedes`;
+* si el usuario cambia de tab y vuelve, se reutiliza la respuesta ya cargada;
+* después de `create`, `update`, `activate`, `inactivate` o `delete`, se refresca el listado;
+* no se introduce NgRx para este caso de uso;
+* la implementación debe permanecer local a la feature y sencilla de seguir.

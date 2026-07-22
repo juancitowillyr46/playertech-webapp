@@ -101,6 +101,31 @@ Responsabilidades:
 * sincronización entre vistas;
 * estado de carga y error.
 
+## Simple Signal Cache
+
+Cuando una feature solo necesita evitar consumir dos veces la misma API, el estándar recomendado es usar `signals` locales en la propia feature o en una facade simple.
+
+Patrón mínimo:
+
+* `loaded` para saber si la primera carga ya ocurrió;
+* `loading` para bloquear cargas paralelas;
+* `error` para exponer fallos recuperables;
+* `items` o `detail` como estado en memoria.
+
+Regla de consumo:
+
+* si `loaded` es `false`, la UI puede disparar una carga inicial;
+* si `loaded` es `true`, la UI reutiliza el cache local;
+* si hubo una mutación exitosa, se invalida el estado o se fuerza `refresh`;
+* no se usa NgRx por defecto para este caso.
+
+Este patrón aplica bien cuando:
+
+* la data se consulta desde un único módulo;
+* la consistencia eventual corta es aceptable;
+* se quiere simplicidad operativa;
+* no existe una necesidad real de store global.
+
 ---
 
 # State Ownership
@@ -174,4 +199,3 @@ No se define todavía:
 * cache distribuida;
 * sincronización offline;
 * persistencia local compleja.
-

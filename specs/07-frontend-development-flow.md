@@ -66,6 +66,17 @@ Reglas:
 * no mezclar mapeo con template;
 * validar el contrato antes de construir la UI alrededor de él.
 
+## Simple Cache Rule
+
+Si una pantalla consulta la misma API varias veces por navegación interna, primero evaluar un cache simple con `signals` antes de considerar NgRx.
+
+Regla mínima:
+
+* la primera entrada carga la API;
+* las siguientes entradas reutilizan la respuesta en memoria;
+* una mutación invalida o refresca ese cache;
+* la implementación debe seguir siendo fácil de leer y de mantener.
+
 ---
 
 # Change Discipline
