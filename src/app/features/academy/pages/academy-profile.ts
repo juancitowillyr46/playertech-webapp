@@ -28,6 +28,8 @@ import { ImageCropperComponent, ImageCropperFileError, ImageCropperResult } from
 import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
 import { AcademyProfileService } from '../data-access/academy-profile.service';
 import { AcademyProfile, AcademyProfileUpdateRequest, AcademyTaxProfile, AcademyTaxProfileUpdateRequest } from '../models/academy.model';
+import { VenueApiService } from '../data-access/venue-api.service';
+import { VenueApiMeta, VenueApiVenue, VenueUpsertRequest } from '../models/venue.model';
 import { Menu } from 'primeng/menu';
 
 interface CountryOption {
@@ -41,20 +43,15 @@ interface LocationDepartment {
     cities: string[];
 }
 
-interface AcademyVenue {
-    id: string;
-    name: string;
-    address: string;
-    city: string;
-    phone: string;
-    status: 'ACTIVE' | 'INACTIVE';
-}
-
 interface AcademyVenueForm {
     name: string;
     address: string;
+    country: string;
+    department: string;
     city: string;
-    phone: string;
+    countryCode: string;
+    phoneNumber: string;
+    notes: string;
 }
 
 interface AcademyCategory {
@@ -146,6 +143,21 @@ interface AcademyTeamStaffForm {
                 </div>
             </ng-template>
         </p-dialog>
+        <p-dialog
+            header="Escudo institucional"
+            [modal]="true"
+            [closable]="true"
+            [dismissableMask]="true"
+            [visible]="shieldPreviewDialogVisible"
+            (visibleChange)="shieldPreviewDialogVisible = $event"
+            [style]="{ width: 'min(32rem, calc(100vw - 2rem))' }"
+        >
+            @if (shieldPreviewUrl) {
+                <div class="flex items-center justify-center">
+                    <img [src]="shieldPreviewUrl" alt="Escudo institucional" class="max-h-[70vh] w-full rounded-[1rem] object-contain" />
+                </div>
+            }
+        </p-dialog>
         <app-image-cropper
             #shieldCropper
             title="Ajustar escudo institucional"
@@ -181,31 +193,31 @@ interface AcademyTeamStaffForm {
                     <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                         <p-tabs [value]="activeTab">
                             <p-tablist class="overflow-x-auto">
-                                <p-tab value="information" (click)="activeTab = 'information'">
+                                <p-tab value="information" (click)="onTabClicked('information')">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-building text-sm"></i>
                                         <span>Información</span>
                                     </span>
                                 </p-tab>
-                                <p-tab value="venues" (click)="activeTab = 'venues'">
+                                <p-tab value="venues" (click)="onTabClicked('venues')">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-map-marker text-sm"></i>
                                         <span>Sedes</span>
                                     </span>
                                 </p-tab>
-                                <p-tab value="categories" (click)="activeTab = 'categories'">
+                                <p-tab value="categories" (click)="onTabClicked('categories')">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-tag text-sm"></i>
                                         <span>Categorías</span>
                                     </span>
                                 </p-tab>
-                                <p-tab value="teams" (click)="activeTab = 'teams'">
+                                <p-tab value="teams" (click)="onTabClicked('teams')">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-users text-sm"></i>
                                         <span>Equipos</span>
                                     </span>
                                 </p-tab>
-                                <p-tab value="staff" (click)="activeTab = 'staff'">
+                                <p-tab value="staff" (click)="onTabClicked('staff')">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-id-card text-sm"></i>
                                         <span>Staff</span>
@@ -248,18 +260,14 @@ interface AcademyTeamStaffForm {
                                                         <p-skeleton width="11rem" height="1rem"></p-skeleton>
                                                         <p-skeleton width="18rem" height="0.85rem"></p-skeleton>
                                                     </div>
-                                                    <div class="mt-4 rounded-[0.85rem] border border-dashed border-slate-300 bg-white p-4 dark:border-surface-600 dark:bg-surface-900">
-                                                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
+                                                    <div class="mt-4 rounded-[0.9rem] border border-slate-200 bg-white px-4 py-6 dark:border-surface-700 dark:bg-surface-900">
+                                                        <div class="flex flex-col items-center gap-4 text-center sm:gap-5">
                                                             <p-skeleton width="5rem" height="5rem" borderRadius="1rem"></p-skeleton>
-                                                            <div class="min-w-0 flex-1 space-y-2">
-                                                                <p-skeleton width="11rem" height="1rem"></p-skeleton>
-                                                                <p-skeleton width="18rem" height="0.85rem"></p-skeleton>
-                                                                <p-skeleton width="14rem" height="0.85rem"></p-skeleton>
+                                                            <div class="space-y-2">
+                                                                <p-skeleton width="8rem" height="1rem"></p-skeleton>
+                                                                <p-skeleton width="10rem" height="0.85rem"></p-skeleton>
                                                             </div>
-                                                        </div>
-                                                        <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                                                            <p-skeleton width="10rem" height="2.5rem" borderRadius="0.75rem"></p-skeleton>
-                                                            <p-skeleton width="9rem" height="2.5rem" borderRadius="0.75rem"></p-skeleton>
+                                                            <p-skeleton width="100%" height="2.75rem" borderRadius="0.75rem" class="sm:w-[9rem]"></p-skeleton>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -350,79 +358,65 @@ interface AcademyTeamStaffForm {
                                             <div class="col-span-12 rounded-[0.9rem] border border-slate-200 bg-white p-4 dark:border-surface-700 dark:bg-surface-900/40">
                                                 <div class="flex flex-col gap-2">
                                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Escudo institucional</p>
-                                                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Sube el escudo oficial de tu institución.</p>
                                                 </div>
 
-                                                <div class="mt-4 rounded-[0.9rem] border border-slate-200 bg-white px-4 py-5 dark:border-surface-700 dark:bg-surface-900">
-                                                    <div class="flex flex-col items-center gap-4 text-center">
-                                                        @if (shieldPreviewUrl) {
-                                                            <div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 dark:border-surface-700 dark:bg-surface-800">
-                                                                <img [src]="shieldPreviewUrl" alt="Escudo institucional" class="h-full w-full object-cover" />
-                                                            </div>
-                                                        } @else {
-                                                            <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 text-sky-700 dark:border-surface-700 dark:bg-surface-800">
-                                                                <i class="pi pi-image text-2xl text-slate-400"></i>
-                                                            </div>
-                                                        }
+                                                <div class="mt-4 flex flex-col items-center gap-4 py-1 text-center sm:gap-5">
+                                                    @if (shieldPreviewUrl) {
+                                                        <div class="flex h-24 w-24 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 transition hover:opacity-95 dark:border-surface-700 dark:bg-surface-800 sm:h-28 sm:w-28">
+                                                            <img [src]="shieldPreviewUrl" alt="Escudo institucional" class="h-full w-full cursor-pointer object-cover" (click)="openShieldPreviewDialog()" />
+                                                        </div>
+                                                    } @else {
+                                                        <div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 text-sky-700 dark:border-surface-700 dark:bg-surface-800 sm:h-24 sm:w-24">
+                                                            <i class="pi pi-image text-2xl text-slate-400"></i>
+                                                        </div>
+                                                    }
 
-                                                        @if (!shieldPreviewUrl) {
-                                                            <div class="space-y-1">
-                                                                <p class="m-0 text-sm font-semibold text-surface-900 dark:text-surface-0">Sube el escudo oficial de tu institución</p>
-                                                                <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Se recomienda usar PNG con transparencia o SVG para evitar fondos blancos indeseados.</p>
-                                                            </div>
-                                                        } @else {
-                                                            <div class="space-y-1">
-                                                                <p class="m-0 max-w-full truncate text-sm font-semibold text-surface-900 dark:text-surface-0">{{ shieldFileName }}</p>
-                                                            </div>
-                                                        }
+                                                    <input #shieldInput type="file" accept="image/png,image/jpeg,image/jpg,image/svg+xml" class="hidden" (change)="onShieldSelected($event)" />
+                                                    @if (shieldPreviewUrl) {
+                                                        <div class="flex flex-wrap justify-center gap-2">
+                                                            <p-button label="Ver imagen" icon="pi pi-search" styleClass="w-full sm:w-auto" severity="secondary" text [disabled]="shieldUploadSaving || shieldDeleteSaving" (onClick)="openShieldPreviewDialog()" />
+                                                            <p-button label="Cambiar imagen" icon="pi pi-refresh" styleClass="w-full sm:w-auto" severity="secondary" text [disabled]="shieldUploadSaving || shieldDeleteSaving" (onClick)="shieldInput.click()" />
+                                                            <p-button label="Quitar imagen" icon="pi pi-trash" styleClass="w-full sm:w-auto" severity="danger" text [loading]="shieldDeleteSaving" loadingIcon="pi pi-spinner pi-spin" [disabled]="shieldUploadSaving || shieldDeleteSaving" (onClick)="removeShield()" />
+                                                        </div>
+                                                    } @else {
+                                                        <p-button label="Seleccionar archivo" icon="pi pi-upload" styleClass="w-full sm:w-auto" severity="secondary" [disabled]="shieldUploadSaving || shieldDeleteSaving" (onClick)="shieldInput.click()" />
+                                                    }
 
-                                                        <div class="flex w-full flex-col items-center gap-2">
-                                                            <input #shieldInput type="file" accept="image/png,image/jpeg,image/jpg,image/svg+xml" class="hidden" (change)="onShieldSelected($event)" />
-                                                            @if (shieldPreviewUrl) {
-                                                                <div class="flex flex-wrap justify-center gap-2">
-                                                                    <p-button label="Cambiar imagen" icon="pi pi-refresh" styleClass="w-full sm:w-auto" severity="secondary" text [disabled]="shieldSaving" (onClick)="shieldInput.click()" />
-                                                                    <p-button label="Quitar imagen" icon="pi pi-trash" styleClass="w-full sm:w-auto" severity="danger" text [disabled]="shieldSaving" (onClick)="removeShield()" />
+                                                    <p class="m-0 max-w-[18rem] text-center text-xs leading-5 text-slate-500 dark:text-slate-400">Archivos permitidos: PNG, JPG, JPEG o SVG. Tamaño máximo: 3 MB.</p>
+
+                                                    @if (hasPendingShieldChanges) {
+                                                        <div class="mt-1 w-full text-left">
+                                                            @if (shieldUploadSaving) {
+                                                                <div class="space-y-1">
+                                                                    <div class="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+                                                                        <i class="pi pi-spinner pi-spin"></i>
+                                                                        <span>Guardando...</span>
+                                                                    </div>
+                                                                    <p-progressBar mode="indeterminate" [style]="{ height: '0.25rem' }" />
                                                                 </div>
                                                             } @else {
-                                                                <p-button label="Seleccionar archivo" icon="pi pi-upload" styleClass="w-full sm:w-auto" severity="secondary" [disabled]="shieldSaving" (onClick)="shieldInput.click()" />
+                                                                <div class="flex w-full justify-center">
+                                                                    <p-button label="Guardar escudo" icon="pi pi-upload" styleClass="w-full sm:w-auto" [loading]="shieldUploadSaving" loadingIcon="pi pi-spinner pi-spin" [disabled]="shieldUploadSaving || shieldDeleteSaving || !shieldCroppedBlob" (onClick)="saveShield()" />
+                                                                </div>
                                                             }
                                                         </div>
-
-                                                        @if (hasPendingShieldChanges) {
-                                                            <div class="mt-2 w-full space-y-2 text-left">
-                                                                @if (shieldSaving) {
-                                                                    <div class="space-y-1">
-                                                                        <div class="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
-                                                                            <i class="pi pi-spinner pi-spin"></i>
-                                                                            <span>Guardando...</span>
-                                                                        </div>
-                                                                        <p-progressBar mode="indeterminate" [style]="{ height: '0.25rem' }" />
-                                                                    </div>
-                                                                } @else {
-                                                                    <p class="m-0 text-sm leading-6 text-slate-600 dark:text-slate-300">Pulsa guardar para terminar.</p>
-                                                                    <div class="flex justify-start">
-                                                                        <p-button label="Guardar escudo" icon="pi pi-upload" styleClass="w-full sm:w-auto" [loading]="shieldSaving" loadingIcon="pi pi-spinner pi-spin" [disabled]="shieldSaving || !shieldCroppedBlob" (onClick)="saveShield()" />
-                                                                    </div>
-                                                                }
-                                                            </div>
-                                                        }
-                                                    </div>
+                                                    }
                                                 </div>
                                             </div>
                                     </div>
 
                                     @if (informationLoading()) {
-                                        <div class="sticky bottom-0 z-10 bg-white/95 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:bg-surface-900/95 sm:static sm:bg-transparent sm:p-4 sm:backdrop-blur-0">
+                                        <div class="sticky bottom-0 z-10 bg-white/95 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:bg-surface-900/95 sm:static sm:bg-transparent sm:py-4 sm:backdrop-blur-0">
                                             <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                                                 <p-skeleton width="7rem" height="2.75rem" borderRadius="0.75rem"></p-skeleton>
                                                 <p-skeleton width="9rem" height="2.75rem" borderRadius="0.75rem"></p-skeleton>
                                             </div>
                                         </div>
                                     } @else {
-                                        <div class="sticky bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:border-surface-800 dark:bg-surface-900/95 sm:static sm:bg-transparent sm:p-4 sm:backdrop-blur-0">
-                                            <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center sm:justify-end">
-                                                <p-button label="Cancelar" severity="secondary" text styleClass="w-full" [disabled]="informationLoading()" routerLink="/" />
-                                                <p-button label="Guardar datos" icon="pi pi-check" styleClass="w-full" [loading]="saving" loadingIcon="pi pi-spinner pi-spin" [disabled]="saving || informationLoading()" (onClick)="save()" />
+                                        <div class="sticky bottom-0 z-10 bg-white/95 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:bg-surface-900/95 sm:static sm:bg-transparent sm:py-4 sm:backdrop-blur-0">
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                                <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" [disabled]="informationLoading()" routerLink="/" />
+                                                <p-button label="Guardar datos" icon="pi pi-check" styleClass="w-full sm:w-auto" [loading]="saving" loadingIcon="pi pi-spinner pi-spin" [disabled]="saving || informationLoading()" (onClick)="save()" />
                                             </div>
                                         </div>
                                     }
@@ -443,7 +437,38 @@ interface AcademyTeamStaffForm {
                                             </div>
                                         </div>
 
-                                        <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
+                                        @if (venueLoading()) {
+                                            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
+                                                <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
+                                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                                                        <p-skeleton width="14rem" height="1.1rem"></p-skeleton>
+                                                        <p-skeleton width="10rem" height="2.25rem" borderRadius="0.75rem"></p-skeleton>
+                                                    </div>
+                                                </div>
+                                                <div class="p-3 sm:p-4">
+                                                    <div class="space-y-3">
+                                                        @for (row of [1, 2, 3, 4]; track row) {
+                                                            <div class="grid grid-cols-12 gap-3 rounded-[0.75rem] border border-slate-100 p-3 dark:border-surface-800">
+                                                                <div class="col-span-12 md:col-span-4"><p-skeleton width="70%" height="1rem"></p-skeleton></div>
+                                                                <div class="col-span-6 md:col-span-2"><p-skeleton width="85%" height="1rem"></p-skeleton></div>
+                                                                <div class="col-span-6 md:col-span-2"><p-skeleton width="75%" height="1rem"></p-skeleton></div>
+                                                                <div class="col-span-6 md:col-span-2"><p-skeleton width="65%" height="1rem"></p-skeleton></div>
+                                                                <div class="col-span-6 md:col-span-2 flex justify-end"><p-skeleton width="2.5rem" height="2.5rem" borderRadius="9999px"></p-skeleton></div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        } @else if (venueError()) {
+                                            <div class="rounded-[0.75rem] border border-rose-200 bg-rose-50 p-5 text-rose-900 shadow-sm dark:border-rose-900/50 dark:bg-rose-950/20 dark:text-rose-100">
+                                                <p class="m-0 text-base font-semibold">No pudimos cargar las sedes</p>
+                                                <p class="mt-1 text-sm leading-6">{{ venueError() }}</p>
+                                                <div class="mt-4">
+                                                    <p-button label="Reintentar" severity="danger" outlined styleClass="w-full sm:w-auto" [loading]="venueLoading()" loadingIcon="pi pi-spinner pi-spin" (onClick)="loadVenues()" />
+                                                </div>
+                                            </div>
+                                        } @else {
+                                            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
                                             <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
                                                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                                                     <p-iconfield iconPosition="left" class="w-full sm:max-w-md">
@@ -466,6 +491,8 @@ interface AcademyTeamStaffForm {
                                                 <ng-template pTemplate="header">
                                                     <tr>
                                                         <th>Nombre</th>
+                                                        <th>País</th>
+                                                        <th>Departamento</th>
                                                         <th>Ciudad</th>
                                                         <th>Teléfono</th>
                                                         <th>Estado</th>
@@ -481,10 +508,16 @@ interface AcademyTeamStaffForm {
                                                             </div>
                                                         </td>
                                                         <td>
-                                                            <span class="text-surface-900 dark:text-surface-0">{{ venue.city || 'Sin ciudad' }}</span>
+                                                            <span class="text-surface-900 dark:text-surface-0">{{ venue.country || '-' }}</span>
                                                         </td>
                                                         <td>
-                                                            <span class="text-surface-900 dark:text-surface-0">{{ venue.phone || 'Sin teléfono' }}</span>
+                                                            <span class="text-surface-900 dark:text-surface-0">{{ venue.department || '-' }}</span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="text-surface-900 dark:text-surface-0">{{ venue.city || '-' }}</span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="text-surface-900 dark:text-surface-0">{{ venue.phone || '-' }}</span>
                                                         </td>
                                                         <td>
                                                             <p-tag [value]="getVenueStatusLabel(venue.status)" [severity]="getVenueStatusSeverity(venue.status)" />
@@ -505,7 +538,7 @@ interface AcademyTeamStaffForm {
                                                 </ng-template>
                                                 <ng-template pTemplate="emptymessage">
                                                     <tr>
-                                                        <td colspan="5" class="py-10 text-center">
+                                                        <td colspan="7" class="py-10 text-center">
                                                             <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                                                                 <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay sedes registradas</span>
                                                                 <span>Agrega la primera sede para empezar a organizar la operación de la academia.</span>
@@ -515,6 +548,7 @@ interface AcademyTeamStaffForm {
                                                 </ng-template>
                                             </p-table>
                                         </div>
+                                        }
                                     </div>
                                 </p-tabpanel>
 
@@ -776,25 +810,55 @@ interface AcademyTeamStaffForm {
                                     }
                                 </div>
 
-                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="venueCity" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad <span class="text-rose-500">*</span></label>
-                                    <input pInputText id="venueCity" type="text" [(ngModel)]="venueForm.city" placeholder="Ej. Pereira" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onVenueCityInput($event)" />
-                                    @if (showVenueError('city')) {
-                                        <p-message severity="error" size="small">Ingresa la ciudad.</p-message>
+                                <div class="hidden">
+                                    <label for="venueCountry" class="text-sm font-medium text-surface-700 dark:text-surface-200">País</label>
+                                    <p-select id="venueCountry" [(ngModel)]="venueForm.country" name="venueCountry" [options]="countryOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name,dialCode" placeholder="Selecciona país" class="w-full" appendTo="body" (onChange)="onVenueLocationCountryChange()" />
+                                </div>
+
+                                <div class="col-span-12 flex flex-col gap-2">
+                                    <label for="venuePhoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono</label>
+                                    <div class="grid grid-cols-12 gap-3">
+                                        <p-select id="venueCountryCode" [(ngModel)]="venueForm.countryCode" name="venueCountryCode" [options]="countryOptions" optionLabel="dialCode" optionValue="dialCode" [filter]="true" filterBy="name,dialCode" placeholder="Código" class="col-span-12 sm:col-span-4 md:col-span-3 lg:col-span-3 w-full min-w-0" appendTo="body">
+                                            <ng-template #selectedItem let-option>
+                                                <span class="flex items-center gap-2">
+                                                    <img [src]="option?.flagFile ?? fallbackFlag" [alt]="option?.name ?? 'País'" class="h-4 w-6 rounded-sm object-cover" />
+                                                    <span>{{ option?.dialCode ?? 'Código' }}</span>
+                                                </span>
+                                            </ng-template>
+                                            <ng-template #item let-option>
+                                                <div class="flex items-center justify-between gap-3">
+                                                    <span class="flex items-center gap-2">
+                                                        <img [src]="option.flagFile || fallbackFlag" [alt]="option.name" class="h-4 w-6 rounded-sm object-cover" />
+                                                        <span>{{ option.name }}</span>
+                                                    </span>
+                                                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-surface-800 dark:text-slate-300">{{ option.dialCode }}</span>
+                                                </div>
+                                            </ng-template>
+                                        </p-select>
+                                        <input pInputText id="venuePhoneNumber" type="text" [(ngModel)]="venueForm.phoneNumber" name="venuePhoneNumber" placeholder="Ej. 3123456789" class="col-span-12 sm:col-span-8 md:col-span-9 lg:col-span-9 w-full min-w-0" (input)="onVenuePhoneNumberInput($event)" />
+                                    </div>
+                                    @if (showVenueError('countryCode') || showVenueError('phoneNumber')) {
+                                        <p-message severity="error" size="small">Ingresa un teléfono válido.</p-message>
                                     }
                                 </div>
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="venuePhone" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono</label>
-                                    <input pInputText id="venuePhone" type="text" [(ngModel)]="venueForm.phone" placeholder="Ej. 3123456789" class="w-full" (input)="onVenuePhoneInput($event)" />
-                                    @if (showVenueError('phone')) {
-                                        <p-message severity="error" size="small">Ingresa un teléfono válido.</p-message>
-                                    }
+                                    <label for="venueDepartment" class="text-sm font-medium text-surface-700 dark:text-surface-200">Departamento</label>
+                                    <p-select id="venueDepartment" [(ngModel)]="venueForm.department" name="venueDepartment" [options]="venueDepartmentOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name" placeholder="Selecciona departamento" class="w-full" appendTo="body" (onChange)="onVenueDepartmentChange()" />
+                                </div>
+
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="venueCity" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad</label>
+                                    <p-select id="venueCity" [(ngModel)]="venueForm.city" name="venueCity" [options]="venueCities" placeholder="Selecciona ciudad" class="w-full" appendTo="body" [filter]="true" />
                                 </div>
 
                                 <div class="col-span-12 flex flex-col gap-2">
                                     <label for="venueAddress" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección</label>
                                     <input pInputText id="venueAddress" type="text" [(ngModel)]="venueForm.address" placeholder="Ej. Calle 20 # 15-40" class="w-full" (keydown)="onAddressKeydown($event)" (paste)="onAddressPaste($event)" (input)="onVenueAddressInput($event)" />
+                                </div>
+                                <div class="col-span-12 flex flex-col gap-2">
+                                    <label for="venueNotes" class="text-sm font-medium text-surface-700 dark:text-surface-200">Notas</label>
+                                    <textarea pTextarea id="venueNotes" [(ngModel)]="venueForm.notes" rows="3" placeholder="Notas internas o referencias operativas" class="w-full"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -803,9 +867,51 @@ interface AcademyTeamStaffForm {
                     <ng-template pTemplate="footer">
                         <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                             <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetVenueDialog()" />
-                            <p-button [label]="venueDialogMode === 'create' ? 'Crear sede' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveVenue()" />
+                            <p-button [label]="venueDialogMode === 'create' ? 'Crear sede' : 'Guardar cambios'" styleClass="w-full sm:w-auto" [loading]="venueSaving" loadingIcon="pi pi-spinner pi-spin" (onClick)="saveVenue()" />
                         </div>
                     </ng-template>
+                </p-dialog>
+                <p-dialog [(visible)]="venueDetailVisible" [modal]="true" [draggable]="false" [resizable]="false" [style]="{ width: '34rem' }" [breakpoints]="{ '960px': '42rem', '640px': '96vw' }" header="Detalle de sede" (onHide)="venueDetailVisible = false">
+                    @if (selectedVenue) {
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Nombre</p>
+                                <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ selectedVenue.name }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Dirección</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.address || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Ciudad</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.city || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">País</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.country || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Departamento</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.department || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Teléfono</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.phone || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Notas</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.notes || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Sede principal</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.isPrimary ? 'Sí' : 'No' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Estado</p>
+                                <p-tag [value]="getVenueStatusLabel(selectedVenue.status)" [severity]="getVenueStatusSeverity(selectedVenue.status)" />
+                            </div>
+                        </div>
+                    }
                 </p-dialog>
 
                 <p-dialog
@@ -1251,16 +1357,23 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     shieldCroppedBlob: Blob | null = null;
     saving = false;
     taxSaving = false;
-    shieldSaving = false;
+    shieldUploadSaving = false;
+    shieldDeleteSaving = false;
+    shieldPreviewDialogVisible = false;
     readonly sessionExpiredDialogVisible = signal(false);
     private sessionExpiredTimeoutId: ReturnType<typeof setTimeout> | null = null;
-    selectedVenue: AcademyVenue | null = null;
+    selectedVenue: VenueApiVenue | null = null;
     venueSearch = '';
     venueSubmitted = false;
     venueDialogVisible = false;
     venueDialogMode: 'create' | 'edit' = 'create';
     editingVenueId: string | null = null;
     venueForm: AcademyVenueForm = this.emptyVenueForm();
+    readonly venueLoading = signal(false);
+    venueSaving = false;
+    readonly venueError = signal<string | null>(null);
+    venueListMeta: VenueApiMeta | null = null;
+    venueDetailVisible = false;
     selectedCategory: AcademyCategory | null = null;
     categorySearch = '';
     categorySubmitted = false;
@@ -1288,25 +1401,17 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     staffDialogMode: 'create' | 'edit' = 'create';
     editingStaffId: string | null = null;
     staffForm: AcademyStaffForm = this.emptyStaffForm();
-    venues: AcademyVenue[] = [
-        {
-            id: 'venue-001',
-            name: 'Sede Norte',
-            address: 'Av. Principal 120',
-            city: 'Pereira',
-            phone: '3123456789',
-            status: 'ACTIVE'
-        },
-        {
-            id: 'venue-002',
-            name: 'Sede Sur',
-            address: 'Carrera 18 # 32-10',
-            city: 'Dosquebradas',
-            phone: '3205558899',
-            status: 'INACTIVE'
-        }
-    ];
+    venues: VenueApiVenue[] = [];
     venueActionItems: MenuItem[] = [
+        {
+            label: 'Ver detalle',
+            icon: 'pi pi-eye',
+            command: () => {
+                if (this.selectedVenue) {
+                    this.openVenueDetail(this.selectedVenue);
+                }
+            }
+        },
         {
             label: 'Editar sede',
             icon: 'pi pi-pencil',
@@ -1592,6 +1697,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
 
     constructor(
         private readonly academyService: AcademyProfileService,
+        private readonly venueService: VenueApiService,
         private readonly auth: AuthSessionService,
         private readonly authAccess: AuthAccessService,
         private readonly route: ActivatedRoute,
@@ -1608,6 +1714,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     ngOnInit() {
         void this.loadTenantContextSilently();
         this.loadInformation();
+        setTimeout(() => this.applyInitialTabFromFragment());
     }
 
     ngOnDestroy() {
@@ -1632,13 +1739,26 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         return department?.cities ?? [];
     }
 
-    get filteredVenues(): AcademyVenue[] {
+    get venueDepartmentOptions(): LocationDepartment[] {
+        return this.locationCatalog[this.venueForm.country] ?? [];
+    }
+
+    get venueCities(): string[] {
+        const department = this.venueDepartmentOptions.find((item) => item.name === this.venueForm.department);
+        return department?.cities ?? [];
+    }
+
+    get venueCountryFlag(): string {
+        return this.countryOptions.find((option) => option.name === this.venueForm.country)?.flagFile ?? this.fallbackFlag;
+    }
+
+    get filteredVenues(): VenueApiVenue[] {
         const query = this.venueSearch.trim().toLowerCase();
         if (!query) {
             return this.venues;
         }
 
-        return this.venues.filter((venue) => [venue.name, venue.city, venue.address].some((value) => value.toLowerCase().includes(query)));
+        return this.venues.filter((venue) => [venue.name, venue.city ?? '', venue.department ?? '', venue.country ?? '', venue.address ?? '', venue.phone ?? ''].some((value) => value.toLowerCase().includes(query)));
     }
 
     get filteredCategories(): AcademyCategory[] {
@@ -1776,11 +1896,32 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
 
         if (tab === 'information' && !this.informationLoadCompleted() && !this.informationLoading()) {
             this.loadInformation();
+        } else if (tab === 'venues' && !this.venueLoading()) {
+            this.loadVenues();
         }
+    }
+
+    onTabClicked(tab: 'information' | 'venues' | 'categories' | 'teams' | 'staff') {
+        this.onTabSelected(tab);
+        void this.router.navigate([], {
+            relativeTo: this.route,
+            fragment: tab,
+            replaceUrl: true
+        });
     }
 
     private loadTenantContextSilently() {
         return this.authAccess.loadTenantContext().pipe(catchError(() => of(null))).subscribe();
+    }
+
+    private applyInitialTabFromFragment() {
+        const fragment = this.route.snapshot.fragment as 'information' | 'venues' | 'categories' | 'teams' | 'staff' | null;
+        if (fragment === 'venues' || fragment === 'categories' || fragment === 'teams' || fragment === 'staff' || fragment === 'information') {
+            this.onTabSelected(fragment);
+            return;
+        }
+
+        this.onTabSelected('information');
     }
 
     private showSessionExpiredDialog(): void {
@@ -1869,11 +2010,11 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     }
 
     saveShield() {
-        if (!this.shieldCroppedBlob || this.shieldSaving) {
+        if (!this.shieldCroppedBlob || this.shieldUploadSaving) {
             return;
         }
 
-        this.shieldSaving = true;
+        this.shieldUploadSaving = true;
         this.academyService.updateCurrentShield(this.shieldCroppedBlob).subscribe({
             next: (academy) => {
                 this.academy = academy;
@@ -1884,9 +2025,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
                     summary: 'Escudo actualizado',
                     detail: 'La imagen se guardó correctamente.'
                 });
-                this.shieldSaving = false;
-                this.hasPendingShieldChanges = false;
-                this.shieldCroppedBlob = null;
+                this.shieldUploadSaving = false;
             },
             error: (error: AuthErrorLike) => {
                 this.messageService.add({
@@ -1894,7 +2033,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
                     summary: 'No se pudo guardar',
                     detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
                 });
-                this.shieldSaving = false;
+                this.shieldUploadSaving = false;
             }
         });
     }
@@ -1935,12 +2074,12 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         }
     }
 
-    reopenShieldDialog() {
+    openShieldPreviewDialog() {
         if (!this.shieldPreviewUrl) {
             return;
         }
 
-        this.shieldCropper?.openWithPreview(this.shieldPreviewUrl, this.shieldFileName);
+        this.shieldPreviewDialogVisible = true;
     }
 
     onShieldApplied(result: ImageCropperResult) {
@@ -1956,7 +2095,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         });
     }
 
-    openVenueActionsMenu(event: Event, menu: Menu, venue: AcademyVenue) {
+    openVenueActionsMenu(event: Event, menu: Menu, venue: VenueApiVenue) {
         this.selectedVenue = venue;
         this.venueActionItems = [
             {
@@ -1980,6 +2119,11 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         ];
 
         menu.toggle(event);
+    }
+
+    openVenueDetail(venue: VenueApiVenue) {
+        this.selectedVenue = venue;
+        this.venueDetailVisible = true;
     }
 
     openCategoryActionsMenu(event: Event, menu: Menu, category: AcademyCategory) {
@@ -2093,15 +2237,56 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     }
 
     removeShield() {
-        this.shieldPreviewUrl = null;
-        this.shieldFileName = 'Sin imagen seleccionada';
-        this.shieldCroppedBlob = null;
-        this.hasPendingShieldChanges = true;
+        if (this.shieldUploadSaving || this.shieldDeleteSaving) {
+            return;
+        }
 
-        this.messageService.add({
-            severity: 'info',
-            summary: 'Imagen quitada',
-            detail: 'El cambio quedó listo para guardarse con el formulario.'
+        if (this.hasPendingShieldChanges && this.shieldCroppedBlob) {
+            this.applyShieldState(this.academy);
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Cambio cancelado',
+                detail: 'La imagen volvió al estado anterior.'
+            });
+            return;
+        }
+
+        if (!this.academy?.shieldUrl) {
+            this.applyShieldState(this.academy);
+            return;
+        }
+
+        this.shieldDeleteSaving = true;
+        this.academyService.deleteCurrentShield().subscribe({
+            next: () => {
+                const updatedAcademy = this.academy
+                    ? {
+                          ...this.academy,
+                          shieldUrl: null,
+                          shieldFileName: null
+                      }
+                    : null;
+
+                this.academy = updatedAcademy;
+                if (updatedAcademy) {
+                    this.form = updatedAcademy;
+                }
+                this.applyShieldState(updatedAcademy);
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Escudo eliminado',
+                    detail: 'El escudo ya no se mostrará en la academia.'
+                });
+                this.shieldDeleteSaving = false;
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No se pudo eliminar',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+                this.shieldDeleteSaving = false;
+            }
         });
     }
 
@@ -2156,16 +2341,35 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         }
     }
 
-    openVenueDialog(venue?: AcademyVenue) {
+    loadVenues() {
+        this.venueLoading.set(true);
+        this.venueError.set(null);
+
+        this.venueService.list({ page: 1, per_page: 20, sort: 'created_at', direction: 'DESC' }).pipe(finalize(() => this.venueLoading.set(false))).subscribe({
+            next: (response) => {
+                this.venues = response.data;
+                this.venueListMeta = response.meta;
+            },
+            error: (error: AuthErrorLike) => {
+                this.venueError.set(this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.'));
+            }
+        });
+    }
+
+    openVenueDialog(venue?: VenueApiVenue) {
         this.venueSubmitted = false;
         this.venueDialogMode = venue ? 'edit' : 'create';
         this.editingVenueId = venue?.id ?? null;
         this.venueForm = venue
             ? {
                   name: venue.name,
-                  address: venue.address,
-                  city: venue.city,
-                  phone: venue.phone
+                  address: venue.address ?? '',
+                  country: venue.country ?? this.form.country ?? 'Colombia',
+                  department: venue.department ?? '',
+                  city: venue.city ?? '',
+                  countryCode: this.resolveVenueCountryCode(venue.phone ?? ''),
+                  phoneNumber: this.resolveVenuePhoneNumber(venue.phone ?? ''),
+                  notes: typeof venue.notes === 'string' ? venue.notes : ''
               }
             : this.emptyVenueForm();
         this.venueDialogVisible = true;
@@ -2296,45 +2500,32 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
             return;
         }
 
-        if (this.venueDialogMode === 'create') {
-            this.venues = [
-                {
-                    id: `venue-${Date.now()}`,
-                    name: this.venueForm.name.trim(),
-                    address: this.venueForm.address.trim(),
-                    city: this.venueForm.city.trim(),
-                    phone: this.venueForm.phone.trim(),
-                    status: 'ACTIVE'
-                },
-                ...this.venues
-            ];
-
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Sede agregada',
-                detail: 'La nueva sede quedó registrada en esta iteración mock.'
-            });
-        } else if (this.editingVenueId) {
-            this.venues = this.venues.map((venue) =>
-                venue.id === this.editingVenueId
-                    ? {
-                          ...venue,
-                          name: this.venueForm.name.trim(),
-                          address: this.venueForm.address.trim(),
-                          city: this.venueForm.city.trim(),
-                          phone: this.venueForm.phone.trim()
-                      }
-                    : venue
-            );
-
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Sede actualizada',
-                detail: 'Los cambios de la sede quedaron listos en esta iteración mock.'
-            });
+        this.venueSaving = true;
+        const payload = this.buildVenuePayload();
+        const request$ = this.venueDialogMode === 'create' ? this.venueService.create(payload) : this.editingVenueId ? this.venueService.update(this.editingVenueId, payload) : null;
+        if (!request$) {
+            this.venueSaving = false;
+            return;
         }
 
-        this.resetVenueDialog();
+        request$.pipe(finalize(() => (this.venueSaving = false))).subscribe({
+            next: () => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: this.venueDialogMode === 'create' ? 'Sede agregada' : 'Sede actualizada',
+                    detail: 'Los cambios quedaron guardados correctamente.'
+                });
+                this.resetVenueDialog();
+                this.loadVenues();
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No pudimos guardar la sede',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+            }
+        });
     }
 
     saveCategory() {
@@ -2614,14 +2805,30 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         });
     }
 
-    toggleVenueStatus(venue: AcademyVenue) {
-        const nextStatus = venue.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-        this.venues = this.venues.map((item) => (item.id === venue.id ? { ...item, status: nextStatus } : item));
+    toggleVenueStatus(venue: VenueApiVenue) {
+        const nextAction = (venue.status ?? 'ACTIVE') === 'ACTIVE' ? 'inactivate' : 'activate';
+        const confirmed = window.confirm(nextAction === 'inactivate' ? `¿Deseas desactivar la sede "${venue.name}"?` : `¿Deseas reactivar la sede "${venue.name}"?`);
+        if (!confirmed) {
+            return;
+        }
 
-        this.messageService.add({
-            severity: 'info',
-            summary: nextStatus === 'ACTIVE' ? 'Sede activada' : 'Sede inactivada',
-            detail: nextStatus === 'ACTIVE' ? 'La sede volvió a quedar disponible.' : 'La sede dejó de estar disponible para la operación.'
+        const request$ = nextAction === 'inactivate' ? this.venueService.inactivate(venue.id) : this.venueService.activate(venue.id);
+        request$.subscribe({
+            next: () => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: nextAction === 'inactivate' ? 'Sede desactivada' : 'Sede activada',
+                    detail: 'El listado se refrescó con el estado más reciente.'
+                });
+                this.loadVenues();
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No pudimos cambiar el estado',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+            }
         });
     }
 
@@ -2681,12 +2888,17 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         this.venueForm.name = this.sanitizeNameInput((event.target as HTMLInputElement).value);
     }
 
-    onVenueCityInput(event: Event) {
-        this.venueForm.city = this.sanitizeNameInput((event.target as HTMLInputElement).value);
+    onVenueLocationCountryChange() {
+        this.venueForm.department = '';
+        this.venueForm.city = '';
     }
 
-    onVenuePhoneInput(event: Event) {
-        this.venueForm.phone = this.sanitizePhoneInput((event.target as HTMLInputElement).value);
+    onVenueDepartmentChange() {
+        this.venueForm.city = '';
+    }
+
+    onVenuePhoneNumberInput(event: Event) {
+        this.venueForm.phoneNumber = this.sanitizePhoneInput((event.target as HTMLInputElement).value);
     }
 
     onVenueAddressInput(event: Event) {
@@ -2834,7 +3046,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     }
 
     private isVenueFormValid(): boolean {
-        return ['name', 'city', 'phone'].every((field) => this.isVenueFieldValid(field as keyof AcademyVenueForm));
+        return ['name', 'countryCode', 'phoneNumber'].every((field) => this.isVenueFieldValid(field as keyof AcademyVenueForm));
     }
 
     private isCategoryFormValid(): boolean {
@@ -2913,11 +3125,18 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         switch (field) {
             case 'name':
                 return this.hasValidText(this.venueForm.name, 2);
+            case 'country':
+                return !!this.venueForm.country.trim();
+            case 'department':
+                return !!this.venueForm.department.trim();
             case 'city':
-                return this.hasValidText(this.venueForm.city, 2);
-            case 'phone':
-                return !this.venueForm.phone.trim() || this.isValidPhoneNumber(this.form.countryCode, this.venueForm.phone);
+                return !!this.venueForm.city.trim();
+            case 'countryCode':
+                return !!this.venueForm.countryCode.trim();
+            case 'phoneNumber':
+                return !this.venueForm.phoneNumber.trim() || this.isValidPhoneNumber(this.venueForm.countryCode, this.venueForm.phoneNumber);
             case 'address':
+            case 'notes':
             default:
                 return true;
         }
@@ -3245,18 +3464,18 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         }
     }
 
-    getVenueStatusLabel(status: AcademyVenue['status']): string {
+    getVenueStatusLabel(status: VenueApiVenue['status']): string {
         switch (status) {
             case 'ACTIVE':
                 return 'Activa';
             case 'INACTIVE':
                 return 'Inactiva';
             default:
-                return status;
+                return status ?? '-';
         }
     }
 
-    getVenueStatusSeverity(status: AcademyVenue['status']): 'success' | 'danger' {
+    getVenueStatusSeverity(status: VenueApiVenue['status']): 'success' | 'danger' {
         switch (status) {
             case 'ACTIVE':
                 return 'success';
@@ -3301,9 +3520,49 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         return {
             name: '',
             address: '',
+            country: this.form?.country ?? 'Colombia',
+            department: '',
             city: '',
-            phone: ''
+            countryCode: this.form?.countryCode ?? '+57',
+            phoneNumber: '',
+            notes: ''
         };
+    }
+
+    private buildVenuePayload(): VenueUpsertRequest {
+        return {
+            name: this.venueForm.name.trim(),
+            address: this.venueForm.address.trim() || undefined,
+            country: this.venueForm.country.trim() || undefined,
+            department: this.venueForm.department.trim() || undefined,
+            city: this.venueForm.city.trim() || undefined,
+            phone: `${this.venueForm.countryCode.trim()}${this.venueForm.phoneNumber.trim()}`.trim() || undefined,
+            notes: this.venueForm.notes.trim() || undefined
+        };
+    }
+
+    private resolveVenueCountryCode(phone: string): string {
+        const normalized = phone.replace(/\s+/g, '');
+
+        if (normalized.startsWith('+57')) return '+57';
+        if (normalized.startsWith('+51')) return '+51';
+        if (normalized.startsWith('+56')) return '+56';
+        if (normalized.startsWith('+593')) return '+593';
+        if (normalized.startsWith('+52')) return '+52';
+        if (normalized.startsWith('+34')) return '+34';
+
+        return this.form?.countryCode ?? '+57';
+    }
+
+    private resolveVenuePhoneNumber(phone: string): string {
+        const normalized = phone.replace(/\s+/g, '');
+        const countryCode = this.resolveVenueCountryCode(normalized);
+
+        if (normalized.startsWith(countryCode)) {
+            return normalized.slice(countryCode.length).trim();
+        }
+
+        return normalized.replace(/^\+\d+/, '').trim();
     }
 
     private emptyCategoryForm(): AcademyCategoryForm {
