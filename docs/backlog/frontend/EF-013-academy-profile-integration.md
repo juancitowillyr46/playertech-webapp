@@ -87,6 +87,11 @@ Incluye:
 * El frontend debe consumir el contexto autenticado y respetar el tenant activo.
 * El backend devuelve `data` y `meta`; el frontend debe tomar `data` como fuente de verdad.
 * Las validaciones del backend deben mostrarse de forma legible para el usuario.
+* Cualquier campo compuesto por `código de país + número de teléfono` debe mapearse en dos capas al hidratar el formulario:
+  * `countryCode` para el prefijo internacional.
+  * `phoneNumber` para el número local sin prefijo.
+* Al persistir, el frontend debe recomponer ambos valores en un único `phone` o campo equivalente del contrato.
+* La misma regla aplica para Academy y para cualquier otro formulario que use el mismo patrón compuesto.
 * El escudo debe enviarse como archivo real, no como base64.
 * El header `Authorization` debe ser inyectado por el interceptor global.
 
@@ -128,4 +133,3 @@ Incluye:
 * El usuario debe poder distinguir entre guardar datos generales, fiscales y escudo.
 * Los mensajes de error deben ser claros y accionables.
 * No debe requerirse recargar la app para ver cambios guardados.
-

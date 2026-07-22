@@ -170,7 +170,14 @@ export class AcademyApiService {
     }
 
     private resolvePhoneNumber(phone: string): string {
-        return phone.replace(/^\+\d+\s?/, '').trim();
+        const normalized = phone.replace(/\s+/g, '');
+        const countryCode = this.resolveCountryCode(normalized);
+
+        if (normalized.startsWith(countryCode)) {
+            return normalized.slice(countryCode.length).trim();
+        }
+
+        return normalized.replace(/^\+\d+/, '').trim();
     }
 
     private extractFileName(url: string): string {

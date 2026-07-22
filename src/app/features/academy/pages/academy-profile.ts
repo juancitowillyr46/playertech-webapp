@@ -12,6 +12,7 @@ import { MenuModule } from 'primeng/menu';
 import { MessageModule } from 'primeng/message';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SelectModule } from 'primeng/select';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
@@ -125,7 +126,7 @@ interface AcademyTeamStaffForm {
 @Component({
     selector: 'app-academy-profile-page',
     standalone: true,
-    imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, ImageCropperComponent, InputIconModule, InputTextModule, MenuModule, MessageModule, PageHeader, RadioButtonModule, RouterModule, SelectModule, SkeletonModule, TableModule, TabsModule, TagModule, TextareaModule, ToastModule, TooltipModule],
+    imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, ImageCropperComponent, InputIconModule, InputTextModule, MenuModule, MessageModule, PageHeader, ProgressBarModule, RadioButtonModule, RouterModule, SelectModule, SkeletonModule, TableModule, TabsModule, TagModule, TextareaModule, ToastModule, TooltipModule],
     providers: [MessageService],
     template: `
         <p-toast />
@@ -215,7 +216,7 @@ interface AcademyTeamStaffForm {
                                 <p-tabpanel value="information">
                                     <div class="space-y-4 p-3 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:p-4 sm:pb-4">
                                         @if (informationLoading()) {
-                                            <div class="space-y-5 p-1">
+                                            <div class="space-y-5">
                                                 <div class="space-y-3">
                                                     <p-skeleton width="10rem" height="1.1rem"></p-skeleton>
                                                     <p-skeleton width="22rem" height="0.9rem"></p-skeleton>
@@ -242,32 +243,24 @@ interface AcademyTeamStaffForm {
                                                         <p-skeleton height="2.75rem"></p-skeleton>
                                                     </div>
                                                 </div>
-                                                <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/40">
+                                                <div class="rounded-[0.9rem] border border-slate-200 bg-white p-4 dark:border-surface-700 dark:bg-surface-900/40">
                                                     <div class="flex flex-col gap-2">
                                                         <p-skeleton width="11rem" height="1rem"></p-skeleton>
                                                         <p-skeleton width="18rem" height="0.85rem"></p-skeleton>
                                                     </div>
-                                                    <div class="mt-4 flex flex-col gap-4 rounded-[0.85rem] border border-dashed border-slate-300 bg-white p-4 dark:border-surface-600 dark:bg-surface-900">
-                                                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                                    <div class="mt-4 rounded-[0.85rem] border border-dashed border-slate-300 bg-white p-4 dark:border-surface-600 dark:bg-surface-900">
+                                                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
                                                             <p-skeleton width="5rem" height="5rem" borderRadius="1rem"></p-skeleton>
                                                             <div class="min-w-0 flex-1 space-y-2">
-                                                                <p-skeleton width="12rem" height="1rem"></p-skeleton>
+                                                                <p-skeleton width="11rem" height="1rem"></p-skeleton>
                                                                 <p-skeleton width="18rem" height="0.85rem"></p-skeleton>
-                                                                <p-skeleton width="10rem" height="0.85rem"></p-skeleton>
+                                                                <p-skeleton width="14rem" height="0.85rem"></p-skeleton>
                                                             </div>
                                                         </div>
-                                                        <div class="flex flex-col gap-2 sm:flex-row">
-                                                            <p-skeleton width="10rem" height="2.5rem"></p-skeleton>
-                                                            <p-skeleton width="9rem" height="2.5rem"></p-skeleton>
-                                                            <p-skeleton width="8rem" height="2.5rem"></p-skeleton>
+                                                        <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                                                            <p-skeleton width="10rem" height="2.5rem" borderRadius="0.75rem"></p-skeleton>
+                                                            <p-skeleton width="9rem" height="2.5rem" borderRadius="0.75rem"></p-skeleton>
                                                         </div>
-                                                        <p-skeleton width="11rem" height="2.5rem"></p-skeleton>
-                                                    </div>
-                                                </div>
-                                                <div class="sticky bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:border-surface-800 dark:bg-surface-900/95 sm:static sm:bg-transparent sm:p-4 sm:backdrop-blur-0">
-                                                    <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center sm:justify-end">
-                                                        <p-skeleton width="7rem" height="2.5rem"></p-skeleton>
-                                                        <p-skeleton width="9rem" height="2.5rem"></p-skeleton>
                                                     </div>
                                                 </div>
                                             </div>
@@ -354,47 +347,85 @@ interface AcademyTeamStaffForm {
                                                 }
                                             </div>
 
-                                            <div class="col-span-12 rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/40">
+                                            <div class="col-span-12 rounded-[0.9rem] border border-slate-200 bg-white p-4 dark:border-surface-700 dark:bg-surface-900/40">
                                                 <div class="flex flex-col gap-2">
                                                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Escudo institucional</p>
-                                                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Sube un logo claro para identificar tu academia en la plataforma.</p>
+                                                    <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Sube el escudo oficial de tu institución.</p>
                                                 </div>
 
-                                                <div class="mt-4 flex flex-col gap-4 rounded-[0.85rem] border border-dashed border-slate-300 bg-white p-4 dark:border-surface-600 dark:bg-surface-900">
-                                                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-                                                        <div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-100 dark:border-surface-700 dark:bg-surface-800">
-                                                            @if (shieldPreviewUrl) {
+                                                <div class="mt-4 rounded-[0.9rem] border border-slate-200 bg-white px-4 py-5 dark:border-surface-700 dark:bg-surface-900">
+                                                    <div class="flex flex-col items-center gap-4 text-center">
+                                                        @if (shieldPreviewUrl) {
+                                                            <div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 dark:border-surface-700 dark:bg-surface-800">
                                                                 <img [src]="shieldPreviewUrl" alt="Escudo institucional" class="h-full w-full object-cover" />
-                                                            } @else {
+                                                            </div>
+                                                        } @else {
+                                                            <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 text-sky-700 dark:border-surface-700 dark:bg-surface-800">
                                                                 <i class="pi pi-image text-2xl text-slate-400"></i>
+                                                            </div>
+                                                        }
+
+                                                        @if (!shieldPreviewUrl) {
+                                                            <div class="space-y-1">
+                                                                <p class="m-0 text-sm font-semibold text-surface-900 dark:text-surface-0">Sube el escudo oficial de tu institución</p>
+                                                                <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Se recomienda usar PNG con transparencia o SVG para evitar fondos blancos indeseados.</p>
+                                                            </div>
+                                                        } @else {
+                                                            <div class="space-y-1">
+                                                                <p class="m-0 max-w-full truncate text-sm font-semibold text-surface-900 dark:text-surface-0">{{ shieldFileName }}</p>
+                                                            </div>
+                                                        }
+
+                                                        <div class="flex w-full flex-col items-center gap-2">
+                                                            <input #shieldInput type="file" accept="image/png,image/jpeg,image/jpg,image/svg+xml" class="hidden" (change)="onShieldSelected($event)" />
+                                                            @if (shieldPreviewUrl) {
+                                                                <div class="flex flex-wrap justify-center gap-2">
+                                                                    <p-button label="Cambiar imagen" icon="pi pi-refresh" styleClass="w-full sm:w-auto" severity="secondary" text [disabled]="shieldSaving" (onClick)="shieldInput.click()" />
+                                                                    <p-button label="Quitar imagen" icon="pi pi-trash" styleClass="w-full sm:w-auto" severity="danger" text [disabled]="shieldSaving" (onClick)="removeShield()" />
+                                                                </div>
+                                                            } @else {
+                                                                <p-button label="Seleccionar archivo" icon="pi pi-upload" styleClass="w-full sm:w-auto" severity="secondary" [disabled]="shieldSaving" (onClick)="shieldInput.click()" />
                                                             }
                                                         </div>
 
-                                                        <div class="min-w-0 flex-1 space-y-1">
-                                                            <p class="m-0 truncate text-sm font-semibold text-surface-900 dark:text-surface-0">{{ shieldFileName }}</p>
-                                                            <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Selecciona una imagen cuadrada o vertical para mejorar su lectura.</p>
-                                                            @if (hasPendingShieldChanges) {
-                                                                <p class="m-0 text-xs font-medium text-amber-600 dark:text-amber-400">Hay cambios listos para guardar.</p>
-                                                            }
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="flex flex-col gap-2 sm:flex-row">
-                                                        <input #shieldInput type="file" accept="image/png,image/jpeg,image/jpg,image/svg+xml" class="hidden" (change)="onShieldSelected($event)" />
-                                                        <p-button label="Seleccionar archivo" icon="pi pi-upload" styleClass="w-full sm:w-auto" severity="secondary" [disabled]="shieldSaving" (onClick)="shieldInput.click()" />
-                                                        <p-button label="Cambiar imagen" icon="pi pi-refresh" styleClass="w-full sm:w-auto" severity="secondary" text [disabled]="!shieldPreviewUrl || shieldSaving" (onClick)="reopenShieldDialog()" />
-                                                        <p-button label="Quitar imagen" icon="pi pi-trash" styleClass="w-full sm:w-auto" severity="danger" text [disabled]="!shieldPreviewUrl || shieldSaving" (onClick)="removeShield()" />
+                                                        @if (hasPendingShieldChanges) {
+                                                            <div class="mt-2 w-full space-y-2 text-left">
+                                                                @if (shieldSaving) {
+                                                                    <div class="space-y-1">
+                                                                        <div class="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+                                                                            <i class="pi pi-spinner pi-spin"></i>
+                                                                            <span>Guardando...</span>
+                                                                        </div>
+                                                                        <p-progressBar mode="indeterminate" [style]="{ height: '0.25rem' }" />
+                                                                    </div>
+                                                                } @else {
+                                                                    <p class="m-0 text-sm leading-6 text-slate-600 dark:text-slate-300">Pulsa guardar para terminar.</p>
+                                                                    <div class="flex justify-start">
+                                                                        <p-button label="Guardar escudo" icon="pi pi-upload" styleClass="w-full sm:w-auto" [loading]="shieldSaving" loadingIcon="pi pi-spinner pi-spin" [disabled]="shieldSaving || !shieldCroppedBlob" (onClick)="saveShield()" />
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                        }
                                                     </div>
                                                 </div>
                                             </div>
                                     </div>
 
-                                    <div class="sticky bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:border-surface-800 dark:bg-surface-900/95 sm:static sm:bg-transparent sm:p-4 sm:backdrop-blur-0">
-                                        <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center sm:justify-end">
-                                            <p-button label="Cancelar" severity="secondary" text styleClass="w-full" [disabled]="informationLoading()" routerLink="/" />
-                                            <p-button label="Guardar datos" icon="pi pi-check" styleClass="w-full" [loading]="saving" loadingIcon="pi pi-spinner pi-spin" [disabled]="saving || informationLoading()" (onClick)="save()" />
+                                    @if (informationLoading()) {
+                                        <div class="sticky bottom-0 z-10 bg-white/95 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:bg-surface-900/95 sm:static sm:bg-transparent sm:p-4 sm:backdrop-blur-0">
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                                <p-skeleton width="7rem" height="2.75rem" borderRadius="0.75rem"></p-skeleton>
+                                                <p-skeleton width="9rem" height="2.75rem" borderRadius="0.75rem"></p-skeleton>
+                                            </div>
                                         </div>
-                                    </div>
+                                    } @else {
+                                        <div class="sticky bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:border-surface-800 dark:bg-surface-900/95 sm:static sm:bg-transparent sm:p-4 sm:backdrop-blur-0">
+                                            <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center sm:justify-end">
+                                                <p-button label="Cancelar" severity="secondary" text styleClass="w-full" [disabled]="informationLoading()" routerLink="/" />
+                                                <p-button label="Guardar datos" icon="pi pi-check" styleClass="w-full" [loading]="saving" loadingIcon="pi pi-spinner pi-spin" [disabled]="saving || informationLoading()" (onClick)="save()" />
+                                            </div>
+                                        </div>
+                                    }
                                     </div>
                                 </p-tabpanel>
 
@@ -2791,11 +2822,11 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     }
 
     private canEditAcademy(): boolean {
-        return ['tenant_owner', 'academy_admin'].includes(this.auth.getRole() ?? '');
+        return ['tenant_owner', 'academy_admin', 'ROLE_TENANT_OWNER', 'ROLE_ACADEMY_ADMIN'].includes(this.auth.getRole() ?? '');
     }
 
     private isFormValid(): boolean {
-        return ['name', 'contactEmail', 'countryCode', 'phoneNumber', 'country', 'department', 'city', 'address'].every((field) => this.isFieldValid(field));
+        return ['name', 'contactEmail', 'countryCode', 'phoneNumber', 'country', 'department', 'city'].every((field) => this.isFieldValid(field));
     }
 
     private isTaxFormValid(): boolean {
@@ -2847,7 +2878,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
             case 'city':
                 return !!this.form.city.trim();
             case 'address':
-                return this.hasValidAddressText(this.form.address, 5);
+                return !this.form.address?.trim() || this.hasValidAddressText(this.form.address, 5);
             default:
                 return true;
         }
