@@ -17,6 +17,7 @@ Los dominios iniciales son:
 * Auth
 * Academy
 * Finance
+* Venues
 * Users
 * Sports
 * Membership
@@ -64,6 +65,28 @@ Representa la gestión de la academia y su configuración operativa.
 * gestión de pagos;
 * gestión competitiva;
 * autenticación.
+
+---
+
+# Venues
+
+## Scope
+
+Administra las sedes de la academia dentro del contexto tenant actual.
+
+## Includes
+
+* listado de sedes;
+* creación y edición;
+* detalle de sede;
+* activación e inactivación;
+* paginación y feedback de carga.
+
+## Excludes
+
+* gestión competitiva;
+* pagos;
+* autenticación de sesión.
 
 ---
 
