@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { MenuItem, MessageService } from 'primeng/api';
+import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -123,10 +124,11 @@ interface AcademyTeamStaffForm {
 @Component({
     selector: 'app-academy-profile-page',
     standalone: true,
-    imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, ImageCropperComponent, InputIconModule, InputTextModule, MenuModule, MessageModule, PageHeader, ProgressBarModule, RadioButtonModule, RouterModule, SelectModule, SkeletonModule, TableModule, TabsModule, TagModule, TextareaModule, ToastModule, TooltipModule],
-    providers: [MessageService],
+    imports: [ButtonModule, CommonModule, ConfirmDialogModule, DialogModule, FormsModule, IconFieldModule, ImageCropperComponent, InputIconModule, InputTextModule, MenuModule, MessageModule, PageHeader, ProgressBarModule, RadioButtonModule, RouterModule, SelectModule, SkeletonModule, TableModule, TabsModule, TagModule, TextareaModule, ToastModule, TooltipModule],
+    providers: [ConfirmationService, MessageService],
     template: `
         <p-toast />
+        <p-confirmDialog />
         <p-dialog
             header="Sesión expirada"
             [modal]="true"
@@ -187,7 +189,8 @@ interface AcademyTeamStaffForm {
             } @else {
                 <div
                     class="mx-auto mt-4 w-full space-y-3 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"
-                    [class.content-width-compact]="activeTab === 'information' || activeTab === 'venues' || activeTab === 'categories' || activeTab === 'teams'"
+                    [class.content-width-compact]="activeTab === 'information' || activeTab === 'categories' || activeTab === 'teams'"
+                    [class.content-width-comfortable]="activeTab === 'venues'"
                     [class.content-width-full]="activeTab === 'staff'"
                 >
                     <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
@@ -458,6 +461,20 @@ interface AcademyTeamStaffForm {
                                                         }
                                                     </div>
                                                 </div>
+                                                <div class="flex flex-col gap-3 border-t border-slate-200 px-3 py-3 dark:border-surface-700 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+                                                    <div class="flex items-center gap-2">
+                                                        <p-skeleton width="11rem" height="0.9rem"></p-skeleton>
+                                                        <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                        <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                        <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                        <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                        <p-skeleton width="3.75rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                        <p-skeleton width="4rem" height="0.9rem"></p-skeleton>
+                                                    </div>
+                                                </div>
                                             </div>
                                         } @else if (venueError()) {
                                             <div class="rounded-[0.75rem] border border-rose-200 bg-rose-50 p-5 text-rose-900 shadow-sm dark:border-rose-900/50 dark:bg-rose-950/20 dark:text-rose-100">
@@ -475,54 +492,57 @@ interface AcademyTeamStaffForm {
                                                         <p-inputicon styleClass="pi pi-search" />
                                                         <input pInputText type="text" [(ngModel)]="venueSearch" placeholder="Buscar por nombre o descripción" class="w-full" />
                                                     </p-iconfield>
-                                                    <button
-                                                        type="button"
-                                                        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-surface-700 dark:text-slate-400 dark:hover:border-surface-500 dark:hover:text-slate-200"
-                                                        pTooltip="Busca por nombre o descripción."
-                                                        tooltipPosition="left"
-                                                        aria-label="Ayuda de búsqueda"
-                                                    >
-                                                        <i class="pi pi-info-circle text-sm"></i>
-                                                    </button>
                                                 </div>
                                             </div>
 
-                                            <p-table [value]="filteredVenues" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
+                                            <p-table
+                                                [value]="filteredVenues"
+                                                [tableStyle]="{ 'min-width': '100%' }"
+                                                responsiveLayout="scroll"
+                                                styleClass="text-sm"
+                                                [paginator]="true"
+                                                [rows]="venueRows"
+                                                [first]="(venuePage - 1) * venueRows"
+                                                [totalRecords]="venueTotalRecords"
+                                                [rowsPerPageOptions]="[10, 20, 50]"
+                                                paginatorDropdownAppendTo="body"
+                                                [loading]="venueLoading()"
+                                                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} sedes"
+                                                [showCurrentPageReport]="true"
+                                                (onPage)="onVenuePageChange($event)"
+                                            >
                                                 <ng-template pTemplate="header">
                                                     <tr>
-                                                        <th>Nombre</th>
-                                                        <th>País</th>
-                                                        <th>Departamento</th>
-                                                        <th>Ciudad</th>
-                                                        <th>Teléfono</th>
-                                                        <th>Estado</th>
-                                                        <th class="text-right">Acciones</th>
+                                                        <th class="w-[40%]">Nombre</th>
+                                                        <th class="w-[18%]">Ciudad</th>
+                                                        <th class="w-[18%]">Teléfono</th>
+                                                        <th class="w-[12%]">Estado</th>
+                                                        <th class="w-[12%] text-right">Acciones</th>
                                                     </tr>
                                                 </ng-template>
                                                 <ng-template pTemplate="body" let-venue>
                                                     <tr>
-                                                        <td>
+                                                        <td class="align-top">
                                                             <div class="flex flex-col gap-1">
                                                                 <span class="font-medium text-surface-900 dark:text-surface-0">{{ venue.name }}</span>
-                                                                <span class="text-sm text-slate-500 dark:text-slate-400">{{ venue.address || 'Sin dirección registrada' }}</span>
+                                                                <span class="text-sm text-slate-500 dark:text-slate-400">{{ getVenueLocationSummary(venue) }}</span>
                                                             </div>
                                                         </td>
-                                                        <td>
-                                                            <span class="text-surface-900 dark:text-surface-0">{{ venue.country || '-' }}</span>
-                                                        </td>
-                                                        <td>
-                                                            <span class="text-surface-900 dark:text-surface-0">{{ venue.department || '-' }}</span>
-                                                        </td>
-                                                        <td>
+                                                        <td class="align-top">
                                                             <span class="text-surface-900 dark:text-surface-0">{{ venue.city || '-' }}</span>
                                                         </td>
-                                                        <td>
+                                                        <td class="align-top">
                                                             <span class="text-surface-900 dark:text-surface-0">{{ venue.phone || '-' }}</span>
                                                         </td>
-                                                        <td>
-                                                            <p-tag [value]="getVenueStatusLabel(venue.status)" [severity]="getVenueStatusSeverity(venue.status)" />
+                                                        <td class="align-top">
+                                                            <div class="inline-flex items-center gap-2">
+                                                                <p-tag [value]="getVenueStatusLabel(venue.status)" [severity]="getVenueStatusSeverity(venue.status)" />
+                                                                @if (venueStatusUpdatingId === venue.id) {
+                                                                    <i class="pi pi-spinner pi-spin text-sm text-slate-500 dark:text-slate-400" aria-hidden="true"></i>
+                                                                }
+                                                            </div>
                                                         </td>
-                                                        <td>
+                                                        <td class="align-top">
                                                             <div class="flex justify-end">
                                                                 <p-menu #venueActionsMenu [popup]="true" appendTo="body" [model]="venueActionItems"></p-menu>
                                                                 <p-button
@@ -530,6 +550,7 @@ interface AcademyTeamStaffForm {
                                                                     [text]="true"
                                                                     rounded
                                                                     severity="secondary"
+                                                                    [disabled]="venueStatusUpdatingId === venue.id"
                                                                     (onClick)="openVenueActionsMenu($event, venueActionsMenu, venue)"
                                                                 />
                                                             </div>
@@ -538,7 +559,7 @@ interface AcademyTeamStaffForm {
                                                 </ng-template>
                                                 <ng-template pTemplate="emptymessage">
                                                     <tr>
-                                                        <td colspan="7" class="py-10 text-center">
+                                                        <td colspan="5" class="py-10 text-center">
                                                             <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                                                                 <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay sedes registradas</span>
                                                                 <span>Agrega la primera sede para empezar a organizar la operación de la academia.</span>
@@ -816,7 +837,7 @@ interface AcademyTeamStaffForm {
                                 </div>
 
                                 <div class="col-span-12 flex flex-col gap-2">
-                                    <label for="venuePhoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono</label>
+                                    <label for="venuePhoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono <span class="text-slate-500">(opcional)</span></label>
                                     <div class="grid grid-cols-12 gap-3">
                                         <p-select id="venueCountryCode" [(ngModel)]="venueForm.countryCode" name="venueCountryCode" [options]="countryOptions" optionLabel="dialCode" optionValue="dialCode" [filter]="true" filterBy="name,dialCode" placeholder="Código" class="col-span-12 sm:col-span-4 md:col-span-3 lg:col-span-3 w-full min-w-0" appendTo="body">
                                             <ng-template #selectedItem let-option>
@@ -843,21 +864,21 @@ interface AcademyTeamStaffForm {
                                 </div>
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="venueDepartment" class="text-sm font-medium text-surface-700 dark:text-surface-200">Departamento</label>
+                                    <label for="venueDepartment" class="text-sm font-medium text-surface-700 dark:text-surface-200">Departamento <span class="text-slate-500">(opcional)</span></label>
                                     <p-select id="venueDepartment" [(ngModel)]="venueForm.department" name="venueDepartment" [options]="venueDepartmentOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name" placeholder="Selecciona departamento" class="w-full" appendTo="body" (onChange)="onVenueDepartmentChange()" />
                                 </div>
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="venueCity" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad</label>
+                                    <label for="venueCity" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad <span class="text-slate-500">(opcional)</span></label>
                                     <p-select id="venueCity" [(ngModel)]="venueForm.city" name="venueCity" [options]="venueCities" placeholder="Selecciona ciudad" class="w-full" appendTo="body" [filter]="true" />
                                 </div>
 
                                 <div class="col-span-12 flex flex-col gap-2">
-                                    <label for="venueAddress" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección</label>
+                                    <label for="venueAddress" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección <span class="text-slate-500">(opcional)</span></label>
                                     <input pInputText id="venueAddress" type="text" [(ngModel)]="venueForm.address" placeholder="Ej. Calle 20 # 15-40" class="w-full" (keydown)="onAddressKeydown($event)" (paste)="onAddressPaste($event)" (input)="onVenueAddressInput($event)" />
                                 </div>
                                 <div class="col-span-12 flex flex-col gap-2">
-                                    <label for="venueNotes" class="text-sm font-medium text-surface-700 dark:text-surface-200">Notas</label>
+                                    <label for="venueNotes" class="text-sm font-medium text-surface-700 dark:text-surface-200">Notas <span class="text-slate-500">(opcional)</span></label>
                                     <textarea pTextarea id="venueNotes" [(ngModel)]="venueForm.notes" rows="3" placeholder="Notas internas o referencias operativas" class="w-full"></textarea>
                                 </div>
                             </div>
@@ -1374,6 +1395,9 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     venueSaving = false;
     readonly venueError = signal<string | null>(null);
     venueListMeta: VenueApiMeta | null = null;
+    venuePage = 1;
+    venueRows = 20;
+    venueStatusUpdatingId: string | null = null;
     venueDetailVisible = false;
     selectedCategory: AcademyCategory | null = null;
     categorySearch = '';
@@ -1702,6 +1726,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         private readonly auth: AuthSessionService,
         private readonly authAccess: AuthAccessService,
         private readonly route: ActivatedRoute,
+        private readonly confirmationService: ConfirmationService,
         private readonly messageService: MessageService,
         private readonly router: Router
     ) {
@@ -1760,6 +1785,23 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         }
 
         return this.venues.filter((venue) => [venue.name, venue.city ?? '', venue.department ?? '', venue.country ?? '', venue.address ?? '', venue.phone ?? ''].some((value) => value.toLowerCase().includes(query)));
+    }
+
+    get venueTotalRecords(): number {
+        return this.resolveVenueMetaTotal(this.venueListMeta) ?? this.venues.length;
+    }
+
+    getVenueLocationSummary(venue: VenueApiVenue): string {
+        return [venue.address, venue.department, venue.country].filter((value): value is string => !!value && value.trim().length > 0).join(' · ') || 'Sin dirección registrada';
+    }
+
+    private resolveVenueMetaTotal(meta: VenueApiMeta | null): number | null {
+        if (!meta) {
+            return null;
+        }
+
+        const total = meta.total ?? meta.totalItems;
+        return typeof total === 'number' ? total : null;
     }
 
     get filteredCategories(): AcademyCategory[] {
@@ -2346,7 +2388,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         this.venueLoading.set(true);
         this.venueError.set(null);
 
-        this.venueService.list({ page: 1, per_page: 20, sort: 'created_at', direction: 'DESC' }).pipe(finalize(() => this.venueLoading.set(false))).subscribe({
+        this.venueService.list({ page: this.venuePage, per_page: this.venueRows, sort: 'created_at', direction: 'DESC' }).pipe(finalize(() => this.venueLoading.set(false))).subscribe({
             next: (response) => {
                 this.venues = response.data;
                 this.venueListMeta = response.meta;
@@ -2363,6 +2405,19 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
             return;
         }
 
+        this.loadVenues();
+    }
+
+    onVenuePageChange(event: { page?: number; first?: number; rows?: number }) {
+        const rows = event.rows ?? this.venueRows;
+        const page = typeof event.page === 'number' ? event.page + 1 : Math.floor((event.first ?? 0) / rows) + 1;
+
+        if (page === this.venuePage && rows === this.venueRows) {
+            return;
+        }
+
+        this.venuePage = page;
+        this.venueRows = rows;
         this.loadVenues();
     }
 
@@ -2822,27 +2877,35 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
 
     toggleVenueStatus(venue: VenueApiVenue) {
         const nextAction = (venue.status ?? 'ACTIVE') === 'ACTIVE' ? 'inactivate' : 'activate';
-        const confirmed = window.confirm(nextAction === 'inactivate' ? `¿Deseas desactivar la sede "${venue.name}"?` : `¿Deseas reactivar la sede "${venue.name}"?`);
-        if (!confirmed) {
-            return;
-        }
-
-        const request$ = nextAction === 'inactivate' ? this.venueService.inactivate(venue.id) : this.venueService.activate(venue.id);
-        request$.subscribe({
-            next: () => {
-                this.messageService.add({
-                    severity: 'success',
-                    summary: nextAction === 'inactivate' ? 'Sede desactivada' : 'Sede activada',
-                    detail: 'El listado se refrescó con el estado más reciente.'
-                });
-                this.refreshVenues();
-            },
-            error: (error: AuthErrorLike) => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'No pudimos cambiar el estado',
-                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
-                });
+        this.confirmationService.confirm({
+            header: nextAction === 'inactivate' ? 'Desactivar sede' : 'Reactivar sede',
+            icon: 'pi pi-exclamation-triangle',
+            message: nextAction === 'inactivate' ? `¿Deseas desactivar la sede "${venue.name}"?` : `¿Deseas reactivar la sede "${venue.name}"?`,
+            acceptLabel: nextAction === 'inactivate' ? 'Desactivar' : 'Reactivar',
+            rejectLabel: 'Cancelar',
+            acceptButtonStyleClass: nextAction === 'inactivate' ? 'p-button-danger' : '',
+            accept: () => {
+                this.venueStatusUpdatingId = venue.id;
+                const request$ = nextAction === 'inactivate' ? this.venueService.inactivate(venue.id) : this.venueService.activate(venue.id);
+                request$
+                    .pipe(finalize(() => (this.venueStatusUpdatingId = null)))
+                    .subscribe({
+                        next: () => {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: nextAction === 'inactivate' ? 'Sede desactivada' : 'Sede activada',
+                                detail: 'El listado se refrescó con el estado más reciente.'
+                            });
+                            this.refreshVenues();
+                        },
+                        error: (error: AuthErrorLike) => {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'No pudimos cambiar el estado',
+                                detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                            });
+                        }
+                    });
             }
         });
     }
