@@ -139,15 +139,15 @@ Cobertura de alta unificada del staff, acceso y relación del staff con equipos.
 
 ## EF-005 Sports Configuration
 
-* HU-001 Crear sede → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-002 Listar sedes → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-003 Ver detalle de sede → `Partial` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-004 Actualizar sede → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-005 Activar o inactivar sede → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-006 Crear categoría → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-007 Listar categorías → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-008 Actualizar categoría → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-009 Activar o inactivar categoría → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-001 Crear sede → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/venue-api.service.ts`
+* HU-002 Listar sedes → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/venue-api.service.ts`
+* HU-003 Ver detalle de sede → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/venue-api.service.ts`
+* HU-004 Actualizar sede → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/venue-api.service.ts`
+* HU-005 Activar o inactivar sede → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/venue-api.service.ts`
+* HU-006 Crear categoría → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/category-api.service.ts`
+* HU-007 Listar categorías → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/category-api.service.ts`
+* HU-008 Actualizar categoría → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/category-api.service.ts`
+* HU-009 Activar o inactivar categoría → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/category-api.service.ts`
 
 ## EF-006 Player Management
 

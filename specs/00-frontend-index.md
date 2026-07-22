@@ -179,6 +179,7 @@ Documentos:
 
 * `domains/README.md`
 * `domains/auth.md`
+* `domains/academy.md`
 * `domains/players.md`
 * `domains/payments.md`
 * `domains/auth-flows.md`

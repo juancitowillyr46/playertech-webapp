@@ -29,6 +29,8 @@ import { ImageCropperComponent, ImageCropperFileError, ImageCropperResult } from
 import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
 import { AcademyProfileService } from '../data-access/academy-profile.service';
 import { AcademyProfile, AcademyProfileUpdateRequest, AcademyTaxProfile, AcademyTaxProfileUpdateRequest } from '../models/academy.model';
+import { CategoryApiService } from '../data-access/category-api.service';
+import { CategoryApiCategory as AcademyCategory, CategoryApiMeta as AcademyCategoryApiMeta, CategoryUpsertRequest as AcademyCategoryUpsertRequest } from '../models/category.model';
 import { VenueApiService } from '../data-access/venue-api.service';
 import { VenueApiMeta, VenueApiVenue, VenueUpsertRequest } from '../models/venue.model';
 import { Menu } from 'primeng/menu';
@@ -55,17 +57,8 @@ interface AcademyVenueForm {
     notes: string;
 }
 
-interface AcademyCategory {
-    id: string;
-    categoryKey: string;
-    name: string;
-    minAge: number;
-    maxAge: number;
-    description: string;
-    status: 'ACTIVE' | 'INACTIVE';
-}
-
 interface AcademyCategoryForm {
+    categoryKey: string;
     name: string;
     minAge: string;
     maxAge: string;
@@ -587,71 +580,164 @@ interface AcademyTeamStaffForm {
                                             </div>
                                         </div>
 
-                                        <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
-                                            <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
-                                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                                                    <p-iconfield iconPosition="left" class="w-full sm:max-w-md">
-                                                        <p-inputicon styleClass="pi pi-search" />
-                                                        <input pInputText type="text" [(ngModel)]="categorySearch" placeholder="Buscar por nombre o descripción" class="w-full" />
-                                                    </p-iconfield>
-                                                    <button
-                                                        type="button"
-                                                        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-surface-700 dark:text-slate-400 dark:hover:border-surface-500 dark:hover:text-slate-200"
-                                                        pTooltip="Busca por nombre o descripción."
-                                                        tooltipPosition="left"
-                                                        aria-label="Ayuda de búsqueda"
-                                                    >
-                                                        <i class="pi pi-info-circle text-sm"></i>
-                                                    </button>
+                                        @if (categoryLoading()) {
+                                            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
+                                                <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
+                                                    <div class="flex items-center justify-between gap-3">
+                                                        <p-skeleton width="14rem" height="1rem"></p-skeleton>
+                                                        <p-skeleton width="10rem" height="2.75rem" borderRadius="0.75rem"></p-skeleton>
+                                                    </div>
+                                                </div>
+
+                                                <div class="space-y-3 p-3 sm:p-4">
+                                                    <div class="rounded-[0.75rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900 sm:px-4">
+                                                        <div class="grid grid-cols-12 items-center gap-4">
+                                                            <div class="col-span-12 md:col-span-4"><p-skeleton width="70%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="85%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="75%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="65%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2 flex justify-end"><p-skeleton width="2.5rem" height="2.5rem" borderRadius="9999px"></p-skeleton></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="rounded-[0.75rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900 sm:px-4">
+                                                        <div class="grid grid-cols-12 items-center gap-4">
+                                                            <div class="col-span-12 md:col-span-4"><p-skeleton width="70%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="85%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="75%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="65%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2 flex justify-end"><p-skeleton width="2.5rem" height="2.5rem" borderRadius="9999px"></p-skeleton></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="rounded-[0.75rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900 sm:px-4">
+                                                        <div class="grid grid-cols-12 items-center gap-4">
+                                                            <div class="col-span-12 md:col-span-4"><p-skeleton width="70%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="85%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="75%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="65%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2 flex justify-end"><p-skeleton width="2.5rem" height="2.5rem" borderRadius="9999px"></p-skeleton></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="rounded-[0.75rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900 sm:px-4">
+                                                        <div class="grid grid-cols-12 items-center gap-4">
+                                                            <div class="col-span-12 md:col-span-4"><p-skeleton width="70%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="85%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="75%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="65%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2 flex justify-end"><p-skeleton width="2.5rem" height="2.5rem" borderRadius="9999px"></p-skeleton></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="border-t border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
+                                                    <div class="flex items-center justify-between gap-3">
+                                                        <p-skeleton width="11rem" height="0.9rem"></p-skeleton>
+                                                        <div class="flex items-center gap-2">
+                                                            <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                            <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                            <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                            <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                            <p-skeleton width="3.75rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                            <p-skeleton width="4rem" height="0.9rem"></p-skeleton>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        } @else if (categoryError()) {
+                                            <div class="rounded-[0.75rem] border border-rose-200 bg-rose-50 p-5 text-rose-900 shadow-sm dark:border-rose-900/50 dark:bg-rose-950/20 dark:text-rose-100">
+                                                <p class="m-0 text-base font-semibold">No pudimos cargar las categorías</p>
+                                                <p class="mt-1 text-sm leading-6">{{ categoryError() }}</p>
+                                                <div class="mt-4">
+                                                    <p-button label="Reintentar" severity="danger" outlined styleClass="w-full sm:w-auto" [loading]="categoryLoading()" loadingIcon="pi pi-spinner pi-spin" (onClick)="loadCategories()" />
+                                                </div>
+                                            </div>
+                                        } @else {
+                                            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
+                                                <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
+                                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                                                        <p-iconfield iconPosition="left" class="w-full sm:max-w-md">
+                                                            <p-inputicon styleClass="pi pi-search" />
+                                                            <input pInputText type="text" [(ngModel)]="categorySearch" placeholder="Buscar por nombre, clave o descripción" class="w-full" />
+                                                        </p-iconfield>
+                                                        <button
+                                                            type="button"
+                                                            class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-surface-700 dark:text-slate-400 dark:hover:border-surface-500 dark:hover:text-slate-200"
+                                                            pTooltip="Busca por nombre, clave o descripción."
+                                                            tooltipPosition="left"
+                                                            aria-label="Ayuda de búsqueda"
+                                                        >
+                                                            <i class="pi pi-info-circle text-sm"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
 
-                                            <p-table [value]="filteredCategories" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
-                                                <ng-template pTemplate="header">
-                                                    <tr>
-                                                        <th>Nombre</th>
-                                                        <th>Rango de edad</th>
-                                                        <th>Estado</th>
-                                                        <th class="text-right">Acciones</th>
-                                                    </tr>
-                                                </ng-template>
-                                                <ng-template pTemplate="body" let-category>
-                                                    <tr>
-                                                        <td>
-                                                            <span class="font-medium text-surface-900 dark:text-surface-0">{{ category.name }}</span>
-                                                        </td>
-                                                        <td>
-                                                            <span class="text-surface-900 dark:text-surface-0">{{ getCategoryAgeRangeLabel(category) }}</span>
-                                                        </td>
-                                                        <td>
-                                                            <p-tag [value]="getCategoryStatusLabel(category.status)" [severity]="getCategoryStatusSeverity(category.status)" />
-                                                        </td>
-                                                        <td>
-                                                            <div class="flex justify-end">
-                                                                <p-menu #categoryActionsMenu [popup]="true" appendTo="body" [model]="categoryActionItems"></p-menu>
-                                                                <p-button
-                                                                    icon="pi pi-ellipsis-h"
-                                                                    [text]="true"
-                                                                    rounded
-                                                                    severity="secondary"
-                                                                    (onClick)="openCategoryActionsMenu($event, categoryActionsMenu, category)"
-                                                                />
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                </ng-template>
-                                                <ng-template pTemplate="emptymessage">
-                                                    <tr>
-                                                        <td colspan="4" class="py-10 text-center">
-                                                            <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                                                                <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay categorías registradas</span>
-                                                                <span>Crea la primera categoría para empezar a ordenar jugadores y equipos por edad.</span>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                </ng-template>
-                                            </p-table>
-                                        </div>
+                                                <p-table
+                                                    [value]="filteredCategories"
+                                                    [tableStyle]="{ 'min-width': '100%' }"
+                                                    responsiveLayout="scroll"
+                                                    styleClass="text-sm"
+                                                    [paginator]="true"
+                                                    [rows]="categoryRows"
+                                                    [first]="(categoryPage - 1) * categoryRows"
+                                                    [totalRecords]="categoryTotalRecords"
+                                                    [rowsPerPageOptions]="[10, 20, 50]"
+                                                    [paginatorDropdownAppendTo]="'body'"
+                                                    (onPage)="onCategoryPageChange($event)"
+                                                >
+                                                    <ng-template pTemplate="header">
+                                                        <tr>
+                                                            <th>Nombre</th>
+                                                            <th>Edad</th>
+                                                            <th>Estado</th>
+                                                            <th class="text-right">Acciones</th>
+                                                        </tr>
+                                                    </ng-template>
+                                                    <ng-template pTemplate="body" let-category>
+                                                        <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-surface-800/70" (click)="openCategoryDetail(category)">
+                                                            <td>
+                                                                <div class="flex flex-col gap-1">
+                                                                    <span class="font-medium text-surface-900 dark:text-surface-0">{{ category.name }}</span>
+                                                                    <span class="text-xs text-slate-500 dark:text-slate-400">{{ category.description || '-' }}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="flex flex-col gap-1">
+                                                                    <span class="text-surface-900 dark:text-surface-0">{{ getCategoryAgeRangeLabel(category) }}</span>
+                                                                    <span class="text-xs text-slate-500 dark:text-slate-400">{{ category.categoryKey || '-' }}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <p-tag [value]="getCategoryStatusLabel(category.status)" [severity]="getCategoryStatusSeverity(category.status)" />
+                                                            </td>
+                                                            <td>
+                                                                <div class="flex justify-end" (click)="$event.stopPropagation()">
+                                                                    <p-menu #categoryActionsMenu [popup]="true" appendTo="body" [model]="categoryActionItems"></p-menu>
+                                                                    <p-button
+                                                                        icon="pi pi-ellipsis-h"
+                                                                        [text]="true"
+                                                                        rounded
+                                                                        severity="secondary"
+                                                                        [disabled]="categoryStatusUpdatingId === category.id"
+                                                                        [loading]="categoryStatusUpdatingId === category.id"
+                                                                        loadingIcon="pi pi-spinner pi-spin"
+                                                                        (onClick)="openCategoryActionsMenu($event, categoryActionsMenu, category)"
+                                                                    />
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </ng-template>
+                                                    <ng-template pTemplate="emptymessage">
+                                                        <tr>
+                                                            <td colspan="4" class="py-10 text-center">
+                                                                <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                                                    <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay categorías registradas</span>
+                                                                    <span>Crea la primera categoría para empezar a ordenar jugadores y equipos por edad.</span>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </ng-template>
+                                                </p-table>
+                                            </div>
+                                        }
                                     </div>
                                 </p-tabpanel>
 
@@ -946,7 +1032,7 @@ interface AcademyTeamStaffForm {
                     (onHide)="resetCategoryDialog()"
                 >
                     <div class="space-y-3">
-                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Completa el nombre y el rango de edad para dejar lista esta categoría.</p>
+                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Completa el nombre, la clave y el rango de edad para dejar lista esta categoría.</p>
 
                         <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900 sm:p-4">
                             <div class="grid grid-cols-12 gap-4">
@@ -960,22 +1046,24 @@ interface AcademyTeamStaffForm {
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="minAge" class="text-sm font-medium text-surface-700 dark:text-surface-200">Edad mínima <span class="text-rose-500">*</span></label>
-                                    <input pInputText id="minAge" type="text" [(ngModel)]="categoryForm.minAge" placeholder="Ej. 11" class="w-full" (input)="onCategoryAgeInput('minAge', $event)" />
+                                    <input pInputText id="minAge" type="text" inputmode="numeric" maxlength="2" [(ngModel)]="categoryForm.minAge" placeholder="Ej. 11" class="w-full" (input)="onCategoryAgeInput('minAge', $event)" />
+                                    <p class="m-0 text-xs text-slate-500 dark:text-slate-400">Mínimo 4 años, máximo 99.</p>
                                     @if (showCategoryError('minAge')) {
-                                        <p-message severity="error" size="small">Ingresa una edad mínima válida.</p-message>
+                                        <p-message severity="error" size="small">La edad mínima debe estar entre 4 y 99 años.</p-message>
                                     }
                                 </div>
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="maxAge" class="text-sm font-medium text-surface-700 dark:text-surface-200">Edad máxima <span class="text-rose-500">*</span></label>
-                                    <input pInputText id="maxAge" type="text" [(ngModel)]="categoryForm.maxAge" placeholder="Ej. 12" class="w-full" (input)="onCategoryAgeInput('maxAge', $event)" />
+                                    <input pInputText id="maxAge" type="text" inputmode="numeric" maxlength="2" [(ngModel)]="categoryForm.maxAge" placeholder="Ej. 12" class="w-full" (input)="onCategoryAgeInput('maxAge', $event)" />
+                                    <p class="m-0 text-xs text-slate-500 dark:text-slate-400">Debe ser igual o mayor que la edad mínima.</p>
                                     @if (showCategoryError('maxAge')) {
-                                        <p-message severity="error" size="small">Ingresa una edad máxima válida.</p-message>
+                                        <p-message severity="error" size="small">La edad máxima debe estar entre 4 y 99 años y no puede ser menor que la mínima.</p-message>
                                     }
                                 </div>
 
                                 <div class="col-span-12 flex flex-col gap-2">
-                                    <label for="categoryDescription" class="text-sm font-medium text-surface-700 dark:text-surface-200">Descripción</label>
+                                    <label for="categoryDescription" class="text-sm font-medium text-surface-700 dark:text-surface-200">Descripción <span class="text-slate-500">(opcional)</span></label>
                                     <textarea pTextarea id="categoryDescription" [(ngModel)]="categoryForm.description" rows="3" placeholder="Opcional" class="w-full resize-none"></textarea>
                                 </div>
                             </div>
@@ -985,7 +1073,56 @@ interface AcademyTeamStaffForm {
                     <ng-template pTemplate="footer">
                         <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                             <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetCategoryDialog()" />
-                            <p-button [label]="categoryDialogMode === 'create' ? 'Crear categoría' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveCategory()" />
+                            <p-button [label]="categoryDialogMode === 'create' ? 'Crear categoría' : 'Guardar cambios'" styleClass="w-full sm:w-auto" [loading]="categorySaving" loadingIcon="pi pi-spinner pi-spin" (onClick)="saveCategory()" />
+                        </div>
+                    </ng-template>
+                </p-dialog>
+
+                <p-dialog [(visible)]="categoryDetailVisible" [modal]="true" [draggable]="false" [resizable]="false" [style]="{ width: '34rem' }" [breakpoints]="{ '960px': '42rem', '640px': '96vw' }" header="Detalle de categoría" (onHide)="categoryDetailVisible = false">
+                    @if (selectedCategory) {
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Nombre</p>
+                                <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ selectedCategory.name }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Clave</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedCategory.categoryKey || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Academia</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedCategory.academyId || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Edad mínima</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedCategory.minAge ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Edad máxima</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedCategory.maxAge ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Descripción</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedCategory.description || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Estado</p>
+                                <p-tag [value]="getCategoryStatusLabel(selectedCategory.status)" [severity]="getCategoryStatusSeverity(selectedCategory.status)" />
+                            </div>
+                        </div>
+                    }
+
+                    <ng-template pTemplate="footer">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                            <p-button label="Editar" severity="secondary" outlined styleClass="w-full sm:w-auto" (onClick)="selectedCategory && openCategoryDialog(selectedCategory)" />
+                            <p-button
+                                [label]="selectedCategory?.status === 'ACTIVE' ? 'Desactivar' : 'Activar'"
+                                styleClass="w-full sm:w-auto"
+                                [severity]="selectedCategory?.status === 'ACTIVE' ? 'danger' : 'primary'"
+                                [loading]="selectedCategory ? categoryStatusUpdatingId === selectedCategory.id : false"
+                                loadingIcon="pi pi-spinner pi-spin"
+                                (onClick)="selectedCategory && toggleCategoryStatus(selectedCategory)"
+                            />
                         </div>
                     </ng-template>
                 </p-dialog>
@@ -1399,6 +1536,15 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     venueRows = 20;
     venueStatusUpdatingId: string | null = null;
     venueDetailVisible = false;
+    readonly categoryLoading = signal(false);
+    readonly categoryLoaded = signal(false);
+    readonly categoryError = signal<string | null>(null);
+    categoryListMeta: AcademyCategoryApiMeta | null = null;
+    categoryPage = 1;
+    categoryRows = 20;
+    categorySaving = false;
+    categoryStatusUpdatingId: string | null = null;
+    categoryDetailVisible = false;
     selectedCategory: AcademyCategory | null = null;
     categorySearch = '';
     categorySubmitted = false;
@@ -1427,6 +1573,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     editingStaffId: string | null = null;
     staffForm: AcademyStaffForm = this.emptyStaffForm();
     venues: VenueApiVenue[] = [];
+    categories: AcademyCategory[] = [];
     venueActionItems: MenuItem[] = [
         {
             label: 'Ver detalle',
@@ -1456,63 +1603,16 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
             }
         }
     ];
-    categories: AcademyCategory[] = [
-        {
-            id: 'category-001',
-            categoryKey: 'sub-12',
-            name: 'Sub 12',
-            minAge: 11,
-            maxAge: 12,
-            description: 'Categoría formativa para el primer bloque competitivo.',
-            status: 'ACTIVE'
-        },
-        {
-            id: 'category-002',
-            categoryKey: 'sub-14',
-            name: 'Sub 14',
-            minAge: 13,
-            maxAge: 14,
-            description: 'Categoría de transición para procesos formativos avanzados.',
-            status: 'ACTIVE'
-        },
-        {
-            id: 'category-003',
-            categoryKey: 'sub-8',
-            name: 'Sub 8',
-            minAge: 7,
-            maxAge: 8,
-            description: 'Categoría inicial para etapas tempranas de formación.',
-            status: 'ACTIVE'
-        },
-        {
-            id: 'category-004',
-            categoryKey: 'sub-10',
-            name: 'Sub 10',
-            minAge: 9,
-            maxAge: 10,
-            description: 'Categoría intermedia para consolidar fundamentos técnicos.',
-            status: 'ACTIVE'
-        },
-        {
-            id: 'category-005',
-            categoryKey: 'sub-16',
-            name: 'Sub 16',
-            minAge: 15,
-            maxAge: 16,
-            description: 'Categoría competitiva para procesos avanzados.',
-            status: 'INACTIVE'
-        },
-        {
-            id: 'category-006',
-            categoryKey: 'juvenil',
-            name: 'Juvenil',
-            minAge: 17,
-            maxAge: 18,
-            description: 'Última etapa formativa previa a transición competitiva mayor.',
-            status: 'ACTIVE'
-        }
-    ];
     categoryActionItems: MenuItem[] = [
+        {
+            label: 'Ver detalle',
+            icon: 'pi pi-eye',
+            command: () => {
+                if (this.selectedCategory) {
+                    this.openCategoryDetail(this.selectedCategory);
+                }
+            }
+        },
         {
             label: 'Editar',
             icon: 'pi pi-pencil',
@@ -1723,6 +1823,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     constructor(
         private readonly academyService: AcademyProfileService,
         private readonly venueService: VenueApiService,
+        private readonly categoryService: CategoryApiService,
         private readonly auth: AuthSessionService,
         private readonly authAccess: AuthAccessService,
         private readonly route: ActivatedRoute,
@@ -1804,13 +1905,26 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         return typeof total === 'number' ? total : null;
     }
 
+    get categoryTotalRecords(): number {
+        return this.resolveCategoryMetaTotal(this.categoryListMeta) ?? this.categories.length;
+    }
+
+    private resolveCategoryMetaTotal(meta: AcademyCategoryApiMeta | null): number | null {
+        if (!meta) {
+            return null;
+        }
+
+        const total = meta.total ?? meta.totalItems;
+        return typeof total === 'number' ? total : null;
+    }
+
     get filteredCategories(): AcademyCategory[] {
         const query = this.categorySearch.trim().toLowerCase();
         if (!query) {
             return this.categories;
         }
 
-        return this.categories.filter((category) => [category.name, category.categoryKey, category.description].some((value) => value.toLowerCase().includes(query)));
+        return this.categories.filter((category) => [category.name ?? '', category.categoryKey ?? '', category.description ?? ''].some((value) => value.toLowerCase().includes(query)));
     }
 
     get filteredTeams(): AcademyTeam[] {
@@ -1941,6 +2055,8 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
             this.loadInformation();
         } else if (tab === 'venues') {
             this.ensureVenuesLoaded();
+        } else if (tab === 'categories') {
+            this.ensureCategoriesLoaded();
         }
     }
 
@@ -2400,12 +2516,36 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         });
     }
 
+    loadCategories() {
+        this.categoryLoading.set(true);
+        this.categoryError.set(null);
+
+        this.categoryService.list({ page: this.categoryPage, per_page: this.categoryRows, sort: 'created_at', direction: 'DESC' }).pipe(finalize(() => this.categoryLoading.set(false))).subscribe({
+            next: (response) => {
+                this.categories = response.data;
+                this.categoryListMeta = response.meta;
+                this.categoryLoaded.set(true);
+            },
+            error: (error: AuthErrorLike) => {
+                this.categoryError.set(this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.'));
+            }
+        });
+    }
+
     ensureVenuesLoaded() {
         if (this.venueLoaded() || this.venueLoading()) {
             return;
         }
 
         this.loadVenues();
+    }
+
+    ensureCategoriesLoaded() {
+        if (this.categoryLoaded() || this.categoryLoading()) {
+            return;
+        }
+
+        this.loadCategories();
     }
 
     onVenuePageChange(event: { page?: number; first?: number; rows?: number }) {
@@ -2421,9 +2561,27 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         this.loadVenues();
     }
 
+    onCategoryPageChange(event: { page?: number; first?: number; rows?: number }) {
+        const rows = event.rows ?? this.categoryRows;
+        const page = typeof event.page === 'number' ? event.page + 1 : Math.floor((event.first ?? 0) / rows) + 1;
+
+        if (page === this.categoryPage && rows === this.categoryRows) {
+            return;
+        }
+
+        this.categoryPage = page;
+        this.categoryRows = rows;
+        this.loadCategories();
+    }
+
     refreshVenues() {
         this.venueLoaded.set(false);
         this.loadVenues();
+    }
+
+    refreshCategories() {
+        this.categoryLoaded.set(false);
+        this.loadCategories();
     }
 
     openVenueDialog(venue?: VenueApiVenue) {
@@ -2459,13 +2617,23 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         this.editingCategoryId = category?.id ?? null;
         this.categoryForm = category
             ? {
+                  categoryKey: category.categoryKey ?? this.buildCategoryKey(category.name),
                   name: category.name,
                   minAge: String(category.minAge),
                   maxAge: String(category.maxAge),
-                  description: category.description
+                  description: category.description ?? ''
               }
             : this.emptyCategoryForm();
         this.categoryDialogVisible = true;
+    }
+
+    openCategoryDetail(category: AcademyCategory) {
+        this.selectedCategory = category;
+        this.categoryDetailVisible = true;
+
+        if (!this.categoryLoaded() || !this.categoryHasDetail(category)) {
+            void this.loadCategoryDetail(category.id);
+        }
     }
 
     resetCategoryDialog() {
@@ -2610,53 +2778,39 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
             return;
         }
 
-        const normalizedKey = this.buildCategoryKey(this.categoryForm.name);
-        const trimmedName = this.categoryForm.name.trim();
-        const trimmedDescription = this.categoryForm.description.trim();
-        const minAge = Number(this.categoryForm.minAge);
-        const maxAge = Number(this.categoryForm.maxAge);
+        this.categorySaving = true;
+        const payload = this.buildCategoryPayload();
+        const request$ =
+            this.categoryDialogMode === 'create'
+                ? this.categoryService.create(payload)
+                : this.editingCategoryId
+                  ? this.categoryService.update(this.editingCategoryId, payload)
+                  : null;
 
-        if (this.categoryDialogMode === 'create') {
-            this.categories = [
-                {
-                    id: `category-${Date.now()}`,
-                    categoryKey: normalizedKey,
-                    name: trimmedName,
-                    minAge,
-                    maxAge,
-                    description: trimmedDescription,
-                    status: 'ACTIVE'
-                },
-                ...this.categories
-            ];
-
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Categoría agregada',
-                detail: 'La nueva categoría quedó registrada en esta iteración mock.'
-            });
-        } else if (this.editingCategoryId) {
-            this.categories = this.categories.map((category) =>
-                category.id === this.editingCategoryId
-                    ? {
-                          ...category,
-                          categoryKey: normalizedKey,
-                          name: trimmedName,
-                          minAge,
-                          maxAge,
-                          description: trimmedDescription
-                      }
-                    : category
-            );
-
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Categoría actualizada',
-                detail: 'Los cambios de la categoría quedaron listos en esta iteración mock.'
-            });
+        if (!request$) {
+            this.categorySaving = false;
+            return;
         }
 
-        this.resetCategoryDialog();
+        request$.pipe(finalize(() => (this.categorySaving = false))).subscribe({
+            next: (category) => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: this.categoryDialogMode === 'create' ? 'Categoría agregada' : 'Categoría actualizada',
+                    detail: 'Los cambios quedaron guardados correctamente.'
+                });
+                this.resetCategoryDialog();
+                this.refreshCategories();
+                this.selectedCategory = category;
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No pudimos guardar la categoría',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+            }
+        });
     }
 
     saveTeam() {
@@ -2911,13 +3065,37 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     }
 
     toggleCategoryStatus(category: AcademyCategory) {
-        const nextStatus = category.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-        this.categories = this.categories.map((item) => (item.id === category.id ? { ...item, status: nextStatus } : item));
-
-        this.messageService.add({
-            severity: 'info',
-            summary: nextStatus === 'ACTIVE' ? 'Categoría activada' : 'Categoría inactivada',
-            detail: nextStatus === 'ACTIVE' ? 'La categoría volvió a quedar disponible.' : 'La categoría dejó de estar disponible para la operación.'
+        const nextAction = category.status === 'ACTIVE' ? 'inactivate' : 'activate';
+        this.confirmationService.confirm({
+            header: nextAction === 'inactivate' ? 'Desactivar categoría' : 'Reactivar categoría',
+            icon: 'pi pi-exclamation-triangle',
+            message: nextAction === 'inactivate' ? `¿Deseas desactivar la categoría "${category.name}"?` : `¿Deseas reactivar la categoría "${category.name}"?`,
+            acceptLabel: nextAction === 'inactivate' ? 'Desactivar' : 'Reactivar',
+            rejectLabel: 'Cancelar',
+            acceptButtonStyleClass: nextAction === 'inactivate' ? 'p-button-danger' : '',
+            accept: () => {
+                this.categoryStatusUpdatingId = category.id;
+                const request$ = nextAction === 'inactivate' ? this.categoryService.inactivate(category.id) : this.categoryService.activate(category.id);
+                request$
+                    .pipe(finalize(() => (this.categoryStatusUpdatingId = null)))
+                    .subscribe({
+                        next: () => {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: nextAction === 'inactivate' ? 'Categoría desactivada' : 'Categoría activada',
+                                detail: 'El listado se refrescó con el estado más reciente.'
+                            });
+                            this.refreshCategories();
+                        },
+                        error: (error: AuthErrorLike) => {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'No pudimos cambiar el estado',
+                                detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                            });
+                        }
+                    });
+            }
         });
     }
 
@@ -2985,10 +3163,14 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
 
     onCategoryNameInput(event: Event) {
         this.categoryForm.name = this.sanitizeNameInput((event.target as HTMLInputElement).value);
+        this.categoryForm.categoryKey = this.buildCategoryKey(this.categoryForm.name);
     }
 
     onCategoryAgeInput(field: 'minAge' | 'maxAge', event: Event) {
-        this.categoryForm[field] = this.sanitizeNumericInput((event.target as HTMLInputElement).value);
+        const input = event.target as HTMLInputElement;
+        const digits = this.sanitizeNumericInput(input.value).slice(0, 2);
+        input.value = digits;
+        this.categoryForm[field] = digits;
     }
 
     onTeamNameInput(event: Event) {
@@ -3128,7 +3310,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     }
 
     private isCategoryFormValid(): boolean {
-        return ['name', 'minAge', 'maxAge'].every((field) => this.isCategoryFieldValid(field as keyof AcademyCategoryForm));
+        return ['categoryKey', 'name', 'minAge', 'maxAge'].every((field) => this.isCategoryFieldValid(field as keyof AcademyCategoryForm));
     }
 
     private isTeamFormValid(): boolean {
@@ -3223,14 +3405,17 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     private isCategoryFieldValid(field: keyof AcademyCategoryForm): boolean {
         const minAge = Number(this.categoryForm.minAge);
         const maxAge = Number(this.categoryForm.maxAge);
+        const categoryKey = this.categoryForm.categoryKey.trim();
 
         switch (field) {
+            case 'categoryKey':
+                return /^[a-zA-Z0-9_-]+$/.test(categoryKey);
             case 'name':
-                return this.hasValidText(this.categoryForm.name, 2) && !this.isDuplicateCategoryName(this.categoryForm.name) && !this.isDuplicateCategoryKey(this.buildCategoryKey(this.categoryForm.name));
+                return this.hasValidText(this.categoryForm.name, 2);
             case 'minAge':
-                return Number.isInteger(minAge) && minAge >= 0 && minAge < maxAge;
+                return Number.isInteger(minAge) && minAge >= 4 && minAge <= 99 && (!Number.isInteger(maxAge) || minAge <= maxAge);
             case 'maxAge':
-                return Number.isInteger(maxAge) && maxAge > minAge;
+                return Number.isInteger(maxAge) && maxAge >= 4 && maxAge <= 99 && (!Number.isInteger(minAge) || maxAge >= minAge);
             case 'description':
             default:
                 return true;
@@ -3385,7 +3570,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
             return false;
         }
 
-        return this.categories.some((category) => category.id !== this.editingCategoryId && category.categoryKey.trim().toLowerCase() === normalizedKey);
+        return this.categories.some((category) => category.id !== this.editingCategoryId && (category.categoryKey ?? '').trim().toLowerCase() === normalizedKey);
     }
 
     private buildCategoryKey(name: string): string {
@@ -3400,17 +3585,23 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
             .replace(/^-+|-+$/g, '');
     }
 
-    private isDuplicateStaffEmail(email: string): boolean {
-        const normalizedEmail = email.trim().toLowerCase();
-        if (!normalizedEmail) {
-            return false;
+    getCategoryAgeRangeLabel(category: AcademyCategory): string {
+        const minAge = category.minAge ?? null;
+        const maxAge = category.maxAge ?? null;
+
+        if (minAge === null && maxAge === null) {
+            return '-';
         }
 
-        return this.staffMembers.some((staff) => staff.id !== this.editingStaffId && staff.email.trim().toLowerCase() === normalizedEmail);
-    }
+        if (minAge === null) {
+            return `Hasta ${maxAge} años`;
+        }
 
-    getCategoryAgeRangeLabel(category: AcademyCategory): string {
-        return `${category.minAge} a ${category.maxAge} años`;
+        if (maxAge === null) {
+            return `Desde ${minAge} años`;
+        }
+
+        return `${minAge} a ${maxAge} años`;
     }
 
     getCategoryStatusLabel(status: AcademyCategory['status']): string {
@@ -3420,7 +3611,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
             case 'INACTIVE':
                 return 'Inactiva';
             default:
-                return status;
+                return status ?? '-';
         }
     }
 
@@ -3432,6 +3623,48 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
             default:
                 return 'danger';
         }
+    }
+
+    private buildCategoryPayload(): AcademyCategoryUpsertRequest {
+        const categoryKey = this.categoryForm.categoryKey.trim() || this.buildCategoryKey(this.categoryForm.name);
+
+        return {
+            categoryKey,
+            name: this.categoryForm.name.trim(),
+            minAge: Number(this.categoryForm.minAge),
+            maxAge: Number(this.categoryForm.maxAge),
+            description: this.categoryForm.description.trim() || undefined
+        };
+    }
+
+    private categoryHasDetail(category: AcademyCategory): boolean {
+        return typeof category.academyId === 'string' && !!category.academyId.trim();
+    }
+
+    private loadCategoryDetail(categoryId: string) {
+        return this.categoryService.getById(categoryId).subscribe({
+            next: (category) => {
+                this.selectedCategory = category;
+                this.categoryDetailVisible = true;
+                this.categories = this.categories.map((item) => (item.id === category.id ? category : item));
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No pudimos cargar el detalle',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+            }
+        });
+    }
+
+    private isDuplicateStaffEmail(email: string): boolean {
+        const normalizedEmail = email.trim().toLowerCase();
+        if (!normalizedEmail) {
+            return false;
+        }
+
+        return this.staffMembers.some((staff) => staff.id !== this.editingStaffId && staff.email.trim().toLowerCase() === normalizedEmail);
     }
 
     getTeamStatusLabel(status: AcademyTeam['status']): string {
@@ -3645,6 +3878,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
 
     private emptyCategoryForm(): AcademyCategoryForm {
         return {
+            categoryKey: '',
             name: '',
             minAge: '',
             maxAge: '',

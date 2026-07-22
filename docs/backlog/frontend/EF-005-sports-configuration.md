@@ -24,15 +24,15 @@ Da soporte a la organización básica de jugadores y equipos.
 
 ## Historias de Usuario
 
-* HU-001 Crear sede. `Done (Mock UI)`
-* HU-002 Listar sedes. `Done (Mock UI)`
-* HU-003 Ver detalle de sede. `Partial`
-* HU-004 Actualizar sede. `Done (Mock UI)`
-* HU-005 Activar o inactivar sede. `Done (Mock UI)`
-* HU-006 Crear categoría. `Done (Mock UI)`
-* HU-007 Listar categorías. `Done (Mock UI)`
-* HU-008 Actualizar categoría. `Done (Mock UI)`
-* HU-009 Activar o inactivar categoría. `Done (Mock UI)`
+* HU-001 Crear sede. `Done`
+* HU-002 Listar sedes. `Done`
+* HU-003 Ver detalle de sede. `Done`
+* HU-004 Actualizar sede. `Done`
+* HU-005 Activar o inactivar sede. `Done`
+* HU-006 Crear categoría. `Done`
+* HU-007 Listar categorías. `Done`
+* HU-008 Actualizar categoría. `Done`
+* HU-009 Activar o inactivar categoría. `Done`
 
 ## Reglas de UX Relacionadas
 
@@ -73,8 +73,8 @@ Como owner o administrador de academia, quiero registrar una sede de mi academia
 * `city` debe ser obligatorio.
 * `phone` debe seguir una validación simple y comprensible para frontend mock.
 * `notes` debe ser opcional.
-* Al guardar, la nueva sede debe reflejarse en el listado mock sin recargar la pantalla.
-* Mientras no exista integración real, el flujo debe operar con mocks alineados al dominio `Venue`.
+* Al guardar, la nueva sede debe reflejarse en el listado sin recargar la pantalla.
+* El frontend consume el contrato real del backend para sedes.
 
 #### Reglas de UX
 
@@ -137,7 +137,7 @@ Como owner o administrador de academia, quiero abrir el detalle de una sede, par
   * notas
   * estado
 * Debe mantener separación entre lectura y edición.
-* Debe operar con mocks mientras no exista integración real.
+* Debe operar con el contrato real del backend.
 
 #### Reglas de UX
 
@@ -194,13 +194,13 @@ Como owner o administrador de academia, quiero activar o inactivar una sede, par
 
 ## Nota de Iteración
 
-La primera iteración frontend de `Sedes` debe trabajar con mocks, tomando como referencia:
+`Sedes` ya quedó implementado en frontend con contrato real tenant-scoped, tomando como referencia:
 
 * la épica backend `EP-002`
 * el endpoint de listado visible en Postman `GET /api/v1/academy/venues`
-* la estructura del módulo backend `Venue`, que ya contempla crear, ver, actualizar, activar e inactivar
+* la estructura del módulo backend `Venue`, que contempla crear, ver, actualizar, activar e inactivar
 
-La integración real puede abordarse después sin cambiar la UX base.
+La UX base se conservó simple para permitir futuras extensiones sin reescritura.
 
 ## Decisión de Estructura UX
 
@@ -254,9 +254,9 @@ Como owner o administrador de academia, quiero registrar una categoría deportiv
 * `maxAge` debe ser obligatorio.
 * `description` debe ser opcional.
 * El frontend debe validar que `minAge` sea menor que `maxAge`.
-* El frontend debe prevenir visualmente duplicados evidentes de nombre o clave dentro del mock actual.
+* El frontend debe prevenir visualmente duplicados evidentes de nombre o clave dentro del conjunto cargado.
 * Al guardar, la nueva categoría debe aparecer en el listado sin recargar la pantalla.
-* Mientras no exista integración real, el flujo debe operar con mocks alineados al dominio `Category`.
+* El frontend consume el contrato real del backend para categorías.
 
 #### Reglas de UX
 
@@ -338,6 +338,24 @@ Como owner o administrador de academia, quiero editar una categoría existente, 
 
 * La edición debe sentirse igual a crear, sin introducir otro patrón visual innecesario.
 * Si se usa diálogo, no debe afectar scroll, overlays ni selects.
+
+## Trazabilidad frontend
+
+### Implementación actual
+
+* [src/app/features/academy/pages/academy-profile.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\academy\pages\academy-profile.ts)
+* [src/app/features/academy/data-access/venue-api.service.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\academy\data-access\venue-api.service.ts)
+* [src/app/features/academy/data-access/category-api.service.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\academy\data-access\category-api.service.ts)
+* [src/app/features/academy/models/venue.model.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\academy\models\venue.model.ts)
+* [src/app/features/academy/models/category.model.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\academy\models\category.model.ts)
+
+### Decisiones documentadas
+
+* La vista de `Academia` mantiene `Sedes` y `Categorías` dentro del tab `academy-profile`.
+* La carga es diferida por tab y se evita repetir solicitudes ya resueltas.
+* `Venue` y `Category` usan `page`, `per_page`, `sort` y `direction`.
+* Las mutaciones refrescan el listado y preservan la trazabilidad visual del estado.
+* `Category` mantiene `categoryKey` en camelCase como contrato interno y de API.
 * Si el formulario crece, debe preferirse página dedicada o bloque expandible limpio.
 
 ### HU-009 Activar o inactivar categoría
@@ -367,7 +385,7 @@ Como owner o administrador de academia, quiero activar o inactivar una categorí
 
 ## Estado
 
-Done (Mock UI).
+Done.
 
 ## Nota operativa de caché
 
@@ -379,4 +397,5 @@ Comportamiento esperado:
 * si el usuario cambia de tab y vuelve, se reutiliza la respuesta ya cargada;
 * después de `create`, `update`, `activate`, `inactivate` o `delete`, se refresca el listado;
 * no se introduce NgRx para este caso de uso;
-* la implementación debe permanecer local a la feature y sencilla de seguir.
+* la implementación debe permanecer local a la feature y sencilla de seguir;
+* el comportamiento actual ya usa cache simple con `signals` y paginación apoyada en `meta`.
