@@ -18,10 +18,21 @@ export class SessionExpirationService {
 
     hide(): void {
         this.visible.set(false);
+        this.clearBackdropState();
     }
 
     reset(): void {
         this.visible.set(false);
         this.returnUrl.set('/academy');
+        this.clearBackdropState();
+    }
+
+    clearBackdropState(): void {
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        document.body.classList.remove('p-overflow-hidden');
+        document.body.classList.remove('blocked-scroll');
     }
 }

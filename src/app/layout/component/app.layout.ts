@@ -62,6 +62,7 @@ export class AppLayout {
     goToLogin() {
         const returnUrl = this.router.url || '/academy';
         this.sessionExpiration.hide();
+        this.sessionExpiration.clearBackdropState();
         this.auth.clearSession();
         void this.router.navigate(['/auth/login'], {
             queryParams: {
