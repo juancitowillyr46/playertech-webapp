@@ -1,14 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
-import { Router } from '@angular/router';
 import { AuthAccessService } from '../data-access/auth-access.service';
 import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
 import { AuthRequestState } from '../utils/auth-request-state';
@@ -93,11 +92,15 @@ export class Login {
 
     requestState = new AuthRequestState();
     readonly feedbackMessage = computed(() => this.requestState.message());
+    private readonly returnUrl: string;
 
     constructor(
-        private router: Router,
+        private readonly router: Router,
+        private readonly route: ActivatedRoute,
         private auth: AuthAccessService
-    ) {}
+    ) {
+        this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl')?.trim() || this.auth.getHomeRoute();
+    }
 
     handleEmailKeydown(event: KeyboardEvent) {
         const allowedControlKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
@@ -151,7 +154,7 @@ export class Login {
                 password: this.password
             }));
 
-            void this.router.navigateByUrl(this.auth.getHomeRoute());
+            void this.router.navigateByUrl(this.returnUrl);
         } catch (error) {
             this.requestState.resolveError(error, (authError) => this.getLoginErrorMessage(authError));
         } finally {
