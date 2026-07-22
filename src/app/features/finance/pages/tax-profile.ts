@@ -30,7 +30,7 @@ interface SelectOption {
         <p-toast />
 
         <div class="space-y-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0">
-            <app-page-header [breadcrumbs]="breadcrumbs" title="Finanzas" subtitle="Administra la información fiscal y prepara futuras opciones financieras."></app-page-header>
+            <app-page-header [breadcrumbs]="breadcrumbs" title="Datos fiscales" subtitle="Completa la información tributaria de la academia para emitir facturas electrónicas."></app-page-header>
 
             <div
                 class="mx-auto mt-4 w-full space-y-3 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"
@@ -43,12 +43,6 @@ interface SelectOption {
                             <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                 <i class="pi pi-file-edit text-sm"></i>
                                 <span>Información fiscal</span>
-                            </span>
-                        </p-tab>
-                        <p-tab value="correlatives" (click)="activeTab.set('correlatives')">
-                            <span class="inline-flex items-center gap-2 whitespace-nowrap">
-                                <i class="pi pi-hashtag text-sm"></i>
-                                <span>Correlativos</span>
                             </span>
                         </p-tab>
                     </p-tablist>
@@ -109,7 +103,7 @@ interface SelectOption {
                                         <div class="col-span-12">
                                             <div class="space-y-1">
                                                 <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información fiscal</p>
-                                                <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Mantén al día los datos que se usarán en comprobantes, pagos y procesos administrativos.</p>
+                                                <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Mantén estos datos alineados con tu RUT y tu correo de facturación.</p>
                                             </div>
                                         </div>
 
@@ -171,14 +165,6 @@ interface SelectOption {
                             </div>
                         </p-tabpanel>
 
-                        <p-tabpanel value="correlatives">
-                            <div class="space-y-4 p-3 sm:p-4">
-                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Correlativos</p>
-                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Próximamente podrás administrar consecutivos, facturación y otras configuraciones financieras desde aquí.</p>
-                                </div>
-                            </div>
-                        </p-tabpanel>
                     </p-tabpanels>
                 </p-tabs>
                 </div>
@@ -187,9 +173,9 @@ interface SelectOption {
     `
 })
 export class FinanceTaxProfilePage implements OnInit {
-    readonly breadcrumbs: PageHeaderBreadcrumb[] = [{ label: 'Inicio', routerLink: '/' }, { label: 'Finanzas' }, { label: 'Información fiscal' }];
+    readonly breadcrumbs: PageHeaderBreadcrumb[] = [{ label: 'Inicio', routerLink: '/' }, { label: 'Datos fiscales' }, { label: 'Información fiscal' }];
 
-    readonly activeTab = signal<'tax-profile' | 'correlatives'>('tax-profile');
+    readonly activeTab = signal<'tax-profile'>('tax-profile');
     readonly loading = signal(true);
     readonly saving = signal(false);
     readonly loadError = signal<string | null>(null);

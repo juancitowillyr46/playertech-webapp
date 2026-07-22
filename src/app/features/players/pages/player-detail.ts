@@ -370,6 +370,7 @@ interface CountryOption {
                                                                     <input #photoInput type="file" accept=".png,.jpg,.jpeg,.svg" class="hidden" (change)="onPhotoSelected($event)" />
                                                                     <p-button label="Seleccionar archivo" severity="secondary" [outlined]="true" styleClass="w-full sm:w-auto" (onClick)="photoInput.click()" />
                                                                     @if (photoPreviewUrl) {
+                                                                        <p-button label="Cambiar foto" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="photoInput.click()" />
                                                                         <p-button label="Quitar foto" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="removePhoto()" />
                                                                     }
                                                                 </div>
@@ -381,7 +382,7 @@ interface CountryOption {
                                         </div>
                                     </div>
 
-                                    <div class="border-t border-slate-200 p-4 dark:border-surface-800">
+                                    <div class="border-t border-slate-200 px-4 py-3 dark:border-surface-800 sm:p-4">
                                         <div class="form-width-2col mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
                                             <p-button label="Volver" severity="secondary" text styleClass="w-full sm:w-auto" routerLink="/players" />
                                             <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full sm:w-auto" (onClick)="savePlayer()" />

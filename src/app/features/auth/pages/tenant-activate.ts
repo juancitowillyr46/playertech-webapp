@@ -50,22 +50,19 @@ import { TenantActivationStatusResponse } from '@/app/core/auth/auth.models';
 
                     <div class="mt-8 flex flex-col gap-3 sm:flex-row">
                         @if (activationSucceeded) {
-                            <a class="inline-flex h-11 items-center justify-center rounded-md bg-emerald-600 px-4 text-sm font-medium text-white transition hover:bg-emerald-700" routerLink="/auth/login">
-                                Ir a iniciar sesión
-                            </a>
+                            <p-button label="Ir a iniciar sesión" styleClass="w-full sm:w-auto" routerLink="/auth/login" />
                         } @else {
                             <p-button
                                 label="Reintentar"
-                                styleClass="inline-flex h-11"
+                                styleClass="w-full sm:w-auto"
                                 type="button"
+                                severity="secondary"
                                 [loading]="loading"
                                 loadingIcon="pi pi-spinner pi-spin"
                                 [disabled]="loading || !tokenLoaded"
                                 (onClick)="loadActivation()"
                             />
-                            <a class="inline-flex h-11 items-center justify-center rounded-md border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50" routerLink="/landing">
-                                Volver al inicio
-                            </a>
+                            <p-button label="Volver al inicio" styleClass="w-full sm:w-auto" routerLink="/landing" severity="secondary" outlined="true" />
                         }
                     </div>
                 </div>

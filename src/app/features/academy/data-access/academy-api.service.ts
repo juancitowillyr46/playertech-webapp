@@ -60,6 +60,10 @@ export class AcademyApiService {
         );
     }
 
+    deleteShield(): Observable<void> {
+        return this.http.delete<void>(this.url('/api/v1/academy/me/shield')).pipe(catchError((error) => throwError(() => this.normalizeError(error))));
+    }
+
     mapProfile(apiProfile: AcademyApiProfile): AcademyProfile {
         return {
             id: apiProfile.id,

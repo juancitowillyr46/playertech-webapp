@@ -54,6 +54,14 @@ export interface PublicCategoryListResponse {
     data: PublicCategory[];
 }
 
+export interface TenantAvailabilityResponse {
+    data?: {
+        contactEmailAvailable?: boolean;
+        phoneAvailable?: boolean;
+    };
+    meta?: unknown;
+}
+
 export interface TenantSignupRequest {
     name: string;
     contactEmail: string;

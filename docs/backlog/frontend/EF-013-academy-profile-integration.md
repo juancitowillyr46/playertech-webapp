@@ -133,3 +133,22 @@ Incluye:
 * El usuario debe poder distinguir entre guardar datos generales, fiscales y escudo.
 * Los mensajes de error deben ser claros y accionables.
 * No debe requerirse recargar la app para ver cambios guardados.
+
+## Trazabilidad frontend reciente
+
+### Implementación actual
+
+* [src/app/features/academy/pages/academy-profile.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\academy\pages\academy-profile.ts)
+* [src/app/features/academy/data-access/academy-profile.service.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\academy\data-access\academy-profile.service.ts)
+* [src/app/features/academy/data-access/academy-api.service.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\academy\data-access\academy-api.service.ts)
+
+### Decisiones trazadas
+
+* El escudo institucional no bloquea el guardado del perfil general.
+* El rol editable acepta los formatos legacy y `ROLE_*` para evitar falsos negativos de permisos.
+* El skeleton del bloque de escudo y el bloque de seguridad se mantuvieron en contenedor blanco para coherencia visual.
+* La validación de campos obligatorios no usa el estado del escudo como requisito.
+
+### Estado del cambio
+
+* Implementado y verificado con build local.

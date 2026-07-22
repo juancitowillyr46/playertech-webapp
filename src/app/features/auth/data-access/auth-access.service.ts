@@ -47,6 +47,10 @@ export class AuthAccessService {
         return this.api.getPublicCategories();
     }
 
+    checkTenantAvailability(contactEmail: string, phone: string): Observable<{ contactEmailAvailable?: boolean; phoneAvailable?: boolean }> {
+        return this.api.checkTenantAvailability(contactEmail, phone);
+    }
+
     saveSignupSummary(summary: TenantSignupSummary): void {
         this.writeSignupSummary(summary);
     }

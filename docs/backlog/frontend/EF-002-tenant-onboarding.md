@@ -117,3 +117,24 @@ Esto evita saturación visual, reduce interferencias con la tabla y mejora la co
 ## Estado
 
 In Progress.
+
+## Trazabilidad frontend reciente
+
+### Registro público de tenant
+
+* [src/app/features/auth/pages/signup.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\auth\pages\signup.ts)
+* [src/app/core/auth/auth-api.service.ts](C:\Data\Source\Repos\playertech-webapp\src\app\core\auth\auth-api.service.ts)
+* [src/app/features/auth/data-access/auth-access.service.ts](C:\Data\Source\Repos\playertech-webapp\src\app\features\auth\data-access\auth-access.service.ts)
+* [src/app/core/auth/auth.models.ts](C:\Data\Source\Repos\playertech-webapp\src\app\core\auth\auth.models.ts)
+
+#### Cambios trazados
+
+* Selección de categorías públicas desde `GET /api/v1/public/categories`.
+* Validación reactiva de disponibilidad con `GET /api/v1/public/tenants/availability`.
+* Inclusión obligatoria de `address` en el payload de signup.
+* Bloqueo del botón `Continuar` si correo o celular no están disponibles.
+* Copy del paso de contacto simplificado para reducir repetición visual.
+
+#### Estado del cambio
+
+* Implementado y validado en frontend.

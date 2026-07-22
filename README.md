@@ -32,8 +32,14 @@ Levantar el servidor de desarrollo:
 npx ng serve
 ```
 
-El servidor de desarrollo usa `proxy.conf.json`, por lo que las llamadas a `/api/*`
+El servidor de desarrollo usa `proxy.conf.js`, por lo que las llamadas a `/api/*`
 se redirigen automáticamente a `http://localhost:8081`.
+
+Si necesitas apuntar la API a otra dirección, define la variable `PLAYERTECH_API_TARGET` antes de levantar el frontend:
+
+```bash
+$env:PLAYERTECH_API_TARGET="http://192.168.1.50:8081"; npx ng serve --host 0.0.0.0
+```
 
 Abrir la app en:
 

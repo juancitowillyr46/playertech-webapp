@@ -119,6 +119,10 @@ export class AcademyProfileService {
         );
     }
 
+    deleteCurrentShield(): Observable<void> {
+        return this.api.deleteShield();
+    }
+
     private applyAcademyProfile(profile: AcademyApiProfile): AcademyProfile {
         const mapped = this.api.mapProfile(profile);
         this.currentAcademy.set(mapped);

@@ -28,7 +28,7 @@ import { UserProfile } from '../models/profile.model';
                 <div class="rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                     <div class="space-y-4 p-4">
                         @if (loading()) {
-                            <div class="space-y-5 p-1">
+                            <div class="space-y-5">
                                 <div class="space-y-3">
                                     <p-skeleton width="10rem" height="1.1rem"></p-skeleton>
                                     <p-skeleton width="22rem" height="0.9rem"></p-skeleton>
@@ -43,54 +43,58 @@ import { UserProfile } from '../models/profile.model';
                                         <p-skeleton class="mt-2" height="2.75rem"></p-skeleton>
                                     </div>
                                 </div>
-                                <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/40">
+                                <div class="rounded-[0.9rem] border border-slate-200 bg-white p-4 dark:border-surface-700 dark:bg-surface-900/40">
                                     <p-skeleton width="7rem" height="1rem"></p-skeleton>
                                     <p-skeleton class="mt-2" width="18rem" height="0.85rem"></p-skeleton>
                                     <p-skeleton class="mt-4" width="14rem" height="2.5rem"></p-skeleton>
                                 </div>
-                                <div class="flex justify-end gap-2">
-                                    <p-skeleton width="7rem" height="2.5rem"></p-skeleton>
-                                    <p-skeleton width="9rem" height="2.5rem"></p-skeleton>
+                                <div class="pt-4">
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                        <p-skeleton width="7rem" height="2.75rem" borderRadius="0.75rem"></p-skeleton>
+                                        <p-skeleton width="9rem" height="2.75rem" borderRadius="0.75rem"></p-skeleton>
+                                    </div>
                                 </div>
                             </div>
                         } @else {
-                            <div class="grid grid-cols-12 gap-4">
-                                <div class="col-span-12">
-                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información de acceso</p>
-                                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Estos datos identifican tu cuenta dentro de la plataforma.</p>
-                                </div>
-
-                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="fullName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre completo <span class="text-rose-500">*</span></label>
-                                    <input pInputText id="fullName" type="text" [(ngModel)]="editableFullName" name="fullName" placeholder="Ej. Juan Rodas" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onFullNameInput($event)" />
-                                    @if (showError()) {
-                                        <p-message severity="error" size="small">Ingresa tu nombre completo.</p-message>
-                                    }
-                                </div>
-
-                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo electrónico</label>
-                                    <input pInputText id="email" type="text" [ngModel]="profile.email" name="email" class="w-full" [disabled]="true" />
-                                </div>
-                            </div>
-
-                            <div class="rounded-[0.9rem] border border-slate-200 bg-white p-4 dark:border-surface-700 dark:bg-surface-900">
-                                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <div>
-                                        <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Seguridad</p>
-                                        <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Si necesitas una nueva contraseña, te enviaremos un enlace a tu correo registrado.</p>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-12 gap-4">
+                                    <div class="col-span-12">
+                                        <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información de acceso</p>
+                                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Estos datos identifican tu cuenta dentro de la plataforma.</p>
                                     </div>
-                                    <p-button label="Restablecer contraseña" severity="secondary" outlined styleClass="w-full justify-center whitespace-nowrap sm:w-auto sm:min-w-[16rem]" [loading]="resetLinkLoading()" loadingIcon="pi pi-spinner pi-spin" [disabled]="resetLinkLoading()" (onClick)="sendResetLink()" />
+
+                                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                        <label for="fullName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre completo <span class="text-rose-500">*</span></label>
+                                        <input pInputText id="fullName" type="text" [(ngModel)]="editableFullName" name="fullName" placeholder="Ej. Juan Rodas" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onFullNameInput($event)" />
+                                        @if (showError()) {
+                                            <p-message severity="error" size="small">Ingresa tu nombre completo.</p-message>
+                                        }
+                                    </div>
+
+                                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                        <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo electrónico</label>
+                                        <input pInputText id="email" type="text" [ngModel]="profile.email" name="email" class="w-full" [disabled]="true" />
+                                    </div>
+                                </div>
+
+                                <div class="rounded-[0.9rem] border border-slate-200 bg-white p-4 dark:border-surface-700 dark:bg-surface-900">
+                                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Seguridad</p>
+                                            <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Si necesitas una nueva contraseña, te enviaremos un enlace a tu correo registrado.</p>
+                                        </div>
+                                        <p-button label="Restablecer contraseña" severity="secondary" outlined styleClass="w-full justify-center whitespace-nowrap sm:w-auto sm:min-w-[16rem]" [loading]="resetLinkLoading()" loadingIcon="pi pi-spinner pi-spin" [disabled]="resetLinkLoading()" (onClick)="sendResetLink()" />
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-slate-200 pt-4 dark:border-surface-800">
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                                        <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" routerLink="/" />
+                                        <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full sm:w-auto" [loading]="saving()" loadingIcon="pi pi-spinner pi-spin" [disabled]="saving()" (onClick)="saveProfile()" />
+                                    </div>
                                 </div>
                             </div>
                         }
-                    </div>
-
-                    <div class="border-t border-slate-200 p-4 dark:border-surface-800">
-                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-                            <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" routerLink="/" />
-                            <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full sm:w-auto" [loading]="saving()" loadingIcon="pi pi-spinner pi-spin" [disabled]="saving()" (onClick)="saveProfile()" />
-                        </div>
                     </div>
                 </div>
             </div>

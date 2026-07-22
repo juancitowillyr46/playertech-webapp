@@ -225,6 +225,7 @@ interface CountryOption {
                                                 <input #photoInput type="file" accept=".png,.jpg,.jpeg,.svg" class="hidden" (change)="onPhotoSelected($event)" />
                                                 <p-button label="Seleccionar archivo" severity="secondary" [outlined]="true" styleClass="w-full sm:w-auto" (onClick)="photoInput.click()" />
                                                 @if (photoPreviewUrl) {
+                                                    <p-button label="Cambiar foto" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="photoInput.click()" />
                                                     <p-button label="Quitar foto" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="removePhoto()" />
                                                 }
                                             </div>

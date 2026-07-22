@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
-import { AcademyContext, AcademyContextResponse, ApiEnvelope, AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, PublicCategory, PublicCategoryListResponse, TenantActivationRequest, TenantActivationStatusResponse, TenantSignupRequest, TenantSignupResponse } from './auth.models';
+import { AcademyContext, AcademyContextResponse, ApiEnvelope, AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, PublicCategory, PublicCategoryListResponse, TenantActivationRequest, TenantActivationStatusResponse, TenantAvailabilityResponse, TenantSignupRequest, TenantSignupResponse } from './auth.models';
 import { environment } from '../../../environments/environment';
 
 export interface AuthErrorLike {
@@ -56,6 +56,21 @@ export class AuthApiService {
     getPublicCategories(): Observable<PublicCategory[]> {
         return this.http.get<ApiEnvelope<PublicCategory[]> | PublicCategoryListResponse | PublicCategory[]>(this.url('/api/v1/public/categories')).pipe(
             map((response) => this.unwrapArrayResponse(response)),
+            catchError((error) => throwError(() => this.normalizeError(error)))
+        );
+    }
+
+    checkTenantAvailability(contactEmail: string, phone: string): Observable<{ contactEmailAvailable?: boolean; phoneAvailable?: boolean }> {
+        const params = new URLSearchParams();
+        if (contactEmail.trim()) {
+            params.set('contactEmail', contactEmail.trim());
+        }
+        if (phone.trim()) {
+            params.set('phone', phone.trim());
+        }
+
+        return this.http.get<ApiEnvelope<{ contactEmailAvailable?: boolean; phoneAvailable?: boolean }> | TenantAvailabilityResponse>(this.url(`/api/v1/public/tenants/availability?${params.toString()}`)).pipe(
+            map((response) => this.unwrapAvailabilityResponse(response)),
             catchError((error) => throwError(() => this.normalizeError(error)))
         );
     }
@@ -124,6 +139,14 @@ export class AuthApiService {
         }
 
         return [];
+    }
+
+    private unwrapAvailabilityResponse(response: ApiEnvelope<{ contactEmailAvailable?: boolean; phoneAvailable?: boolean }> | TenantAvailabilityResponse | { contactEmailAvailable?: boolean; phoneAvailable?: boolean }): { contactEmailAvailable?: boolean; phoneAvailable?: boolean } {
+        if (typeof response === 'object' && response !== null && 'data' in response && response.data !== undefined) {
+            return response.data as { contactEmailAvailable?: boolean; phoneAvailable?: boolean };
+        }
+
+        return response as { contactEmailAvailable?: boolean; phoneAvailable?: boolean };
     }
 
     private normalizeError(error: unknown): AuthErrorLike {
