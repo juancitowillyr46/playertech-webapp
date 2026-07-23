@@ -1051,7 +1051,7 @@ interface AcademyTeamStaffForm {
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="minAge" class="text-sm font-medium text-surface-700 dark:text-surface-200">Edad mínima <span class="text-rose-500">*</span></label>
-                                    <p-select id="minAge" [(ngModel)]="categoryForm.minAge" [options]="ageOptions" optionLabel="label" optionValue="value" placeholder="Selecciona edad mínima" class="w-full" appendTo="body" />
+                                    <p-select id="minAge" [(ngModel)]="categoryForm.minAge" [options]="ageOptions" optionLabel="label" optionValue="value" placeholder="Selecciona edad mínima" class="w-full" appendTo="body" (onChange)="onCategoryAgeChange()" />
                                     <p class="m-0 text-xs text-slate-500 dark:text-slate-400">Mínimo 4 años, máximo 99.</p>
                                     @if (showCategoryError('minAge')) {
                                         <p-message severity="error" size="small">La edad mínima debe estar entre 4 y 99 años.</p-message>
@@ -1060,7 +1060,7 @@ interface AcademyTeamStaffForm {
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="maxAge" class="text-sm font-medium text-surface-700 dark:text-surface-200">Edad máxima <span class="text-rose-500">*</span></label>
-                                    <p-select id="maxAge" [(ngModel)]="categoryForm.maxAge" [options]="ageOptions" optionLabel="label" optionValue="value" placeholder="Selecciona edad máxima" class="w-full" appendTo="body" />
+                                    <p-select id="maxAge" [(ngModel)]="categoryForm.maxAge" [options]="ageOptions" optionLabel="label" optionValue="value" placeholder="Selecciona edad máxima" class="w-full" appendTo="body" (onChange)="onCategoryAgeChange()" />
                                     <p class="m-0 text-xs text-slate-500 dark:text-slate-400">Debe ser igual o mayor que la edad mínima.</p>
                                     @if (showCategoryError('maxAge')) {
                                         <p-message severity="error" size="small">La edad máxima debe estar entre 4 y 99 años y no puede ser menor que la mínima.</p-message>
@@ -1553,6 +1553,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     selectedCategory: AcademyCategory | null = null;
     categorySearch = '';
     categorySubmitted = false;
+    categoryAgeValidationReady = false;
     categoryDialogVisible = false;
     categoryDialogMode: 'create' | 'edit' = 'create';
     editingCategoryId: string | null = null;
@@ -2625,6 +2626,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
 
     openCategoryDialog(category?: AcademyCategory) {
         this.categorySubmitted = false;
+        this.categoryAgeValidationReady = false;
         this.categoryDialogMode = category ? 'edit' : 'create';
         this.editingCategoryId = category?.id ?? null;
         this.categoryForm = category
@@ -2651,6 +2653,7 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     resetCategoryDialog() {
         this.categoryDialogVisible = false;
         this.categorySubmitted = false;
+        this.categoryAgeValidationReady = false;
         this.editingCategoryId = null;
         this.categoryDialogMode = 'create';
         this.categoryForm = this.emptyCategoryForm();
@@ -3137,6 +3140,10 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
     }
 
     showCategoryError(field: keyof AcademyCategoryForm): boolean {
+        if ((field === 'minAge' || field === 'maxAge') && this.categoryAgeValidationReady) {
+            return !this.isCategoryFieldValid(field);
+        }
+
         return this.categorySubmitted && !this.isCategoryFieldValid(field);
     }
 
@@ -3183,6 +3190,10 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
         const digits = this.sanitizeNumericInput(input.value).slice(0, 2);
         input.value = digits;
         this.categoryForm[field] = digits;
+    }
+
+    onCategoryAgeChange() {
+        this.categoryAgeValidationReady = true;
     }
 
     onTeamNameInput(event: Event) {
@@ -3425,9 +3436,9 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
             case 'name':
                 return this.hasValidText(this.categoryForm.name, 2);
             case 'minAge':
-                return Number.isInteger(minAge) && minAge >= 4 && minAge <= 99 && (!Number.isInteger(maxAge) || minAge <= maxAge);
+                return Number.isInteger(minAge) && minAge >= 4 && minAge <= 99 && (!Number.isInteger(maxAge) || minAge < maxAge);
             case 'maxAge':
-                return Number.isInteger(maxAge) && maxAge >= 4 && maxAge <= 99 && (!Number.isInteger(minAge) || maxAge >= minAge);
+                return Number.isInteger(maxAge) && maxAge >= 4 && maxAge <= 99 && (!Number.isInteger(minAge) || maxAge > minAge);
             case 'description':
             default:
                 return true;
