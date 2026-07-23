@@ -65,6 +65,11 @@ interface AcademyCategoryForm {
     description: string;
 }
 
+interface AgeOption {
+    label: string;
+    value: string;
+}
+
 interface AcademyTeam {
     id: string;
     name: string;
@@ -1046,7 +1051,7 @@ interface AcademyTeamStaffForm {
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="minAge" class="text-sm font-medium text-surface-700 dark:text-surface-200">Edad mínima <span class="text-rose-500">*</span></label>
-                                    <input pInputText id="minAge" type="text" inputmode="numeric" maxlength="2" [(ngModel)]="categoryForm.minAge" placeholder="Ej. 11" class="w-full" (input)="onCategoryAgeInput('minAge', $event)" />
+                                    <p-select id="minAge" [(ngModel)]="categoryForm.minAge" [options]="ageOptions" optionLabel="label" optionValue="value" placeholder="Selecciona edad mínima" class="w-full" appendTo="body" />
                                     <p class="m-0 text-xs text-slate-500 dark:text-slate-400">Mínimo 4 años, máximo 99.</p>
                                     @if (showCategoryError('minAge')) {
                                         <p-message severity="error" size="small">La edad mínima debe estar entre 4 y 99 años.</p-message>
@@ -1055,7 +1060,7 @@ interface AcademyTeamStaffForm {
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="maxAge" class="text-sm font-medium text-surface-700 dark:text-surface-200">Edad máxima <span class="text-rose-500">*</span></label>
-                                    <input pInputText id="maxAge" type="text" inputmode="numeric" maxlength="2" [(ngModel)]="categoryForm.maxAge" placeholder="Ej. 12" class="w-full" (input)="onCategoryAgeInput('maxAge', $event)" />
+                                    <p-select id="maxAge" [(ngModel)]="categoryForm.maxAge" [options]="ageOptions" optionLabel="label" optionValue="value" placeholder="Selecciona edad máxima" class="w-full" appendTo="body" />
                                     <p class="m-0 text-xs text-slate-500 dark:text-slate-400">Debe ser igual o mayor que la edad mínima.</p>
                                     @if (showCategoryError('maxAge')) {
                                         <p-message severity="error" size="small">La edad máxima debe estar entre 4 y 99 años y no puede ser menor que la mínima.</p-message>
@@ -1877,6 +1882,13 @@ export class AcademyProfilePage implements OnInit, OnDestroy {
 
     get venueCountryFlag(): string {
         return this.countryOptions.find((option) => option.name === this.venueForm.country)?.flagFile ?? this.fallbackFlag;
+    }
+
+    get ageOptions(): AgeOption[] {
+        return Array.from({ length: 96 }, (_, index) => {
+            const age = index + 4;
+            return { label: `${age}`, value: `${age}` };
+        });
     }
 
     get filteredVenues(): VenueApiVenue[] {
