@@ -82,8 +82,7 @@ body.p-overflow-hidden::before {
     background: rgba(255, 255, 255, 0.015);
 }
 
-body.p-overflow-hidden .p-dialog-mask,
-body.p-overflow-hidden .p-component-overlay {
+body.p-overflow-hidden .p-dialog-mask {
     position: fixed;
     inset: 0;
     z-index: 997;
