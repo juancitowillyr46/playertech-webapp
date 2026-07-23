@@ -88,7 +88,12 @@ import { inject } from '@angular/core';
                                 </div>
                             </td>
                             <td>{{ player.categoryName }}</td>
-                            <td>{{ player.documentNumber }}</td>
+                            <td>
+                                <div class="space-y-1">
+                                    <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ getDocumentLabel(player) }}</p>
+                                    <p class="m-0 text-xs text-slate-500 dark:text-slate-400">{{ player.nationality || 'Nacionalidad no registrada' }}</p>
+                                </div>
+                            </td>
                             <td>{{ getAgeLabel(player.birthDate) }}</td>
                             <td><p-tag [value]="getStatusLabel(player.status)" [severity]="getStatusSeverity(player.status)" /></td>
                             <td>
@@ -152,7 +157,7 @@ export class PlayersListPage implements OnDestroy {
 
         return this.players.filter((player) => {
             const fullName = this.getPlayerFullName(player).toLowerCase();
-            return fullName.includes(term) || player.documentNumber.toLowerCase().includes(term) || player.categoryName.toLowerCase().includes(term);
+            return fullName.includes(term) || this.getDocumentLabel(player).toLowerCase().includes(term) || player.categoryName.toLowerCase().includes(term);
         });
     }
 
@@ -219,6 +224,27 @@ export class PlayersListPage implements OnDestroy {
 
     getInitials(player: Player) {
         return `${player.firstName.charAt(0)}${player.lastName.charAt(0)}`.toUpperCase();
+    }
+
+    getDocumentLabel(player: Player) {
+        return `${this.getDocumentTypeLabel(player.documentType)} · ${player.documentNumber}`;
+    }
+
+    getDocumentTypeLabel(value: string) {
+        switch (value) {
+            case 'DNI':
+                return 'DNI';
+            case 'CC':
+                return 'Cédula de ciudadanía';
+            case 'CE':
+                return 'Cédula de extranjería';
+            case 'TI':
+                return 'Tarjeta de identidad';
+            case 'PASAPORTE':
+                return 'Pasaporte';
+            default:
+                return value || 'Documento';
+        }
     }
 
     getStatusLabel(status: Player['status']) {

@@ -1,4 +1,4 @@
-import { MockUserRole } from '@/app/core/auth/mock-auth.service';
+import { AuthRole } from '@/app/core/auth/auth.models';
 
 export type UserAccountStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
 
@@ -9,8 +9,9 @@ export interface UserProfile {
     academyId: string | null;
     academyName: string | null;
     roles: string[];
-    role: MockUserRole;
-    roleLabel: string;
+    primaryRole: AuthRole;
+    primaryRoleLabel: string;
+    contextLabel: string;
     status: UserAccountStatus;
     statusLabel: string;
 }

@@ -30,10 +30,18 @@ export class PlayerManagementService {
             academyId: this.academyId,
             categoryId: 'category-sub-12',
             categoryName: 'Sub 12',
+            documentType: 'DNI',
             firstName: 'Juan',
             lastName: 'Pérez',
             birthDate: '2013-05-12',
             documentNumber: '12345678',
+            nationality: 'Peruana',
+            gender: 'Masculino',
+            federationId: 'F001',
+            dominantFoot: 'Derecho',
+            email: 'juan.perez@example.com',
+            countryCode: '+51',
+            phoneNumber: '+51 987 654 321',
             status: 'ACTIVE',
             photo: null
         },
@@ -42,10 +50,18 @@ export class PlayerManagementService {
             academyId: this.academyId,
             categoryId: 'category-sub-14',
             categoryName: 'Sub 14',
+            documentType: 'DNI',
             firstName: 'Mateo',
             lastName: 'García',
             birthDate: '2011-09-02',
             documentNumber: '10456789',
+            nationality: 'Peruana',
+            gender: 'Masculino',
+            federationId: 'F002',
+            dominantFoot: 'Izquierdo',
+            email: 'mateo.garcia@example.com',
+            countryCode: '+51',
+            phoneNumber: '+51 912 345 678',
             status: 'ACTIVE',
             photo: null
         },
@@ -54,10 +70,18 @@ export class PlayerManagementService {
             academyId: this.academyId,
             categoryId: 'category-sub-10',
             categoryName: 'Sub 10',
+            documentType: 'DNI',
             firstName: 'Sofía',
             lastName: 'López',
             birthDate: '2015-01-18',
             documentNumber: '11987654',
+            nationality: 'Colombiana',
+            gender: 'Femenino',
+            federationId: 'F003',
+            dominantFoot: 'Derecho',
+            email: 'sofia.lopez@example.com',
+            countryCode: '+57',
+            phoneNumber: '+57 301 555 8899',
             status: 'INACTIVE',
             photo: null
         }
@@ -341,10 +365,18 @@ export class PlayerManagementService {
             academyId: this.academyId,
             categoryId: payload.categoryId,
             categoryName: category?.name ?? 'Sin categoría',
+            documentType: payload.documentType,
             firstName: payload.firstName.trim(),
             lastName: payload.lastName.trim(),
             birthDate: payload.birthDate,
             documentNumber: payload.documentNumber.trim(),
+            nationality: this.normalizeOptionalText(payload.nationality),
+            gender: this.normalizeOptionalText(payload.gender),
+            federationId: this.normalizeOptionalText(payload.federationId),
+            dominantFoot: this.normalizeOptionalText(payload.dominantFoot),
+            email: this.normalizeOptionalText(payload.email?.toLowerCase() ?? ''),
+            countryCode: this.normalizeOptionalText(payload.countryCode),
+            phoneNumber: this.normalizeOptionalText(payload.phoneNumber),
             status: 'ACTIVE',
             photo
         };
@@ -364,10 +396,18 @@ export class PlayerManagementService {
 
             updated = {
                 ...player,
+                documentType: payload.documentType,
                 firstName: payload.firstName.trim(),
                 lastName: payload.lastName.trim(),
                 birthDate: payload.birthDate,
                 documentNumber: payload.documentNumber.trim(),
+                nationality: this.normalizeOptionalText(payload.nationality),
+                gender: this.normalizeOptionalText(payload.gender),
+                federationId: this.normalizeOptionalText(payload.federationId),
+                dominantFoot: this.normalizeOptionalText(payload.dominantFoot),
+                email: this.normalizeOptionalText(payload.email?.toLowerCase() ?? ''),
+                countryCode: this.normalizeOptionalText(payload.countryCode),
+                phoneNumber: this.normalizeOptionalText(payload.phoneNumber),
                 categoryId: payload.categoryId,
                 categoryName: category?.name ?? player.categoryName,
                 photo
@@ -399,6 +439,11 @@ export class PlayerManagementService {
 
     listCategories(): CategoryOption[] {
         return this.categories.map((item) => ({ ...item }));
+    }
+
+    private normalizeOptionalText(value: string) {
+        const trimmed = value.trim();
+        return trimmed.length ? trimmed : null;
     }
 
     listGuardians(): Guardian[] {

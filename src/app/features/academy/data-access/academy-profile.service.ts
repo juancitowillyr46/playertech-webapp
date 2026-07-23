@@ -1,125 +1,174 @@
 import { Injectable, signal } from '@angular/core';
-import { MockAuthService, MockUserRole } from '@/app/core/auth/mock-auth.service';
-import { AcademyProfile, AcademyTaxProfile } from '../models/academy.model';
+import { catchError, map, Observable, of, tap, throwError } from 'rxjs';
+import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
+import { AuthSessionService } from '@/app/core/auth/auth-session.service';
+import { AuthUser } from '@/app/core/auth/auth.models';
+import { AuthAccessService } from '@/app/features/auth/data-access/auth-access.service';
+import {
+    AcademyApiProfile,
+    AcademyApiTaxProfile,
+    AcademyProfile,
+    AcademyProfileUpdateRequest,
+    AcademyTaxProfile,
+    AcademyTaxProfileUpdateRequest
+} from '../models/academy.model';
+import { AcademyApiService } from './academy-api.service';
+
+function createEmptyAcademy(): AcademyProfile {
+    return {
+        id: null,
+        name: '',
+        contactEmail: '',
+        phone: '',
+        countryCode: '+57',
+        phoneNumber: '',
+        country: '',
+        department: '',
+        city: '',
+        address: '',
+        status: 'ACTIVE',
+        statusLabel: 'Activa',
+        shieldUrl: null,
+        shieldFileName: null
+    };
+}
+
+function createEmptyTaxProfile(academy?: AcademyProfile | null): AcademyTaxProfile {
+    return {
+        legalName: academy?.name ?? '',
+        taxIdType: '',
+        taxIdNumber: '',
+        taxCheckDigit: '',
+        taxRegime: '',
+        billingEmail: academy?.contactEmail ?? '',
+        fiscalAddress: academy?.address ?? '',
+        fiscalCity: academy?.city ?? '',
+        fiscalCountry: academy?.country ?? ''
+    };
+}
 
 @Injectable({
     providedIn: 'root'
 })
 export class AcademyProfileService {
-    private readonly store = signal<Record<MockUserRole, AcademyProfile | null>>({
-        super_admin: null,
-        tenant_owner: {
-            id: 'ten-001',
-            name: 'Academia PlayerTech Demo',
-            contactEmail: 'contacto@playertechdemo.com',
-            phone: '+57 3123456789',
-            countryCode: '+57',
-            phoneNumber: '3123456789',
-            country: 'Colombia',
-            department: 'Risaralda',
-            city: 'Pereira',
-            address: 'Calle 10 # 20-30',
-            status: 'ACTIVE',
-            statusLabel: 'Activa'
-        },
-        academy_admin: {
-            id: 'ten-002',
-            name: 'Club Deportivo Norte',
-            contactEmail: 'contacto@clubnorte.com',
-            phone: '+51 987654321',
-            countryCode: '+51',
-            phoneNumber: '987654321',
-            country: 'Perú',
-            department: 'Lima',
-            city: 'Lima',
-            address: 'Av. Central 245',
-            status: 'ACTIVE',
-            statusLabel: 'Activa'
-        },
-        staff: {
-            id: 'ten-003',
-            name: 'Escuela Gol Azul',
-            contactEmail: 'contacto@golazul.com',
-            phone: '+56 987654321',
-            countryCode: '+56',
-            phoneNumber: '987654321',
-            country: 'Chile',
-            department: 'Santiago',
-            city: 'Santiago',
-            address: 'Pasaje Sur 120',
-            status: 'ACTIVE',
-            statusLabel: 'Activa'
-        }
-    });
-    private readonly taxProfileStore = signal<Record<MockUserRole, AcademyTaxProfile | null>>({
-        super_admin: null,
-        tenant_owner: {
-            legalName: 'Academia PlayerTech Demo SAS',
-            taxIdType: 'NIT',
-            taxIdNumber: '901234567',
-            taxCheckDigit: '8',
-            taxRegime: 'RESPONSABLE_IVA',
-            billingEmail: 'facturacion@playertechdemo.com',
-            fiscalAddress: 'Calle 10 # 20-30',
-            fiscalCity: 'Pereira',
-            fiscalCountry: 'Colombia'
-        },
-        academy_admin: {
-            legalName: 'Club Deportivo Norte SAC',
-            taxIdType: 'RUC',
-            taxIdNumber: '20609876541',
-            taxCheckDigit: '',
-            taxRegime: 'REGIMEN_GENERAL',
-            billingEmail: 'facturacion@clubnorte.com',
-            fiscalAddress: 'Av. Central 245',
-            fiscalCity: 'Lima',
-            fiscalCountry: 'Perú'
-        },
-        staff: {
-            legalName: 'Escuela Gol Azul SpA',
-            taxIdType: 'RUT',
-            taxIdNumber: '76453210',
-            taxCheckDigit: '2',
-            taxRegime: 'REGIMEN_GENERAL',
-            billingEmail: 'facturacion@golazul.com',
-            fiscalAddress: 'Pasaje Sur 120',
-            fiscalCity: 'Santiago',
-            fiscalCountry: 'Chile'
-        }
-    });
+    readonly currentAcademy = signal<AcademyProfile>(createEmptyAcademy());
+    readonly currentTaxProfile = signal<AcademyTaxProfile>(createEmptyTaxProfile());
 
-    constructor(private readonly auth: MockAuthService) {}
+    constructor(
+        private readonly api: AcademyApiService,
+        private readonly authAccess: AuthAccessService,
+        private readonly session: AuthSessionService
+    ) {
+        this.syncEmptyStateFromSession();
+    }
 
     getCurrentAcademy(): AcademyProfile | null {
-        const current = this.store()[this.auth.getRole()];
-        return current ? { ...current } : null;
+        const current = this.currentAcademy();
+        return current.id ? { ...current } : null;
     }
 
     getCurrentTaxProfile(): AcademyTaxProfile | null {
-        const current = this.taxProfileStore()[this.auth.getRole()];
-        return current ? { ...current } : null;
+        const current = this.currentTaxProfile();
+        return current.taxIdType || current.taxIdNumber || current.billingEmail ? { ...current } : null;
     }
 
-    updateCurrentAcademy(payload: AcademyProfile) {
-        const currentRole = this.auth.getRole();
+    loadCurrentAcademy(): Observable<AcademyProfile | null> {
+        return this.api.getProfile().pipe(
+            map((profile) => this.applyAcademyProfile(profile)),
+            catchError((error: AuthErrorLike) => {
+                if (error.status === 404) {
+                    this.currentAcademy.set(createEmptyAcademy());
+                    this.currentTaxProfile.set(createEmptyTaxProfile());
+                    return of(null);
+                }
 
-        this.store.update((academies) => ({
-            ...academies,
-            [currentRole]: {
-                ...payload,
-                phone: `${payload.countryCode} ${payload.phoneNumber}`.trim()
-            }
-        }));
+                return throwError(() => error);
+            })
+        );
     }
 
-    updateCurrentTaxProfile(payload: AcademyTaxProfile) {
-        const currentRole = this.auth.getRole();
+    loadCurrentTaxProfile(): Observable<AcademyTaxProfile | null> {
+        return this.api.getTaxProfile().pipe(
+            map((taxProfile) => this.applyTaxProfile(taxProfile)),
+            catchError((error: AuthErrorLike) => {
+                if (error.status === 404) {
+                    this.currentTaxProfile.set(createEmptyTaxProfile(this.currentAcademy()));
+                    return of(null);
+                }
 
-        this.taxProfileStore.update((profiles) => ({
-            ...profiles,
-            [currentRole]: {
-                ...payload
-            }
+                return throwError(() => error);
+            })
+        );
+    }
+
+    updateCurrentAcademy(payload: AcademyProfileUpdateRequest): Observable<AcademyProfile> {
+        return this.api.updateProfile(payload).pipe(
+            map((profile) => this.applyAcademyProfile(profile)),
+            tap((profile) => this.patchSessionFromAcademy(profile))
+        );
+    }
+
+    updateCurrentTaxProfile(payload: AcademyTaxProfileUpdateRequest): Observable<AcademyTaxProfile> {
+        return this.api.updateTaxProfile(payload).pipe(map((profile) => this.applyTaxProfile(profile)));
+    }
+
+    updateCurrentShield(shield: Blob): Observable<AcademyProfile> {
+        return this.api.uploadShield(shield).pipe(
+            map((profile) => this.applyAcademyProfile(profile)),
+            tap((profile) => this.patchSessionFromAcademy(profile))
+        );
+    }
+
+    deleteCurrentShield(): Observable<void> {
+        return this.api.deleteShield();
+    }
+
+    private applyAcademyProfile(profile: AcademyApiProfile): AcademyProfile {
+        const mapped = this.api.mapProfile(profile);
+        this.currentAcademy.set(mapped);
+        this.currentTaxProfile.update((current) => ({
+            ...current,
+            legalName: current.legalName || mapped.name,
+            billingEmail: current.billingEmail || mapped.contactEmail,
+            fiscalAddress: current.fiscalAddress || mapped.address,
+            fiscalCity: current.fiscalCity || mapped.city,
+            fiscalCountry: current.fiscalCountry || mapped.country
         }));
+        return mapped;
+    }
+
+    private applyTaxProfile(profile: AcademyApiTaxProfile): AcademyTaxProfile {
+        const mapped = this.api.mapTaxProfile(profile, this.currentAcademy());
+        this.currentTaxProfile.set(mapped);
+        return mapped;
+    }
+
+    private patchSessionFromAcademy(profile: AcademyProfile): void {
+        const currentUser = this.session.getUser();
+        if (!currentUser) {
+            return;
+        }
+
+        const nextUser: AuthUser = {
+            ...currentUser,
+            academyId: profile.id,
+            academyName: profile.name
+        };
+
+        this.session.setSession(nextUser);
+    }
+
+    private syncEmptyStateFromSession(): void {
+        const user = this.session.getUser();
+        if (!user) {
+            return;
+        }
+
+        this.currentAcademy.set({
+            ...createEmptyAcademy(),
+            id: user.academyId,
+            name: user.academyName ?? ''
+        });
+        this.currentTaxProfile.set(createEmptyTaxProfile(this.currentAcademy()));
     }
 }

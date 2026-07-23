@@ -14,6 +14,7 @@ export const appRoutes: Routes = [
         children: [
             { path: '', component: Dashboard },
             { path: 'academy', loadChildren: () => import('./app/features/academy/academy.routes') },
+            { path: 'finance', loadChildren: () => import('./app/features/finance/finance.routes') },
             { path: 'account', loadChildren: () => import('./app/features/account/account.routes') },
             { path: 'guardians', loadChildren: () => import('./app/features/guardians/guardians.routes') },
             { path: 'payments', loadChildren: () => import('./app/features/payments/payments.routes') },
@@ -26,6 +27,7 @@ export const appRoutes: Routes = [
     },
     { path: 'landing', component: Landing },
     { path: 'notfound', component: Notfound },
+    { path: 'tenant/activate', loadComponent: () => import('./app/features/auth/pages/tenant-activate').then((m) => m.TenantActivate) },
     { path: 'auth', loadChildren: () => import('./app/features/auth/auth.routes') },
     { path: '**', redirectTo: '/notfound' }
 ];

@@ -88,6 +88,63 @@ import { filter } from 'rxjs/operators';
                 margin-right: 0 !important;
             }
 
+            :host-context(.layout-mobile-active) .layout-menuitem-root-text,
+            :host-context(.layout-mobile-active) .layout-menuitem-text,
+            :host-context(.layout-mobile-active) .layout-submenu-toggler {
+                display: inline-flex !important;
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            :host-context(.layout-mobile-active) .layout-menuitem-root-text {
+                display: block !important;
+                padding: 0.25rem 1.25rem 0.5rem;
+                font-size: 0.72rem;
+                font-weight: 700;
+                letter-spacing: 0.12em;
+                line-height: 1.3;
+                text-transform: uppercase;
+                color: var(--text-color-secondary);
+            }
+
+            :host-context(.layout-mobile-active) a {
+                justify-content: flex-start !important;
+                gap: 0.85rem;
+                width: 100%;
+                min-width: 0;
+                padding: 0.9rem 1.25rem;
+                white-space: normal;
+                overflow: visible;
+                text-overflow: clip;
+                align-items: center;
+            }
+
+            :host-context(.layout-mobile-active) .layout-menuitem-root-text,
+            :host-context(.layout-mobile-active) .layout-menuitem-text {
+                transition:
+                    opacity 180ms ease,
+                    transform 180ms ease;
+                opacity: 0.96;
+                transform: translateX(-0.15rem);
+                white-space: normal;
+                overflow: visible;
+                text-overflow: clip;
+                line-height: 1.25;
+            }
+
+            :host-context(.layout-mobile-active) .layout-menuitem-icon {
+                flex: 0 0 1.1rem;
+                margin-right: 0 !important;
+            }
+
+            :host-context(.layout-mobile-active) .layout-submenu-toggler {
+                transition:
+                    opacity 180ms ease,
+                    transform 180ms ease;
+                opacity: 0.96;
+                flex-shrink: 0;
+            }
+
             .p-submenu-enter {
                 animation: p-animate-submenu-expand 450ms cubic-bezier(0.86, 0, 0.07, 1) forwards;
             }

@@ -1,25 +1,135 @@
 import { Injectable } from '@angular/core';
-import { MockAuthService, MockUserRole } from '../../../core/auth/mock-auth.service';
+import { Observable, tap } from 'rxjs';
+import { AuthApiService } from '@/app/core/auth/auth-api.service';
+import { AuthSessionService } from '@/app/core/auth/auth-session.service';
+import { AcademyContext, AuthCredentials, AuthUser, PasswordResetConfirm, PasswordResetRequest, PublicCategory, TenantActivationRequest, TenantActivationStatusResponse, TenantSignupRequest, TenantSignupResponse, TenantSignupSummary } from '@/app/core/auth/auth.models';
 
 @Injectable({
     providedIn: 'root'
 })
 export class AuthAccessService {
-    constructor(private readonly mockAuth: MockAuthService) {}
+    private readonly signupSummaryStorageKey = 'playertech.signup.summary';
 
-    login(role: MockUserRole = 'tenant_owner') {
-        this.mockAuth.login(role);
+    constructor(
+        private readonly api: AuthApiService,
+        private readonly session: AuthSessionService
+    ) {}
+
+    login(credentials: AuthCredentials): Observable<AuthUser> {
+        return this.api.login(credentials).pipe(tap((user) => this.session.setSession(user)));
     }
 
-    logout() {
-        this.mockAuth.logout();
+    loadSession(): Observable<AuthUser> {
+        return this.api.me().pipe(tap((user) => this.session.setSession(user)));
+    }
+
+    loadTenantContext(): Observable<AcademyContext> {
+        return this.api.academyContext().pipe(tap((context) => this.session.setTenantContext(context)));
+    }
+
+    activateUser(token: string, payload: PasswordResetConfirm): Observable<AuthUser> {
+        return this.api.activateUser(token, payload).pipe(tap((user) => this.session.setSession(user)));
+    }
+
+    signupTenant(payload: TenantSignupRequest): Observable<TenantSignupResponse> {
+        return this.api.signupTenant(payload);
+    }
+
+    activateTenant(token: string, payload: TenantActivationRequest): Observable<TenantSignupResponse> {
+        return this.api.activateTenant(token, payload);
+    }
+
+    checkTenantActivation(token: string): Observable<TenantActivationStatusResponse> {
+        return this.api.checkTenantActivation(token);
+    }
+
+    getPublicCategories(): Observable<PublicCategory[]> {
+        return this.api.getPublicCategories();
+    }
+
+    checkTenantAvailability(contactEmail: string, phone: string): Observable<{ contactEmailAvailable?: boolean; phoneAvailable?: boolean }> {
+        return this.api.checkTenantAvailability(contactEmail, phone);
+    }
+
+    saveSignupSummary(summary: TenantSignupSummary): void {
+        this.writeSignupSummary(summary);
+    }
+
+    loadSignupSummary(): TenantSignupSummary | null {
+        return this.readSignupSummary();
+    }
+
+    clearSignupSummary(): void {
+        this.writeSignupSummary(null);
+    }
+
+    requestPasswordReset(payload: PasswordResetRequest): Observable<void> {
+        return this.api.requestPasswordReset(payload);
+    }
+
+    requestCurrentUserPasswordReset(): Observable<void> {
+        return this.api.requestCurrentUserPasswordReset();
+    }
+
+    confirmPasswordReset(token: string, payload: PasswordResetConfirm): Observable<void> {
+        return this.api.confirmPasswordReset(token, payload);
+    }
+
+    updateCurrentUserName(fullName: string): Observable<AuthUser> {
+        return this.api.updateName(fullName).pipe(tap((user) => this.session.setSession(user)));
+    }
+
+    logout(): void {
+        this.session.clearSession();
     }
 
     isAuthenticated(): boolean {
-        return this.mockAuth.isAuthenticated();
+        return this.session.isLoggedIn();
     }
 
-    getRole(): MockUserRole {
-        return this.mockAuth.getRole();
+    getRole() {
+        return this.session.primaryRole();
+    }
+
+    getUser() {
+        return this.session.getUser();
+    }
+
+    getHomeRoute(): string {
+        return this.session.getHomeRoute();
+    }
+
+    private readSignupSummary(): TenantSignupSummary | null {
+        if (!this.canUseStorage()) {
+            return null;
+        }
+
+        const raw = window.localStorage.getItem(this.signupSummaryStorageKey);
+        if (!raw) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(raw) as TenantSignupSummary;
+        } catch {
+            return null;
+        }
+    }
+
+    private writeSignupSummary(summary: TenantSignupSummary | null): void {
+        if (!this.canUseStorage()) {
+            return;
+        }
+
+        if (!summary) {
+            window.localStorage.removeItem(this.signupSummaryStorageKey);
+            return;
+        }
+
+        window.localStorage.setItem(this.signupSummaryStorageKey, JSON.stringify(summary));
+    }
+
+    private canUseStorage(): boolean {
+        return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
     }
 }

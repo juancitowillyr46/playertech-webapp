@@ -32,8 +32,10 @@ Habilita el uso seguro de la plataforma y la entrada a los flujos de negocio.
 * HU-003 Recuperar acceso o rehidratar sesión. `Partial`
 * HU-004 Redirigir según rol y contexto. `Partial`
 * HU-005 Mostrar una pantalla de ingreso clara y consistente con el signup. `Done`
-* HU-006 Recuperar contraseña con solicitud pública, confirmación y nueva contraseña por token. `Done (Mock UI)`
-* HU-007 Consultar y actualizar el perfil del usuario autenticado. `Done (Mock UI)`
+* HU-006 Recuperar contraseña con solicitud pública, confirmación y nueva contraseña por token. `Done`
+* HU-007 Consultar y actualizar el perfil del usuario autenticado. `Done`
+* HU-008 Activar usuario desde token público. `Done`
+* HU-009 Mostrar rol principal, roles asociados y contexto de acceso. `Done`
 
 ## Reglas de UX Relacionadas
 
@@ -46,6 +48,15 @@ Habilita el uso seguro de la plataforma y la entrada a los flujos de negocio.
 * Mostrar una página de confirmación tipo thank-you después de solicitar la recuperación.
 * Mostrar el perfil con una estructura clara, editable y consistente con el resto de formularios principales.
 * Separar la información editable del usuario de la acción de restablecer contraseña.
+
+## Trazabilidad
+
+* `PLY-AUTH-REQ-001` -> HU-001
+* `PLY-AUTH-REQ-002` -> HU-002
+* `PLY-AUTH-REQ-003` -> HU-006
+* `PLY-AUTH-REQ-004` -> HU-007
+* `PLY-AUTH-REQ-005` -> HU-008
+* `PLY-AUTH-REQ-006` -> HU-009
 
 ## Detalle de HU-006
 
@@ -77,6 +88,14 @@ Como usuario que olvidó su contraseña, quiero solicitar un enlace de recuperac
 * Mantener separado este flujo público de los datos de perfil autenticado.
 * El botón `Restablecer contraseña` desde perfil debe reutilizar este flujo público sin mezclar formularios inline de cambio de clave.
 
+#### Checklist de implementación
+
+* [x] Solicitud pública de recuperación por correo.
+* [x] Pantalla de confirmación posterior a la solicitud.
+* [x] Confirmación de nueva contraseña por token.
+* [x] Manejo de errores visibles para token inválido o expirado.
+* [x] Redirección al login al finalizar.
+
 ## Detalle de HU-007
 
 ### HU-007 Consultar y actualizar el perfil del usuario autenticado
@@ -106,6 +125,55 @@ Como usuario autenticado de la plataforma, quiero ver y actualizar mi informaci�
 * Mantener jerarquía visual clara entre datos editables, datos de cuenta y seguridad.
 * Aplicar las mismas reglas de validación y consistencia visual usadas en signup y formularios de academia.
 
+#### Checklist de implementación
+
+* [x] Consumo de `GET /api/v1/auth/me`.
+* [x] Edición de nombre propio.
+* [x] Visualización de correo no editable.
+* [x] Visualización de rol principal y roles asociados.
+* [x] Visualización de contexto de academia o plataforma.
+* [x] Acción de restablecimiento de contraseña separada.
+
+## Detalle de HU-008
+
+### HU-008 Activar usuario desde token público
+
+Como usuario invitado o recién creado, quiero definir mi contraseña desde un enlace de activación, para poder acceder por primera vez de forma segura.
+
+#### Criterios de aceptación
+
+* La pantalla debe leer el token desde la URL.
+* Debe solicitar contraseña y confirmación.
+* Debe mostrar un mensaje claro si el token es inválido o expiró.
+* Debe confirmar la activación y dirigir al login.
+
+#### Checklist de implementación
+
+* [x] Ruta pública de activación.
+* [x] Consumo de `POST /api/v1/public/users/activate/{token}`.
+* [x] Manejo de error visible si el token no es válido.
+* [x] Confirmación visual de activación exitosa.
+
+## Detalle de HU-009
+
+### HU-009 Mostrar rol principal, roles asociados y contexto de acceso
+
+Como usuario autenticado, quiero ver mi rol principal y el contexto en el que opero, para entender qué capacidades tengo sin depender de abreviaturas técnicas.
+
+#### Criterios de aceptación
+
+* El perfil debe mostrar el rol principal en formato entendible.
+* El perfil debe mostrar los roles asociados si existen.
+* El perfil debe indicar si el usuario está en contexto plataforma o tenant.
+* Si el usuario no tiene `academyId`, la pantalla no debe romper ni asumir contexto tenant.
+
+#### Checklist de implementación
+
+* [x] Interpretación de `ROLE_ROOT`, `ROLE_ACADEMY_ADMIN`, `ROLE_COACH` y `ROLE_USER`.
+* [x] Etiqueta de contexto derivada del contrato de `auth/me`.
+* [x] Fallback seguro para roles desconocidos.
+* [x] Sin dependencia de `academyId` obligatorio.
+
 ## Fuera de Alcance
 
 * MFA.
@@ -114,4 +182,4 @@ Como usuario autenticado de la plataforma, quiero ver y actualizar mi informaci�
 
 ## Estado
 
-Done (Mock UI).
+Done.

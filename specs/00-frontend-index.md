@@ -162,6 +162,60 @@ Incluye:
 
 ---
 
+## 10. Frontend Operational Package
+
+Define las primeras specs operativas para arrancar SDD en dominios críticos.
+
+Incluye:
+
+* auth;
+* players;
+* payments;
+* trazabilidad mínima;
+* estados y reglas visibles;
+* vacíos y dependencias por dominio.
+
+Documentos:
+
+* `domains/README.md`
+* `domains/auth.md`
+* `domains/academy.md`
+* `domains/players.md`
+* `domains/payments.md`
+* `domains/auth-flows.md`
+* `domains/players-flows.md`
+* `domains/payments-flows.md`
+* `domains/membership.md`
+* `ui/mobile-shell-navigation.md`
+
+---
+
+## 11. Frontend Simple Implementation Standard
+
+Define una guía mínima y repetible para implementar cambios pequeños sin sobrecargar la arquitectura.
+
+Incluye:
+
+* ubicación correcta por capa;
+* uso de `data-access`;
+* loading, empty y error states;
+* reglas simples para formularios y feedback;
+* anti-patrones de implementación innecesaria.
+
+---
+
+## 12. Frontend Finance Navigation
+
+Define cómo exponer Finanzas como grupo principal y separar el contexto operativo de academia.
+
+Incluye:
+
+* menú principal `Finanzas`;
+* submenús para información fiscal, cobros, cargos y pagos;
+* regla de transición para pantallas reutilizadas temporalmente.
+
+---
+
 # Orden Recomendado de Redacción
 
 1. `01-frontend-architecture.md`
@@ -179,4 +233,3 @@ Incluye:
 # Regla de Uso
 
 Si una decisión de implementación no está cubierta por estos specs, primero se documenta y luego se implementa.
-

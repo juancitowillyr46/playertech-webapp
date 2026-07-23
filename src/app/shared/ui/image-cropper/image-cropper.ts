@@ -94,7 +94,7 @@ export interface ImageCropperFileError {
             <ng-template pTemplate="footer">
                 <div class="flex flex-col gap-2 border-t border-slate-200 pt-3 sm:flex-row sm:justify-end dark:border-surface-700">
                     <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" [disabled]="isApplying" (onClick)="handleCancel()" />
-                    <p-button label="Usar imagen" styleClass="w-full sm:w-auto" [loading]="isApplying" [disabled]="isPreparing || !sourceUrl" (onClick)="apply()" />
+                    <p-button label="Aplicar recorte" styleClass="w-full sm:w-auto" [loading]="isApplying" [disabled]="isPreparing || !sourceUrl" (onClick)="apply()" />
                 </div>
             </ng-template>
         </p-dialog>

@@ -2,9 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
+import { AuthAccessService } from '../data-access/auth-access.service';
+import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
 
 @Component({
     selector: 'app-reset-password',
@@ -16,9 +19,9 @@ import { PasswordModule } from 'primeng/password';
                 <div class="w-full min-w-0 max-w-xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_28px_90px_-28px_rgba(15,23,42,0.24)] dark:border-surface-800 dark:bg-surface-900">
                     <div class="min-w-0 px-5 py-6 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
                         <div class="mb-6 text-center sm:mb-7">
-                            <p class="hidden text-sm font-medium uppercase tracking-[0.24em] text-sky-700 dark:text-sky-400 sm:block">Nueva contraseña</p>
-                            <h1 class="mt-1 text-[clamp(1.55rem,6vw,1.9rem)] font-semibold tracking-tight text-surface-900 dark:text-surface-0">Restablecer contraseña</h1>
-                            <p class="mx-auto mt-2 max-w-[24rem] text-sm leading-6 text-slate-600 dark:text-slate-300 sm:max-w-xl">Define una nueva contraseña para volver a ingresar con seguridad.</p>
+                            <p class="text-xs font-medium uppercase tracking-[0.32em] text-emerald-700 dark:text-emerald-400">Nueva contraseña</p>
+                            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-surface-900 dark:text-surface-0 sm:text-4xl">Restablecer contraseña</h1>
+                            <p class="mx-auto mt-2 max-w-[22rem] text-sm leading-6 text-slate-600 dark:text-slate-300 sm:max-w-xl sm:text-base">Define una nueva contraseña para volver a ingresar con seguridad.</p>
                         </div>
 
                         @if (apiMessage) {
@@ -27,7 +30,7 @@ import { PasswordModule } from 'primeng/password';
                             </div>
                         }
 
-                        <div class="space-y-5 sm:space-y-6">
+                        <div class="space-y-6">
                             <div class="flex flex-col gap-2">
                                 <label for="password" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nueva contraseña</label>
                                 <p-password
@@ -66,11 +69,16 @@ import { PasswordModule } from 'primeng/password';
                             </div>
 
                             <div class="pt-1">
-                                <p-button label="Guardar nueva contraseña" styleClass="w-full" type="button" (onClick)="submit()" />
+                                <p-button label="Guardar nueva contraseña" styleClass="w-full" type="button" [loading]="loading" loadingIcon="pi pi-spinner pi-spin" [disabled]="loading" (onClick)="submit()" />
                             </div>
                         </div>
 
                         <div class="mt-6 border-t border-slate-200 pt-5 text-center text-sm text-slate-600 dark:border-surface-800 dark:text-slate-300 sm:mt-7 sm:pt-6">
+                            @if (isTokenInvalid()) {
+                                <div class="mb-3">
+                                    <a routerLink="/auth/forgot-password" class="font-medium text-emerald-700 hover:underline dark:text-emerald-400">Pedir nuevo enlace</a>
+                                </div>
+                            }
                             <a routerLink="/auth/login" class="font-medium text-sky-700 hover:underline dark:text-sky-400">Volver al ingreso</a>
                         </div>
                     </div>
@@ -84,14 +92,16 @@ export class ResetPassword {
     passwordConfirmation = '';
     token = '';
     submitted = false;
+    loading = false;
 
     apiMessage: { severity: 'success' | 'info' | 'warn' | 'error'; text: string } | null = null;
 
     constructor(
         private readonly route: ActivatedRoute,
-        private readonly router: Router
+        private readonly router: Router,
+        private readonly auth: AuthAccessService
     ) {
-        this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
+        this.token = this.route.snapshot.paramMap.get('token') ?? this.route.snapshot.queryParamMap.get('token') ?? '';
 
         if (!this.token) {
             this.apiMessage = {
@@ -101,8 +111,9 @@ export class ResetPassword {
         }
     }
 
-    submit() {
+    async submit() {
         this.submitted = true;
+        this.apiMessage = null;
 
         if (!this.token) {
             this.apiMessage = {
@@ -120,22 +131,32 @@ export class ResetPassword {
             return;
         }
 
-        if (['invalid-token', 'expired-token'].includes(this.token)) {
+        this.loading = true;
+
+        try {
+            await firstValueFrom(
+                this.auth.confirmPasswordReset(this.token, {
+                    password: this.password,
+                    passwordConfirmation: this.passwordConfirmation
+                })
+            );
+
+            this.apiMessage = {
+                severity: 'success',
+                text: 'Tu contraseña fue actualizada. Ahora puedes ingresar con la nueva clave.'
+            };
+
+            setTimeout(() => {
+                void this.router.navigate(['/auth/reset-password-success']);
+            }, 1200);
+        } catch (error) {
             this.apiMessage = {
                 severity: 'error',
-                text: 'El enlace ya no es válido o expiró. Solicita uno nuevo.'
+                text: this.getTokenErrorMessage(error as AuthErrorLike | undefined)
             };
-            return;
+        } finally {
+            this.loading = false;
         }
-
-        this.apiMessage = {
-            severity: 'success',
-            text: 'Tu contraseña fue actualizada. Ahora puedes ingresar con la nueva clave.'
-        };
-
-        setTimeout(() => {
-            void this.router.navigate(['/auth/login']);
-        }, 1200);
     }
 
     showPasswordError(): boolean {
@@ -148,5 +169,17 @@ export class ResetPassword {
 
     showPasswordMismatchError(): boolean {
         return this.submitted && !!this.passwordConfirmation.trim() && this.password !== this.passwordConfirmation;
+    }
+
+    isTokenInvalid(): boolean {
+        return !this.token || this.apiMessage?.text === 'El enlace ya no es válido o expiró. Solicita uno nuevo.';
+    }
+
+    private getTokenErrorMessage(error?: AuthErrorLike): string {
+        if (error?.status === 400 || error?.status === 401 || error?.status === 404) {
+            return 'El enlace ya no es válido o expiró. Solicita uno nuevo.';
+        }
+
+        return 'No fue posible actualizar la contraseña. Intenta nuevamente.';
     }
 }

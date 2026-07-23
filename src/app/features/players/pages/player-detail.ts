@@ -24,6 +24,12 @@ import { PlayerManagementService } from '../data-access/player-management.servic
 import { CategoryOption, Guardian, GuardianForm, Player, PlayerChargeForm, PlayerForm, PlayerGuardianRelation, PlayerInitialCharge, PlayerMembership, PlayerMembershipHistoryItem, PlayerPhoto, PlayerTeamAssignment, PlayerTeamAssignmentForm, TeamOption } from '../models/player.model';
 import { Subscription } from 'rxjs';
 
+interface CountryOption {
+    name: string;
+    dialCode: string;
+    flagFile: string;
+}
+
 @Component({
     selector: 'app-player-detail-page',
     standalone: true,
@@ -54,16 +60,6 @@ import { Subscription } from 'rxjs';
                 position: relative;
             }
 
-            .membership-history::before {
-                content: '';
-                position: absolute;
-                left: 1.05rem;
-                top: 1.25rem;
-                bottom: 1.25rem;
-                width: 1px;
-                background: rgb(226 232 240);
-            }
-
             .membership-history-item {
                 position: relative;
             }
@@ -71,6 +67,32 @@ import { Subscription } from 'rxjs';
             .membership-history-dot {
                 position: relative;
                 z-index: 1;
+            }
+
+            .membership-history-card {
+                border-left-width: 4px;
+                border-left-style: solid;
+                transition:
+                    transform 180ms ease,
+                    box-shadow 180ms ease,
+                    border-color 180ms ease;
+            }
+
+            .membership-history-card:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+            }
+
+            .membership-history-card-active {
+                border-left-color: rgb(34 197 94);
+            }
+
+            .membership-history-card-suspended {
+                border-left-color: rgb(245 158 11);
+            }
+
+            .membership-history-card-withdrawn {
+                border-left-color: rgb(239 68 68);
             }
 
             :host ::ng-deep .player-detail-tablist {
@@ -114,7 +136,6 @@ import { Subscription } from 'rxjs';
         @if (player) {
             <div class="space-y-4">
                 <app-page-header [breadcrumbs]="breadcrumbs" [title]="playerFullName" subtitle="Actualiza la información del jugador y administra acudientes, equipos, matrícula y cargos desde un solo lugar."></app-page-header>
-
                 <div
                     class="mx-auto mt-4 w-full space-y-3"
                     [class.content-width-compact]="activeTab === 'information' || activeTab === 'guardians' || activeTab === 'teams' || activeTab === 'membership'"
@@ -159,10 +180,53 @@ import { Subscription } from 'rxjs';
                                 <p-tabpanel value="information">
                                     <div class="space-y-4 p-3 sm:p-4">
                                         <div class="form-width-2col mx-auto space-y-4">
+                                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Identidad</p>
+                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ getDocumentLabel(player) }}</p>
+                                                </div>
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Nacionalidad</p>
+                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ player.nationality || 'No configurada' }}</p>
+                                                </div>
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Género / Pie</p>
+                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ player.gender || 'No configurado' }}</p>
+                                                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ player.dominantFoot || 'Pie dominante no definido' }}</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Correo</p>
+                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0 break-all">{{ player.email || 'No configurado' }}</p>
+                                                </div>
+                                                <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-sm dark:border-surface-800 dark:bg-surface-900 sm:p-4">
+                                                    <p class="m-0 text-sm font-medium text-slate-500 dark:text-slate-400">Celular</p>
+                                                    <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ getPhoneLabel(player) }}</p>
+                                                </div>
+                                            </div>
+
                                             <div class="grid grid-cols-12 gap-4">
                                                 <div class="col-span-12">
-                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información del jugador</p>
-                                                    <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Mantén actualizados los datos personales, la categoría y la foto del jugador.</p>
+                                                    <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Información personal</p>
+                                                    <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Registra el documento, nombres, apellidos y datos base del jugador.</p>
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="documentType" class="text-sm font-medium text-surface-700 dark:text-surface-200">Tipo de documento <span class="text-rose-500">*</span></label>
+                                                    <p-select id="documentType" [(ngModel)]="form.documentType" [options]="documentTypeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un tipo" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                                                    @if (showError('documentType')) {
+                                                        <p-message severity="error" size="small">Selecciona el tipo de documento.</p-message>
+                                                    }
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="documentNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Número de documento <span class="text-rose-500">*</span></label>
+                                                    <input pInputText id="documentNumber" type="text" [(ngModel)]="form.documentNumber" placeholder="Ej. 12345678" class="w-full" (input)="onDocumentInput($event)" />
+                                                    @if (showError('documentNumber')) {
+                                                        <p-message severity="error" size="small">Ingresa el documento del jugador.</p-message>
+                                                    }
                                                 </div>
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
@@ -190,23 +254,98 @@ import { Subscription } from 'rxjs';
                                                 </div>
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="documentNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Documento <span class="text-rose-500">*</span></label>
-                                                    <input pInputText id="documentNumber" type="text" [(ngModel)]="form.documentNumber" placeholder="Ej. 12345678" class="w-full" (input)="onDocumentInput($event)" />
-                                                    @if (showError('documentNumber')) {
-                                                        <p-message severity="error" size="small">Ingresa el documento del jugador.</p-message>
+                                                    <label for="nationality" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nacionalidad <span class="text-slate-400">(opcional)</span></label>
+                                                    <p-select id="nationality" [(ngModel)]="form.nationality" [options]="countryOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name,dialCode" placeholder="Selecciona un país" class="w-full" appendTo="body" [scrollHeight]="'16rem'">
+                                                        <ng-template #selectedItem let-option>
+                                                            <span class="flex items-center gap-2">
+                                                                <img [src]="option?.flagFile ?? fallbackFlag" [alt]="option?.name ?? 'País'" class="h-4 w-6 rounded-sm object-cover" />
+                                                                <span>{{ option?.name ?? 'País' }}</span>
+                                                            </span>
+                                                        </ng-template>
+                                                        <ng-template #item let-option>
+                                                            <div class="flex items-center justify-between gap-3">
+                                                                <span class="flex items-center gap-2">
+                                                                    <img [src]="option.flagFile || fallbackFlag" [alt]="option.name" class="h-4 w-6 rounded-sm object-cover" />
+                                                                    <span>{{ option.name }}</span>
+                                                                </span>
+                                                                <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-surface-800 dark:text-slate-300">{{ option.dialCode }}</span>
+                                                            </div>
+                                                        </ng-template>
+                                                    </p-select>
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="gender" class="text-sm font-medium text-surface-700 dark:text-surface-200">Género <span class="text-slate-400">(opcional)</span></label>
+                                                    <p-select id="gender" [(ngModel)]="form.gender" [options]="genderOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un género" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                                                </div>
+                                            </div>
+
+                                            <div class="border-t border-slate-200 pt-6 dark:border-surface-700"></div>
+
+                                            <div class="space-y-1.5">
+                                                <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Información de contacto</p>
+                                                <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Agrupa el canal de contacto directo del jugador.</p>
+                                            </div>
+
+                                            <div class="mt-5 grid grid-cols-12 gap-4">
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="phoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Celular <span class="text-slate-400">(opcional)</span></label>
+                                                    <div class="grid grid-cols-12 gap-3">
+                                                        <p-select
+                                                            id="countryCode"
+                                                            [(ngModel)]="form.countryCode"
+                                                            [options]="countryOptions"
+                                                            optionLabel="label"
+                                                            optionValue="value"
+                                                            placeholder="Código"
+                                                            class="col-span-12 sm:col-span-4 w-full"
+                                                            appendTo="body"
+                                                            [scrollHeight]="'16rem'"
+                                                        />
+                                                        <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" placeholder="Ej. 987 654 321" class="col-span-12 sm:col-span-8 w-full" (input)="onPhoneInput($event)" />
+                                                    </div>
+                                                    @if (showError('countryCode') || showError('phoneNumber')) {
+                                                        <p-message severity="error" size="small">Ingresa un celular válido.</p-message>
                                                     }
                                                 </div>
 
                                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="email" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo <span class="text-slate-400">(opcional)</span></label>
+                                                    <input pInputText id="email" type="text" [(ngModel)]="form.email" placeholder="Ej. jugador@correo.com" class="w-full" (keydown)="onPlayerEmailKeydown($event)" (paste)="onPlayerEmailPaste($event)" (input)="onPlayerEmailInput($event)" />
+                                                    @if (showError('email')) {
+                                                        <p-message severity="error" size="small">Ingresa un correo válido.</p-message>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            <div class="border-t border-slate-200 pt-6 dark:border-surface-700"></div>
+
+                                            <div class="space-y-1.5">
+                                                <p class="m-0 text-base font-semibold leading-5 text-surface-900 dark:text-surface-0">Detalle del jugador</p>
+                                                <p class="m-0 text-sm leading-5 text-slate-500 dark:text-slate-400">Agrega la categoría y los datos deportivos complementarios.</p>
+                                            </div>
+
+                                            <div class="mt-5 grid grid-cols-12 gap-4">
+                                                <div class="col-span-12 flex flex-col gap-2">
                                                     <label for="categoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categoría <span class="text-rose-500">*</span></label>
                                                     <p-select id="categoryId" [(ngModel)]="form.categoryId" [options]="categories" optionLabel="name" optionValue="id" placeholder="Selecciona una categoría" class="w-full" />
                                                     @if (showError('categoryId')) {
                                                         <p-message severity="error" size="small">Selecciona la categoría del jugador.</p-message>
                                                     }
                                                 </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="dominantFoot" class="text-sm font-medium text-surface-700 dark:text-surface-200">Pie dominante <span class="text-slate-400">(opcional)</span></label>
+                                                    <p-select id="dominantFoot" [(ngModel)]="form.dominantFoot" [options]="dominantFootOptions" optionLabel="label" optionValue="value" placeholder="Selecciona una opción" class="w-full" appendTo="body" [scrollHeight]="'16rem'" />
+                                                </div>
+
+                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                    <label for="federationId" class="text-sm font-medium text-surface-700 dark:text-surface-200">ID de liga <span class="text-slate-400">(opcional)</span></label>
+                                                    <input pInputText id="federationId" type="text" [(ngModel)]="form.federationId" placeholder="Ej. F001" class="w-full" (input)="onTextInput('federationId', $event)" />
+                                                </div>
                                             </div>
 
-                                            <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/60">
+                        <div class="rounded-[0.9rem] border border-slate-200 bg-white p-4 dark:border-surface-700 dark:bg-surface-900">
                                                 <div class="flex flex-col gap-3">
                                                     <div>
                                                         <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Foto del jugador</p>
@@ -231,6 +370,7 @@ import { Subscription } from 'rxjs';
                                                                     <input #photoInput type="file" accept=".png,.jpg,.jpeg,.svg" class="hidden" (change)="onPhotoSelected($event)" />
                                                                     <p-button label="Seleccionar archivo" severity="secondary" [outlined]="true" styleClass="w-full sm:w-auto" (onClick)="photoInput.click()" />
                                                                     @if (photoPreviewUrl) {
+                                                                        <p-button label="Cambiar foto" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="photoInput.click()" />
                                                                         <p-button label="Quitar foto" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="removePhoto()" />
                                                                     }
                                                                 </div>
@@ -242,7 +382,7 @@ import { Subscription } from 'rxjs';
                                         </div>
                                     </div>
 
-                                    <div class="border-t border-slate-200 p-4 dark:border-surface-800">
+                                    <div class="border-t border-slate-200 px-4 py-3 dark:border-surface-800 sm:p-4">
                                         <div class="form-width-2col mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
                                             <p-button label="Volver" severity="secondary" text styleClass="w-full sm:w-auto" routerLink="/players" />
                                             <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full sm:w-auto" (onClick)="savePlayer()" />
@@ -581,7 +721,7 @@ import { Subscription } from 'rxjs';
                                                     </div>
                                                 </div>
                                             } @else {
-                                                <div class="rounded-[0.75rem] border border-dashed border-slate-300 bg-slate-50 p-3 dark:border-surface-700 dark:bg-surface-900/60 sm:p-4">
+                                                <div class="rounded-[0.75rem] border border-dashed border-slate-300 bg-white p-3 dark:border-surface-700 dark:bg-surface-900 sm:p-4">
                                                     <div class="space-y-4">
                                                         <div class="space-y-1">
                                                             <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Crear matrícula</p>
@@ -623,26 +763,31 @@ import { Subscription } from 'rxjs';
                                                 @if (membershipHistory.length) {
                                                     <div class="membership-history px-3 py-2 sm:px-4">
                                                         @for (item of membershipHistory; track item.id) {
-                                                            <div class="membership-history-item flex gap-3 py-4 first:pt-3 last:pb-3">
+                                                            <div class="membership-history-item flex gap-3 py-3 first:pt-3 last:pb-3">
                                                                 <div class="flex shrink-0 pt-1">
-                                                                    <span class="membership-history-dot flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm dark:border-surface-700 dark:bg-surface-900">
-                                                                        <i class="pi" [class.pi-check-circle]="item.status === 'ACTIVE'" [class.pi-pause-circle]="item.status === 'SUSPENDED'" [class.pi-times-circle]="item.status === 'WITHDRAWN'"></i>
+                                                                    <span class="membership-history-dot flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm dark:border-surface-700 dark:bg-surface-900">
+                                                                        <i class="pi text-base" [class.pi-check-circle]="item.status === 'ACTIVE'" [class.pi-pause-circle]="item.status === 'SUSPENDED'" [class.pi-times-circle]="item.status === 'WITHDRAWN'"></i>
                                                                     </span>
                                                                 </div>
 
-                                                                <div class="min-w-0 flex-1 rounded-[0.75rem] border border-slate-200 bg-slate-50 px-3 py-3 dark:border-surface-700 dark:bg-surface-900/60 sm:px-4">
+                                                                <div
+                                                                    class="membership-history-card min-w-0 flex-1 rounded-[0.85rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900 sm:px-4"
+                                                                    [class.membership-history-card-active]="item.status === 'ACTIVE'"
+                                                                    [class.membership-history-card-suspended]="item.status === 'SUSPENDED'"
+                                                                    [class.membership-history-card-withdrawn]="item.status === 'WITHDRAWN'"
+                                                                >
                                                                     <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                                                                        <div class="space-y-1">
+                                                                        <div class="min-w-0 space-y-2">
                                                                             <div class="flex flex-wrap items-center gap-2">
-                                                                                <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ membershipEventTitle(item.status) }}</p>
+                                                                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">{{ membershipEventTitle(item.status) }}</p>
                                                                                 <p-tag [value]="membershipStatusLabel(item.status)" [severity]="membershipStatusSeverity(item.status)" />
                                                                             </div>
-                                                                            <p class="m-0 text-sm text-slate-500 dark:text-slate-400">Acudiente principal: {{ guardianNameById(item.primaryGuardianId) }}</p>
+                                                                            <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Acudiente principal: <span class="font-medium text-surface-700 dark:text-surface-200">{{ guardianNameById(item.primaryGuardianId) }}</span></p>
                                                                         </div>
 
-                                                                        <div class="space-y-1 text-sm text-slate-500 dark:text-slate-400 md:text-right">
-                                                                            <p class="m-0">Inicio: {{ formatDateTime(item.startedAt) }}</p>
-                                                                            <p class="m-0">Fin: {{ item.endedAt ? formatDateTime(item.endedAt) : 'Vigente' }}</p>
+                                                                        <div class="flex flex-col gap-1 text-sm text-slate-500 dark:text-slate-400 md:items-end md:text-right">
+                                                                            <p class="m-0">Inicio: <span class="font-medium text-surface-700 dark:text-surface-200">{{ formatDateTime(item.startedAt) }}</span></p>
+                                                                            <p class="m-0">Fin: <span class="font-medium text-surface-700 dark:text-surface-200">{{ item.endedAt ? formatDateTime(item.endedAt) : 'Vigente' }}</span></p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -661,7 +806,7 @@ import { Subscription } from 'rxjs';
 
                                 <p-tabpanel value="charges">
                                     <div class="space-y-4 p-3 sm:p-4">
-                                        <div class="form-width-2col mx-auto space-y-4">
+                                        <div class="w-full mx-auto space-y-4">
                                             <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 shadow-none dark:border-surface-700 dark:bg-surface-900 sm:p-4">
                                                 <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                                                     <div class="space-y-1">
@@ -681,12 +826,12 @@ import { Subscription } from 'rxjs';
                                                         <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Consulta los cargos activos del jugador y el saldo pendiente asociado.</p>
                                                     </div>
 
-                                                    <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
-                                                        <p-button label="Nuevo cargo" icon="pi pi-plus" styleClass="w-full sm:w-auto" (onClick)="openCreateChargeDialog()" />
+                                                    <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
+                                                        <p-button label="Nuevo cargo" icon="pi pi-plus" styleClass="w-full sm:min-w-[10.5rem] sm:w-auto" (onClick)="openCreateChargeDialog()" />
                                                         @if (player) {
-                                                            <p-button label="Ver pagos" icon="pi pi-credit-card" severity="secondary" [outlined]="true" styleClass="w-full sm:w-auto" [routerLink]="['/payments/history']" [queryParams]="{ playerId: player.id }" />
+                                                            <p-button label="Ver pagos" icon="pi pi-credit-card" severity="secondary" [outlined]="true" styleClass="w-full sm:min-w-[10rem] sm:w-auto" [routerLink]="['/payments/history']" [queryParams]="{ playerId: player.id }" />
                                                         }
-                                                        <p-button label="Ir al módulo financiero" icon="pi pi-arrow-right" severity="secondary" [outlined]="true" styleClass="w-full sm:w-auto" routerLink="/payments/charges" />
+                                                        <p-button label="Ir al módulo financiero" icon="pi pi-arrow-right" severity="secondary" [outlined]="true" styleClass="w-full sm:min-w-[12.5rem] sm:w-auto" routerLink="/payments/charges" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -908,7 +1053,7 @@ import { Subscription } from 'rxjs';
                                     <p-message severity="error" size="small">Selecciona el equipo que vas a asignar.</p-message>
                                 }
                             } @else {
-                                <div class="rounded-[0.85rem] border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-sm leading-6 text-slate-500 dark:border-surface-700 dark:bg-surface-900/60 dark:text-slate-400">
+                                <div class="rounded-[0.85rem] border border-dashed border-slate-300 bg-white px-3 py-3 text-sm leading-6 text-slate-500 dark:border-surface-700 dark:bg-surface-900 dark:text-slate-400">
                                     No hay equipos activos disponibles para asignar en esta iteración.
                                 </div>
                             }
@@ -923,7 +1068,7 @@ import { Subscription } from 'rxjs';
                         </div>
 
                         <div class="col-span-12 md:col-span-6 flex items-end">
-                            <div class="flex w-full items-start gap-3 rounded-[0.85rem] border border-slate-200 bg-slate-50 px-3 py-3 dark:border-surface-700 dark:bg-surface-900/60">
+                            <div class="flex w-full items-start gap-3 rounded-[0.85rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900">
                                 <p-checkbox inputId="teamAssignmentPrimary" [(ngModel)]="teamAssignmentForm.markAsPrimary" [binary]="true" />
                                 <div class="space-y-1">
                                     <label for="teamAssignmentPrimary" class="cursor-pointer text-sm font-medium text-surface-900 dark:text-surface-0">Definir como equipo principal</label>
@@ -1059,10 +1204,31 @@ export class PlayerDetailPage implements OnDestroy {
         { label: 'Otro', value: 'Otro' }
     ];
     readonly documentTypeOptions = [
+        { label: 'DNI', value: 'DNI' },
         { label: 'Cédula de ciudadanía', value: 'CC' },
         { label: 'Tarjeta de identidad', value: 'TI' },
         { label: 'Cédula de extranjería', value: 'CE' },
         { label: 'Pasaporte', value: 'PASAPORTE' }
+    ];
+    readonly genderOptions = [
+        { label: 'Masculino', value: 'Masculino' },
+        { label: 'Femenino', value: 'Femenino' },
+        { label: 'Otro', value: 'Otro' },
+        { label: 'Prefiero no decir', value: 'Prefiero no decir' }
+    ];
+    readonly dominantFootOptions = [
+        { label: 'Derecho', value: 'Derecho' },
+        { label: 'Izquierdo', value: 'Izquierdo' },
+        { label: 'Ambidiestro', value: 'Ambidiestro' }
+    ];
+    readonly fallbackFlag = 'assets/flags/pe.svg';
+    readonly countryOptions: CountryOption[] = [
+        { name: 'Colombia', dialCode: '+57', flagFile: 'assets/flags/co.svg' },
+        { name: 'Perú', dialCode: '+51', flagFile: 'assets/flags/pe.svg' },
+        { name: 'Chile', dialCode: '+56', flagFile: 'assets/flags/cl.svg' },
+        { name: 'Ecuador', dialCode: '+593', flagFile: 'assets/flags/ec.svg' },
+        { name: 'México', dialCode: '+52', flagFile: 'assets/flags/mx.svg' },
+        { name: 'España', dialCode: '+34', flagFile: 'assets/flags/es.svg' }
     ];
     guardianSearch = '';
     teamAssignmentSearch = '';
@@ -1561,6 +1727,7 @@ export class PlayerDetailPage implements OnDestroy {
 
     getDocumentTypeLabel(value: string) {
         const labels: Record<string, string> = {
+            DNI: 'DNI',
             CC: 'CC',
             TI: 'TI',
             CE: 'CE',
@@ -1639,8 +1806,43 @@ export class PlayerDetailPage implements OnDestroy {
 
     onDocumentInput(event: Event) {
         const input = event.target as HTMLInputElement;
-        this.form.documentNumber = input.value.replace(/[^\d]/g, '');
+        this.form.documentNumber = input.value.replace(/[^\dA-Za-z-]/g, '');
         input.value = this.form.documentNumber;
+    }
+
+    onTextInput(field: 'nationality' | 'federationId', event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.form[field] = input.value.replace(/[^\p{L}\p{N}\s-]/gu, '');
+        input.value = this.form[field];
+    }
+
+    onPhoneInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.form.phoneNumber = this.sanitizePhoneInput(input.value);
+        input.value = this.form.phoneNumber;
+    }
+
+    onPlayerEmailInput(event: Event) {
+        const input = event.target as HTMLInputElement;
+        this.form.email = this.sanitizeEmailInput(input.value);
+        input.value = this.form.email;
+    }
+
+    onPlayerEmailKeydown(event: KeyboardEvent) {
+        if (this.isAllowedEditingKey(event) || event.ctrlKey || event.metaKey || event.altKey) {
+            return;
+        }
+
+        if (!/^[a-zA-Z0-9@._%+\-]$/.test(event.key)) {
+            event.preventDefault();
+        }
+    }
+
+    onPlayerEmailPaste(event: ClipboardEvent) {
+        const pasted = event.clipboardData?.getData('text') ?? '';
+        if (pasted !== this.sanitizeEmailInput(pasted)) {
+            event.preventDefault();
+        }
     }
 
     onGuardianNameInput(field: 'firstName' | 'lastName', event: Event) {
@@ -1748,10 +1950,18 @@ export class PlayerDetailPage implements OnDestroy {
 
         this.breadcrumbs = [{ label: 'Inicio', routerLink: '/' }, { label: 'Jugadores', routerLink: '/players' }, { label: `${player.firstName} ${player.lastName}`.trim() }];
         this.form = {
+            documentType: player.documentType,
             firstName: player.firstName,
             lastName: player.lastName,
             birthDate: player.birthDate,
             documentNumber: player.documentNumber,
+            nationality: player.nationality ?? '',
+            gender: player.gender ?? '',
+            federationId: player.federationId ?? '',
+            dominantFoot: player.dominantFoot ?? '',
+            email: player.email ?? '',
+            countryCode: player.countryCode ?? '',
+            phoneNumber: player.phoneNumber ?? '',
             categoryId: player.categoryId
         };
         this.photoPreviewUrl = player.photo?.url ?? null;
@@ -1794,7 +2004,7 @@ export class PlayerDetailPage implements OnDestroy {
     }
 
     private emptyForm(): PlayerForm {
-        return { firstName: '', lastName: '', birthDate: '', documentNumber: '', categoryId: '' };
+        return { documentType: '', firstName: '', lastName: '', birthDate: '', documentNumber: '', nationality: '', gender: '', federationId: '', dominantFoot: '', email: '', countryCode: '', phoneNumber: '', categoryId: '' };
     }
 
     private emptyGuardianForm(): GuardianForm {
@@ -1818,11 +2028,13 @@ export class PlayerDetailPage implements OnDestroy {
     }
 
     private isFormValid() {
-        return ['firstName', 'lastName', 'birthDate', 'documentNumber', 'categoryId'].every((field) => this.isFieldValid(field as keyof PlayerForm));
+        return ['documentType', 'firstName', 'lastName', 'birthDate', 'documentNumber', 'categoryId', 'email', 'countryCode', 'phoneNumber'].every((field) => this.isFieldValid(field as keyof PlayerForm));
     }
 
     private isFieldValid(field: keyof PlayerForm) {
         switch (field) {
+            case 'documentType':
+                return !!this.form.documentType;
             case 'firstName':
             case 'lastName':
                 return this.hasValidText(this.form[field], 2);
@@ -1830,6 +2042,12 @@ export class PlayerDetailPage implements OnDestroy {
                 return !!this.form.birthDate;
             case 'documentNumber':
                 return this.form.documentNumber.trim().length >= 6;
+            case 'email':
+                return !this.form.email.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email.trim());
+            case 'phoneNumber':
+                return (!this.form.phoneNumber.trim() && !this.form.countryCode.trim()) || (!!this.form.phoneNumber.trim() && this.isValidPhoneNumber(this.form.countryCode, this.form.phoneNumber));
+            case 'countryCode':
+                return (!this.form.countryCode.trim() && !this.form.phoneNumber.trim()) || (!!this.form.countryCode.trim() && this.isValidPhoneNumber(this.form.countryCode, this.form.phoneNumber));
             case 'categoryId':
                 return !!this.form.categoryId;
             default:
@@ -1897,8 +2115,26 @@ export class PlayerDetailPage implements OnDestroy {
         return value.replace(/[^\p{L}\p{N}\s]/gu, '');
     }
 
+    private sanitizePhoneInput(value: string) {
+        return value.replace(/[^\d\s()+-]/g, '');
+    }
+
     private sanitizeEmailInput(value: string) {
         return value.replace(/[^a-zA-Z0-9@._%+\-]/g, '').replace(/\s+/g, '');
+    }
+
+    private isValidPhoneNumber(countryCode: string, phoneNumber: string) {
+        const digits = phoneNumber.replace(/\D/g, '');
+        switch (countryCode) {
+            case '+51':
+                return /^9\d{8}$/.test(digits);
+            case '+57':
+                return /^3\d{9}$/.test(digits);
+            case '+56':
+                return /^[2-9]\d{8}$/.test(digits);
+            default:
+                return digits.length >= 7;
+        }
     }
 
     private isAllowedEditingKey(event: KeyboardEvent) {
@@ -1913,6 +2149,18 @@ export class PlayerDetailPage implements OnDestroy {
             size: blob.size,
             checksum: `mock:${Date.now()}`
         };
+    }
+
+    getDocumentLabel(player: Player) {
+        return `${this.getDocumentTypeLabel(player.documentType)} · ${player.documentNumber}`;
+    }
+
+    getPhoneLabel(player: Player) {
+        if (player.phoneNumber) {
+            return player.countryCode ? `${player.countryCode} ${player.phoneNumber}` : player.phoneNumber;
+        }
+
+        return player.countryCode ? `${player.countryCode} · No configurado` : 'No configurado';
     }
 
     formatDateTime(value: string) {

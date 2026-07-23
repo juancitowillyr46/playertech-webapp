@@ -5,11 +5,10 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
 import { AppFloatingConfigurator } from '../../../layout/component/app.floatingconfigurator';
+import { AuthAccessService } from '../data-access/auth-access.service';
+import { TenantSignupSummary } from '@/app/core/auth/auth.models';
 
-type SignupSuccessState = {
-    academyName?: string;
-    contactEmail?: string;
-};
+type SignupSuccessState = Partial<TenantSignupSummary>;
 
 @Component({
     selector: 'app-signup-success',
@@ -17,61 +16,50 @@ type SignupSuccessState = {
     imports: [AppFloatingConfigurator, ButtonModule, CardModule, CommonModule, DividerModule, RouterModule],
     template: `
         <app-floating-configurator />
-        <div class="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_40%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)] px-4 py-8 dark:bg-none dark:bg-surface-950 sm:px-6 lg:px-8">
-            <div class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl items-center justify-center">
-                <div class="w-full rounded-[2rem] border border-slate-200 bg-white px-6 py-10 shadow-[0_28px_90px_-28px_rgba(15,23,42,0.22)] dark:border-surface-800 dark:bg-surface-900 sm:px-10 sm:py-12">
-                    <div class="mx-auto flex max-w-xl flex-col items-center text-center">
-                        <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-sky-200 bg-white text-sky-600 shadow-[0_10px_30px_-18px_rgba(14,165,233,0.65)] dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-300">
+        <div class="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(15,118,110,0.14),_transparent_36%),linear-gradient(180deg,_#f8faf7_0%,_#eef4f1_100%)] px-4 py-8 sm:px-6 lg:px-8">
+            <div class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-4xl items-center justify-center">
+                <div class="w-full overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-white px-6 py-10 shadow-[0_30px_90px_-30px_rgba(15,23,42,0.22)] sm:px-10 sm:py-12">
+                    <div class="mx-auto max-w-2xl text-center">
+                        <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 shadow-[0_10px_30px_-18px_rgba(16,185,129,0.6)]">
                             <i class="pi pi-check text-2xl"></i>
                         </div>
 
-                        <p class="text-sm uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Registro completado</p>
-                        <h1 class="mt-3 text-3xl font-semibold tracking-tight text-surface-900 dark:text-surface-0 sm:text-4xl">Tu academia ya está lista</h1>
-                        <p class="mt-3 max-w-lg text-sm leading-6 text-slate-600 dark:text-slate-300">Enviamos la confirmación al correo registrado. Revisa tu bandeja de entrada para continuar.</p>
+                        <p class="text-xs uppercase tracking-[0.32em] text-emerald-700">Cuenta creada</p>
+                        <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Tu academia ya está registrada</h1>
+                        <p class="mt-4 text-sm leading-6 text-slate-600 sm:text-base">
+                            {{ activationEmailSent ? 'Enviamos el correo de activación. Revisa tu bandeja para completar el acceso.' : 'La creación fue exitosa. Revisa tu correo y confirma el enlace para completar el acceso.' }}
+                        </p>
 
-                        <p-card class="mt-8 w-full text-left" styleClass="border border-slate-200 shadow-sm dark:border-surface-800">
+                        <p-card class="mt-8 block w-full text-left" styleClass="border border-slate-200 shadow-sm">
                             <ng-template pTemplate="content">
-                                <div class="space-y-5">
-                                    <div class="flex items-start gap-3">
-                                        <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 dark:bg-sky-400/15 dark:text-sky-300">
-                                            <i class="pi pi-building"></i>
-                                        </span>
-                                        <div class="min-w-0">
-                                            <p class="text-xs uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Academia</p>
-                                            <p class="font-medium text-surface-900 dark:text-surface-0">{{ academyName }}</p>
-                                        </div>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                                        <p class="text-[0.7rem] uppercase tracking-[0.28em] text-slate-500">Academia</p>
+                                        <p class="max-w-[18rem] truncate text-right font-medium text-slate-900">{{ academyName }}</p>
                                     </div>
-
-                                    <p-divider />
-
-                                    <div class="flex items-start gap-3">
-                                        <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 dark:bg-sky-400/15 dark:text-sky-300">
-                                            <i class="pi pi-envelope"></i>
-                                        </span>
-                                        <div class="min-w-0">
-                                            <p class="text-xs uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Correo</p>
-                                            <p class="font-medium text-surface-900 dark:text-surface-0">{{ contactEmail }}</p>
-                                        </div>
+                                    <div class="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                                        <p class="text-[0.7rem] uppercase tracking-[0.28em] text-slate-500">Contacto</p>
+                                        <p class="max-w-[18rem] truncate text-right font-medium text-slate-900">{{ contactName }}</p>
                                     </div>
-
-                                    <p-divider />
-
-                                    <div class="flex items-start gap-3">
-                                        <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700 dark:bg-sky-400/15 dark:text-sky-300">
-                                            <i class="pi pi-arrow-right"></i>
-                                        </span>
-                                        <div class="min-w-0">
-                                            <p class="text-xs uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Siguiente paso</p>
-                                            <p class="font-medium text-surface-900 dark:text-surface-0">Inicia sesión para seguir trabajando.</p>
-                                        </div>
+                                    <div class="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                                        <p class="text-[0.7rem] uppercase tracking-[0.28em] text-slate-500">Correo</p>
+                                        <p class="max-w-[18rem] truncate text-right font-medium text-slate-900">{{ contactEmail }}</p>
                                     </div>
+                                    <div class="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                                        <p class="text-[0.7rem] uppercase tracking-[0.28em] text-slate-500">Equipo inicial</p>
+                                        <p class="max-w-[18rem] truncate text-right font-medium text-slate-900">{{ teamName }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900">
+                                    {{ activationRequired ? 'La cuenta queda pendiente hasta confirmar el correo.' : 'La cuenta ya puede usarse, pero siempre recomendamos revisar el correo de activación.' }}
                                 </div>
                             </ng-template>
                         </p-card>
 
-                        <div class="mt-8 flex w-full flex-col items-center gap-3">
-                            <p-button label="Iniciar sesión" styleClass="w-full sm:w-auto" routerLink="/auth/login" />
-                            <a routerLink="/auth/signup" class="text-sm font-medium text-sky-700 hover:underline dark:text-sky-400">Registrar otra academia</a>
+                        <div class="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                            <p-button label="Ir a iniciar sesión" routerLink="/auth/login" styleClass="w-full sm:w-auto" />
+                            <p-button label="Volver al inicio" routerLink="/landing" severity="secondary" outlined styleClass="w-full sm:w-auto" />
                         </div>
                     </div>
                 </div>
@@ -81,14 +69,26 @@ type SignupSuccessState = {
 })
 export class SignupSuccess {
     academyName = 'Academia PlayerTech';
+    contactEmail = 'contacto@academia.com';
+    contactName = 'Contacto principal';
+    teamName = 'Primer equipo';
+    activationRequired = true;
+    activationEmailSent = true;
 
-    contactEmail = 'tenant.demo@example.com';
-
-    constructor(private router: Router) {
+    constructor(
+        private readonly router: Router,
+        private readonly auth: AuthAccessService
+    ) {
         const state = this.router.getCurrentNavigation()?.extras.state as SignupSuccessState | undefined;
-        if (state) {
-            this.academyName = state.academyName || this.academyName;
-            this.contactEmail = state.contactEmail || this.contactEmail;
+        const summary = state ?? this.auth.loadSignupSummary();
+
+        if (summary) {
+            this.academyName = summary.academyName || this.academyName;
+            this.contactEmail = summary.contactEmail || this.contactEmail;
+            this.contactName = summary.contactName || this.contactName;
+            this.teamName = summary.teamName || this.teamName;
+            this.activationRequired = summary.activationRequired ?? this.activationRequired;
+            this.activationEmailSent = summary.activationEmailSent ?? this.activationEmailSent;
         }
     }
 }

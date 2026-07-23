@@ -81,6 +81,8 @@ Como owner o administrador de academia, quiero actualizar los datos generales de
 * El formulario debe permitir editar `name`, `contactEmail`, `phone`, `country`, `department`, `address` y `city`.
 * Debe usar como referencia el contrato de `PUT /api/v1/academy/me`.
 * El teléfono debe mantener la misma lógica visual y validación usada en signup.
+* Si el backend entrega el teléfono completo en un solo string con prefijo internacional, el frontend debe separar ese valor en `countryCode` y `phoneNumber` al hidratar el formulario.
+* Al guardar, el frontend debe recomponer el teléfono a partir de ambos campos antes de enviar el contrato.
 * País, departamento y ciudad deben seguir la misma lógica dependiente ya definida en otros formularios del proyecto.
 * Debe validar campos obligatorios y formatos antes de guardar.
 * Si el usuario solo modifica datos textuales, el sistema debe ejecutar únicamente la operación equivalente a actualización textual.

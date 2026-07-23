@@ -66,6 +66,17 @@ Reglas:
 * no mezclar mapeo con template;
 * validar el contrato antes de construir la UI alrededor de él.
 
+## Simple Cache Rule
+
+Si una pantalla consulta la misma API varias veces por navegación interna, primero evaluar un cache simple con `signals` antes de considerar NgRx.
+
+Regla mínima:
+
+* la primera entrada carga la API;
+* las siguientes entradas reutilizan la respuesta en memoria;
+* una mutación invalida o refresca ese cache;
+* la implementación debe seguir siendo fácil de leer y de mantener.
+
 ---
 
 # Change Discipline
@@ -93,6 +104,39 @@ Antes de considerar una feature lista, verificar:
 
 ---
 
+# SDD Staged Flow
+
+Cuando una feature nueva aparezca, el orden recomendado no es "documentar todo y luego construir todo". El orden es incremental.
+
+## Stage 1
+
+Encaje funcional y ownership.
+
+## Stage 2
+
+Spec mínima del dominio.
+
+## Stage 3
+
+Criterios de aceptación por flujo principal.
+
+## Stage 4
+
+Rutas, páginas y estados visibles.
+
+## Stage 5
+
+Integración de datos por `data-access`.
+
+## Stage 6
+
+Caracterización si el dominio es crítico o cambiante.
+
+## Rule of Thumb
+
+Si la feature todavía no tiene ownership y flujos claros, no debe saltar a implementación amplia.
+Si ya tiene eso, se puede avanzar sin frenar el proyecto.
+
 # Non Goals
 
 No se formaliza todavía:
@@ -101,4 +145,3 @@ No se formaliza todavía:
 * reglas de release por feature;
 * feature flags avanzadas;
 * branching model especial.
-

@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
@@ -10,6 +11,9 @@ import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
 import { TabsModule } from 'primeng/tabs';
+import { AuthAccessService } from '../data-access/auth-access.service';
+import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
+import { PublicCategory, TenantSignupSummary } from '@/app/core/auth/auth.models';
 
 type CountryOption = {
     name: string;
@@ -34,8 +38,8 @@ type StepKey = 1 | 2 | 3;
                             <div class="absolute inset-0 bg-[linear-gradient(transparent_95%,rgba(99,102,241,0.08)_95%),linear-gradient(90deg,transparent_95%,rgba(99,102,241,0.08)_95%)] bg-[size:100%_64px,64px_100%] dark:bg-[linear-gradient(transparent_95%,rgba(255,255,255,0.05)_95%),linear-gradient(90deg,transparent_95%,rgba(255,255,255,0.05)_95%)]"></div>
                         </div>
                         <div class="relative flex min-h-0 h-full flex-col items-center justify-center text-center lg:min-h-[28rem]">
-                            <h2 class="mt-4 max-w-sm text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Registra tu academia</h2>
-                            <p class="mt-4 max-w-sm text-sm leading-6 text-slate-600 dark:text-white/70">Completa la información para comenzar.</p>
+                            <h1 class="mt-4 max-w-sm text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl">Registra tu academia</h1>
+                            <p class="mt-4 max-w-sm text-sm leading-6 text-slate-600 dark:text-white/70 sm:text-base">Completa la información para comenzar.</p>
 
                             <div class="mt-6 w-full max-w-sm text-left lg:mt-10">
                                 <div class="space-y-4 rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/6 sm:p-5">
@@ -68,14 +72,21 @@ type StepKey = 1 | 2 | 3;
                     <div class="min-w-0 px-5 py-6 sm:px-6 sm:py-7 lg:px-10 lg:py-10">
                         <div class="mb-4 flex min-w-0 flex-col gap-2 text-center sm:mb-8 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:text-left">
                             <div class="flex min-w-0 flex-col items-center sm:items-start">
-                                <p class="hidden text-[0.7rem] uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400 sm:block sm:text-xs">Registro</p>
-                                <h1 class="mx-auto mt-1 max-w-[11ch] text-balance !text-[1.35rem] font-semibold leading-[1.08] tracking-tight text-surface-900 dark:text-surface-0 sm:mx-0 sm:max-w-none sm:!text-[clamp(1.5rem,3vw,2rem)]">{{ stepTitle }}</h1>
-                                <p class="mx-auto mt-1.5 max-w-[28ch] text-[0.9rem] leading-5 text-slate-600 dark:text-slate-300 sm:mx-0 sm:mt-2 sm:max-w-xl sm:text-sm sm:leading-6">{{ stepSubtitle }}</p>
+                                <p class="hidden text-xs uppercase tracking-[0.32em] text-emerald-700 dark:text-emerald-400 sm:block">Registro</p>
+                                <h1 class="mx-auto mt-2 max-w-[12ch] text-3xl font-semibold leading-[1.08] tracking-tight text-surface-900 dark:text-surface-0 sm:mx-0 sm:max-w-none sm:text-4xl">{{ stepTitle }}</h1>
+                                <p class="mx-auto mt-1.5 max-w-[28ch] text-[0.9rem] leading-5 text-slate-600 dark:text-slate-300 sm:mx-0 sm:mt-2 sm:max-w-xl sm:text-base sm:leading-6">{{ stepSubtitle }}</p>
+                                <p class="mx-auto mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400 sm:mx-0">Los campos marcados con * son obligatorios.</p>
                             </div>
                             <div class="shrink-0 self-start rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-surface-800 dark:bg-surface-950 dark:text-slate-200 sm:px-4 sm:py-2 sm:text-sm">
                                 {{ currentStep }}/3
                             </div>
                         </div>
+
+                        @if (apiMessage) {
+                            <div class="mb-5">
+                                <p-message [severity]="apiMessage.severity" [text]="apiMessage.text" [closable]="false" />
+                            </div>
+                        }
 
                         <div class="mb-3 min-w-0 sm:mb-8">
                             @if (stepNavigationMessage) {
@@ -118,7 +129,7 @@ type StepKey = 1 | 2 | 3;
                             <div class="space-y-6">
                                     <div class="grid grid-cols-12 gap-4">
                                         <div class="col-span-12 flex flex-col gap-2">
-                                            <label for="academyName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre de la academia</label>
+                                            <label for="academyName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre de la academia <span class="text-rose-500">*</span></label>
                                             <input pInputText id="academyName" type="text" [(ngModel)]="form.name" name="name" placeholder="Ej. Academia PlayerTech" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onAcademyNameInput($event)" />
                                             @if (showError('name')) {
                                                 <p-message severity="error" size="small">Escribe el nombre de la academia.</p-message>
@@ -126,15 +137,40 @@ type StepKey = 1 | 2 | 3;
                                         </div>
 
                                         <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                            <label for="categoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categoría del equipo</label>
-                                            <p-select id="categoryId" [(ngModel)]="form.categoryId" name="categoryId" [options]="categories" optionLabel="name" optionValue="id" placeholder="Seleccionar categoría" class="w-full"></p-select>
-                                            @if (showError('categoryId')) {
-                                                <p-message severity="error" size="small">Selecciona la categoría del equipo.</p-message>
+                                            <label for="onboardingCategoryId" class="text-sm font-medium text-surface-700 dark:text-surface-200">Categorías <span class="text-rose-500">*</span></label>
+                                            <p-select
+                                                id="onboardingCategoryId"
+                                                [(ngModel)]="form.onboardingCategoryId"
+                                                name="onboardingCategoryId"
+                                                [options]="publicCategories"
+                                                optionLabel="name"
+                                                optionValue="id"
+                                                placeholder="Seleccionar categoría"
+                                                class="w-full"
+                                                appendTo="body"
+                                                [scrollHeight]="'16rem'"
+                                                [loading]="categoriesLoading"
+                                                [disabled]="categoriesLoading || categoriesError || categoriesEmpty">
+                                                <ng-template #item let-option>
+                                                    <div class="flex flex-col gap-1">
+                                                        <span class="font-medium text-surface-900 dark:text-surface-0">{{ categoryDisplayLabel(option) }}</span>
+                                                        <span class="text-xs leading-5 text-slate-500 dark:text-slate-400">{{ option.description }}</span>
+                                                    </div>
+                                                </ng-template>
+                                            </p-select>
+                                            @if (categoriesLoading) {
+                                                <p-message severity="info" size="small">Cargando categorías...</p-message>
+                                            } @else if (categoriesEmpty) {
+                                                <p-message severity="warn" size="small">No hay categorías disponibles.</p-message>
+                                            } @else if (categoriesError) {
+                                                <p-message severity="error" size="small">No fue posible cargar las categorías. Intenta nuevamente.</p-message>
+                                            } @if (showError('onboardingCategoryId')) {
+                                                <p-message severity="error" size="small">Selecciona una categoria.</p-message>
                                             }
                                         </div>
 
                                         <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                            <label for="teamName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre del equipo</label>
+                                            <label for="teamName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre del equipo <span class="text-rose-500">*</span></label>
                                             <input pInputText id="teamName" type="text" [(ngModel)]="form.teamName" name="teamName" placeholder="Ej. Sub 12 A" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onTeamNameInput($event)" />
                                             @if (showError('teamName')) {
                                                 <p-message severity="error" size="small">Escribe el nombre del equipo.</p-message>
@@ -142,9 +178,6 @@ type StepKey = 1 | 2 | 3;
                                         </div>
                                     </div>
 
-                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600 dark:border-surface-800 dark:bg-surface-950 dark:text-slate-300">
-                                        Completa la información principal de la academia.
-                                    </div>
                                 </div>
                             }
 
@@ -152,7 +185,7 @@ type StepKey = 1 | 2 | 3;
                                 <div class="space-y-6">
                                     <div class="grid grid-cols-12 gap-4">
                                         <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                            <label for="contactName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre del contacto</label>
+                                            <label for="contactName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Nombre del contacto <span class="text-rose-500">*</span></label>
                                             <input pInputText id="contactName" type="text" [(ngModel)]="form.contactName" name="contactName" placeholder="Juan Perez" class="w-full" />
                                             @if (showError('contactName')) {
                                                 <p-message severity="error" size="small">Escribe el nombre del contacto.</p-message>
@@ -160,7 +193,7 @@ type StepKey = 1 | 2 | 3;
                                         </div>
 
                                         <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                            <label for="contactEmail" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo electrónico</label>
+                                            <label for="contactEmail" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo electrónico <span class="text-rose-500">*</span></label>
                                             <input
                                                 pInputText
                                                 id="contactEmail"
@@ -175,11 +208,15 @@ type StepKey = 1 | 2 | 3;
                                             />
                                             @if (showError('contactEmail')) {
                                                 <p-message severity="error" size="small">Escribe un correo válido.</p-message>
+                                            } @else if (emailAvailable === false) {
+                                                <p-message severity="error" size="small">Este correo ya está registrado.</p-message>
+                                            } @else if (availabilityLoading && form.contactEmail.trim()) {
+                                                <p-message severity="info" size="small">Verificando correo...</p-message>
                                             }
                                         </div>
 
                                         <div class="col-span-12 flex flex-col gap-2">
-                                            <label for="phoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono</label>
+                                            <label for="phoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono <span class="text-rose-500">*</span></label>
                                             <div class="grid grid-cols-12 gap-3">
                                                 <p-select
                                                     id="countryCode"
@@ -209,16 +246,20 @@ type StepKey = 1 | 2 | 3;
                                                         </div>
                                                     </ng-template>
                                                 </p-select>
-                                                <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" name="phoneNumber" placeholder="Ej. 3123456789" class="col-span-12 md:col-span-8 w-full" (input)="onPhoneInput($event)" (blur)="onPhoneBlur()" />
+                                                <input pInputText id="phoneNumber" type="text" [(ngModel)]="form.phoneNumber" name="phoneNumber" placeholder="Ej. 3123456789" class="col-span-12 md:col-span-8 w-full" (input)="onPhoneInput($event)" />
                                             </div>
                                             @if (showError('phoneNumber')) {
                                                 <p-message severity="error" size="small">Escribe un teléfono válido.</p-message>
+                                            } @else if (phoneAvailable === false) {
+                                                <p-message severity="error" size="small">Este celular ya está registrado.</p-message>
+                                            } @else if (availabilityLoading && form.phoneNumber.trim()) {
+                                                <p-message severity="info" size="small">Verificando celular...</p-message>
                                             }
                                         </div>
 
                                         @if (form.countryCode === '+57') {
                                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                <label for="department" class="text-sm font-medium text-surface-700 dark:text-surface-200">Departamento</label>
+                                                <label for="department" class="text-sm font-medium text-surface-700 dark:text-surface-200">Departamento <span class="text-rose-500">*</span></label>
                                                 <p-select
                                                     id="department"
                                                     [(ngModel)]="form.department"
@@ -228,6 +269,7 @@ type StepKey = 1 | 2 | 3;
                                                     optionValue="name"
                                                     placeholder="Selecciona un departamento"
                                                     class="w-full"
+                                                    appendTo="body"
                                                     (onChange)="form.city = ''">
                                                 </p-select>
                                                 @if (showError('department')) {
@@ -238,36 +280,37 @@ type StepKey = 1 | 2 | 3;
 
                                         @if (form.countryCode === '+57') {
                                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                <label for="city" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad</label>
+                                                <label for="city" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad <span class="text-rose-500">*</span></label>
                                                 <p-select
                                                     id="city"
                                                     [(ngModel)]="form.city"
                                                     name="city"
                                                     [options]="departmentCities"
                                                     placeholder="Selecciona una ciudad"
-                                                    class="w-full">
+                                                    class="w-full"
+                                                    appendTo="body">
                                                 </p-select>
                                                 @if (showError('city')) {
                                                     <p-message severity="error" size="small">Selecciona la ciudad.</p-message>
                                                 }
                                             </div>
                                         } @else {
-                                            <div class="col-span-12 flex flex-col gap-2">
-                                                <label for="address" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección</label>
-                                                <input pInputText id="address" type="text" [(ngModel)]="form.address" name="address" placeholder="Ej. Jr. Secundario 789" class="w-full" />
-                                                @if (showError('address')) {
-                                                    <p-message severity="error" size="small">Escribe la dirección.</p-message>
-                                                }
-                                            </div>
-
                                             <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                <label for="city" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad</label>
+                                                <label for="city" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad <span class="text-rose-500">*</span></label>
                                                 <input pInputText id="city" type="text" [(ngModel)]="form.city" name="city" placeholder="Ej. Arequipa" class="w-full" />
                                                 @if (showError('city')) {
                                                     <p-message severity="error" size="small">Escribe la ciudad.</p-message>
                                                 }
                                             </div>
                                         }
+
+                                        <div class="col-span-12 flex flex-col gap-2">
+                                            <label for="address" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección <span class="text-rose-500">*</span></label>
+                                            <input pInputText id="address" type="text" [(ngModel)]="form.address" name="address" placeholder="Ej. Calle 10 # 20-30" class="w-full" />
+                                            @if (showError('address')) {
+                                                <p-message severity="error" size="small">Escribe la dirección.</p-message>
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                             }
@@ -276,7 +319,7 @@ type StepKey = 1 | 2 | 3;
                                 <div class="space-y-6">
                                     <div class="grid grid-cols-12 gap-4">
                                         <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                            <label for="password" class="text-sm font-medium text-surface-700 dark:text-surface-200">Contraseña</label>
+                                            <label for="password" class="text-sm font-medium text-surface-700 dark:text-surface-200">Contraseña <span class="text-rose-500">*</span></label>
                                             <p-password id="password" [(ngModel)]="form.password" name="password" placeholder="Crea una contraseña" [toggleMask]="true" [fluid]="true" [feedback]="false"></p-password>
                                             @if (showError('password')) {
                                                 <p-message severity="error" size="small">La contraseña debe tener al menos 8 caracteres.</p-message>
@@ -284,23 +327,34 @@ type StepKey = 1 | 2 | 3;
                                         </div>
 
                                         <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                            <label for="confirmPassword" class="text-sm font-medium text-surface-700 dark:text-surface-200">Confirmar contraseña</label>
+                                            <label for="confirmPassword" class="text-sm font-medium text-surface-700 dark:text-surface-200">Confirmar contraseña <span class="text-rose-500">*</span></label>
                                             <p-password id="confirmPassword" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Repite la contraseña" [toggleMask]="true" [fluid]="true" [feedback]="false"></p-password>
                                             @if (showError('confirmPassword')) {
                                                 <p-message severity="error" size="small">Las contraseñas no coinciden.</p-message>
                                             }
                                         </div>
 
-                                        <div class="col-span-12 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-surface-800 dark:bg-surface-950">
+                                        <div class="col-span-12 mt-4 flex items-start gap-3 px-1 py-0.5">
                                             <p-checkbox [(ngModel)]="accepted" inputId="terms" name="terms" binary></p-checkbox>
                                             <label for="terms" class="text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                                Acepto los
-                                                <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openTerms($event)">términos y condiciones</a>
+                                                Acepto los <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openTerms($event)">términos y condiciones</a> y el <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openDataProcessing($event)">tratamiento de datos personales</a>.
                                             </label>
                                         </div>
                                         @if (showError('terms')) {
                                             <div class="col-span-12">
                                                 <p-message severity="error" size="small">Acepta los términos para continuar.</p-message>
+                                            </div>
+                                        }
+
+                                        <div class="col-span-12 flex items-start gap-3 px-1 py-0.5">
+                                            <p-checkbox [(ngModel)]="acceptedDataProcessing" inputId="dataProcessing" name="dataProcessing" binary></p-checkbox>
+                                            <label for="dataProcessing" class="text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                                Acepto el <a class="font-medium text-sky-700 hover:underline dark:text-sky-400" href="#" (click)="openDataProcessing($event)">tratamiento de mis datos personales</a>.
+                                            </label>
+                                        </div>
+                                        @if (showError('dataProcessing')) {
+                                            <div class="col-span-12">
+                                                <p-message severity="error" size="small">Acepta el tratamiento de datos para continuar.</p-message>
                                             </div>
                                         }
                                     </div>
@@ -313,39 +367,80 @@ type StepKey = 1 | 2 | 3;
                                         <p-button label="Atrás" severity="secondary" styleClass="w-full sm:w-auto" type="button" (onClick)="prevStep()" />
                                     }
                                     @if (currentStep < 3) {
-                                        <p-button label="Continuar" styleClass="w-full sm:w-auto" type="button" (onClick)="nextStep()" />
+                                        <p-button label="Continuar" styleClass="w-full sm:w-auto" type="button" [disabled]="isContinueDisabled()" (onClick)="nextStep()" />
                                     }
                                     @if (currentStep === 3) {
-                                        <p-button label="Crear academia" styleClass="w-full sm:w-auto" type="submit" />
+                                        <p-button label="Crear academia" styleClass="w-full sm:w-auto" type="submit" [loading]="loading" loadingIcon="pi pi-spinner pi-spin" [disabled]="loading" />
                                     }
                                 </div>
 
                                 <div class="flex items-center justify-center sm:justify-end">
-                                    <p class="text-sm text-slate-600 dark:text-slate-300">
-                                        ¿Ya tienes una cuenta?
-                                        <a routerLink="/auth/login" class="font-medium text-sky-600 hover:underline dark:text-sky-400">Iniciar sesión</a>
-                                    </p>
-                                </div>
+                                        <p class="text-sm text-slate-600 dark:text-slate-300">
+                                            ¿Ya tienes una cuenta?
+                                            <a routerLink="/auth/login" class="font-medium text-emerald-700 hover:underline dark:text-emerald-400">Iniciar sesión</a>
+                                        </p>
+                                    </div>
                             </div>
+
+                            @if (loading) {
+                                <div class="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm leading-6 text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/30 dark:text-sky-100">
+                                    Estamos enviando tu solicitud. Esto puede tardar unos segundos.
+                                </div>
+                            }
+
+                            @if (submissionTimedOut) {
+                                <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
+                                    La solicitud está tardando más de lo esperado. Revisa tu conexión e inténtalo nuevamente si no recibes respuesta.
+                                </div>
+                            }
                         </form>
                     </div>
                 </div>
             </div>
         </div>
 
-        <p-dialog [(visible)]="showTermsDialog" header="Términos y condiciones" [modal]="true" [style]="{ width: '42rem' }" [breakpoints]="{ '960px': '90vw', '640px': '95vw' }">
-            <div class="space-y-4 text-sm leading-6 text-surface-700 dark:text-surface-200">
-                <p>Estos términos describen el uso inicial de la cuenta de demostración mientras se valida la experiencia de registro y acceso.</p>
-                <p>La información ingresada en este formulario será tratada como datos de configuración de una academia dentro de la plataforma PlayerTech.</p>
-                <p>Este contenido es una referencia temporal para la iteración de UX y podrá evolucionar cuando se conecte el flujo real de onboarding.</p>
+        <p-dialog [(visible)]="showTermsDialog" header="Términos y condiciones" [modal]="true" [style]="{ width: '46rem' }" [breakpoints]="{ '960px': '90vw', '640px': '95vw' }" [contentStyle]="{ 'max-height': '70vh', overflow: 'auto' }">
+            <div class="space-y-5 text-sm leading-6 text-surface-700 dark:text-surface-200">
+                <p>Estos términos regulan el acceso y uso inicial de la plataforma PlayerTech durante el proceso de registro público de academias. Al continuar, el usuario declara que ha leído, comprendido y aceptado las condiciones aquí descritas.</p>
+                <p>1. Objeto. El formulario de signup permite crear una cuenta de academia, un usuario administrador inicial y un equipo base. Esta funcionalidad está orientada a fines operativos, administrativos y de configuración inicial dentro del ecosistema PlayerTech.</p>
+                <p>2. Alcance del servicio. La plataforma puede almacenar información de contacto, ubicación, categoría deportiva, nombre del equipo inicial y demás datos ingresados por el usuario para habilitar el acceso al servicio y completar el onboarding.</p>
+                <p>3. Responsabilidad del usuario. Quien envía el formulario declara que la información proporcionada es veraz, actual y que tiene facultades para registrar la academia y aceptar estas condiciones en nombre de la organización.</p>
+                <p>4. Uso aceptable. El usuario se compromete a no ingresar información falsa, ofensiva, ilícita o que infrinja derechos de terceros. PlayerTech podrá restringir el acceso si detecta abuso, manipulación de datos o uso indebido del sistema de alta.</p>
+                <p>5. Cuentas y credenciales. La contraseña creada durante el onboarding debe mantenerse bajo reserva. El usuario es responsable por toda actividad realizada con sus credenciales, salvo que notifique un incidente de seguridad conforme a los canales habilitados.</p>
+                <p>6. Disponibilidad. PlayerTech podrá suspender temporalmente el servicio por mantenimiento, mejoras de seguridad, correcciones técnicas o actualización de dependencias, procurando minimizar afectaciones al proceso de registro.</p>
+                <p>7. Propiedad y licencia. La marca, el software, los diseños, los textos y el material de la plataforma pertenecen a PlayerTech o a sus licenciantes. El uso del servicio no transfiere propiedad intelectual alguna al usuario.</p>
+                <p>8. Actualizaciones. Estos términos podrán modificarse cuando el producto evolucione. La versión publicada al momento del envío del formulario será la aplicable, salvo que un cambio normativo exija su actualización inmediata.</p>
+                <p>9. Suspensión y terminación. PlayerTech podrá limitar, suspender o cancelar el acceso ante incumplimientos, fraude, uso malicioso o requerimientos legales. El usuario podrá dejar de usar la plataforma en cualquier momento.</p>
+                <p>10. Legislación aplicable. La interpretación de estos términos se regirá por la normativa aplicable al lugar de operación y por las políticas internas del servicio, sin perjuicio de las obligaciones legales que correspondan.</p>
+                <p>11. Contacto. Para consultas sobre estos términos, incidencias del onboarding o aclaraciones sobre el uso del servicio, el usuario podrá contactar a soporte a través de los canales oficiales de la plataforma.</p>
             </div>
             <ng-template #footer>
                 <p-button label="Cerrar" (click)="showTermsDialog = false" />
             </ng-template>
         </p-dialog>
+
+        <p-dialog [(visible)]="showDataProcessingDialog" header="Tratamiento de datos personales" [modal]="true" [style]="{ width: '46rem' }" [breakpoints]="{ '960px': '90vw', '640px': '95vw' }" [contentStyle]="{ 'max-height': '70vh', overflow: 'auto' }">
+            <div class="space-y-5 text-sm leading-6 text-surface-700 dark:text-surface-200">
+                <p>Mediante este documento se informa al usuario sobre el tratamiento de datos personales que realiza PlayerTech en el contexto del signup público de academias. La aceptación expresa de este apartado autoriza el procesamiento de la información ingresada para las finalidades descritas a continuación.</p>
+                <p>1. Responsable del tratamiento. PlayerTech actúa como responsable de la información suministrada por el usuario en el formulario, incluyendo nombre de la academia, datos del contacto, teléfono, ubicación, categoría deportiva y otros campos asociados al registro.</p>
+                <p>2. Finalidades. Los datos se usarán para crear la cuenta, habilitar el acceso inicial, gestionar comunicación operativa, validar identidad organizacional, prestar soporte, prevenir fraude, ejecutar mejoras del servicio y cumplir obligaciones legales o contractuales.</p>
+                <p>3. Autorización. El usuario autoriza de manera previa, expresa e informada el tratamiento de sus datos personales y de los datos de la academia para las finalidades indicadas. Esta autorización comprende almacenamiento, consulta, organización, actualización, transmisión y demás operaciones necesarias para operar el servicio.</p>
+                <p>4. Datos tratados. La plataforma puede recolectar información de identificación, contacto, datos de ubicación, credenciales de acceso, registros de actividad y metadatos técnicos asociados a la sesión o al dispositivo desde el cual se realiza el onboarding.</p>
+                <p>5. Derechos del titular. El usuario podrá acceder, actualizar, rectificar, solicitar supresión cuando proceda, revocar la autorización y presentar consultas o reclamos sobre sus datos conforme a los canales de atención disponibles y a la normativa aplicable.</p>
+                <p>6. Seguridad. PlayerTech aplica medidas razonables de seguridad administrativas, técnicas y organizativas para proteger la confidencialidad e integridad de los datos. Ningún sistema es infalible, por lo que el usuario también debe proteger sus credenciales y dispositivos.</p>
+                <p>7. Conservación. Los datos serán conservados durante el tiempo necesario para cumplir las finalidades del tratamiento, las obligaciones legales y el soporte operativo del servicio. Posteriormente podrán ser eliminados o anonimizados conforme a la política aplicable.</p>
+                <p>8. Transferencia y transmisión. Cuando resulte necesario para operar el servicio, PlayerTech podrá compartir datos con proveedores tecnológicos, infraestructura de nube, herramientas de mensajería o servicios de soporte, siempre bajo condiciones de confidencialidad y protección acordes al propósito del tratamiento.</p>
+                <p>9. Menores de edad. Si el registro incluye datos relacionados con categorías deportivas o equipos de menores, el usuario declara contar con la autorización correspondiente para proporcionar dicha información y para que sea tratada bajo los fines del servicio.</p>
+                <p>10. Canales de atención. El usuario puede solicitar aclaraciones, ejercer derechos o presentar requerimientos relacionados con protección de datos a través de los canales oficiales de PlayerTech y del correo de soporte establecido para tales efectos.</p>
+                <p>11. Vigencia. Esta autorización permanecerá vigente mientras exista una relación activa con la plataforma o durante el tiempo adicional requerido por obligaciones legales, contractuales o de seguridad documental.</p>
+            </div>
+            <ng-template #footer>
+                <p-button label="Cerrar" (click)="showDataProcessingDialog = false" />
+            </ng-template>
+        </p-dialog>
     `
 })
-export class Signup {
+export class Signup implements OnInit, OnDestroy {
     currentStep: StepKey = 1;
 
     steps = [
@@ -362,37 +457,38 @@ export class Signup {
         countryCode: '+57',
         phoneNumber: '',
         department: '',
-        address: '',
         city: '',
-        categoryId: '',
+        address: '',
+        onboardingCategoryId: '',
         teamName: ''
     };
 
     confirmPassword = '';
     accepted = false;
+    acceptedDataProcessing = false;
     submitted = false;
+    loading = false;
+    submissionTimedOut = false;
+    categoriesLoading = true;
+    categoriesError = false;
+    categoriesEmpty = false;
+    availabilityLoading = false;
+    emailAvailable: boolean | null = null;
+    phoneAvailable: boolean | null = null;
+    private availabilityTimer: ReturnType<typeof setTimeout> | null = null;
+    private availabilityRequestVersion = 0;
     showTermsDialog = false;
+    showDataProcessingDialog = false;
+    apiMessage: { severity: 'success' | 'info' | 'warn' | 'error'; text: string } | null = null;
     stepNavigationMessage: string | null = null;
+    private submissionTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
     stepSubmitted: Record<StepKey, boolean> = {
         1: false,
         2: false,
         3: false
     };
-    touched: Record<string, boolean> = {};
 
-    categories = [
-        { id: 'cat-sub-4', name: 'SUB 4 (3-4 años)' },
-        { id: 'cat-sub-5', name: 'SUB 5 (4-5 años)' },
-        { id: 'cat-sub-6', name: 'SUB 6 (5-6 años)' },
-        { id: 'cat-sub-7', name: 'SUB 7 (6-7 años)' },
-        { id: 'cat-sub-8', name: 'SUB 8 (7-8 años)' },
-        { id: 'cat-sub-9', name: 'SUB 9 (8-9 años)' },
-        { id: 'cat-sub-10', name: 'SUB 10 (9-10 años)' },
-        { id: 'cat-sub-11', name: 'SUB 11 (10-11 años)' },
-        { id: 'cat-sub-12', name: 'SUB 12 (11-12 años)' },
-        { id: 'cat-sub-13', name: 'SUB 13 (12-13 años)' },
-        { id: 'cat-sub-14', name: 'SUB 14 (13-14 años)' }
-    ];
+    publicCategories: PublicCategory[] = [];
 
     countryCodes: CountryOption[] = [
         { name: 'Colombia', dialCode: '+57', flag: 'Colombia', flagFile: 'assets/flags/co.svg' },
@@ -435,19 +531,14 @@ export class Signup {
         return 'Cerramos el alta con la contraseña inicial y la aceptación de condiciones.';
     }
 
-    stepDescription(step: StepKey): string {
-        if (step === 1) return 'Datos base';
-        if (step === 2) return 'Contacto y ubicación';
-        return 'Contraseña';
-    }
-
-    markTouched(field: string) {
-        this.touched[field] = true;
-    }
-
     openTerms(event: MouseEvent) {
         event.preventDefault();
         this.showTermsDialog = true;
+    }
+
+    openDataProcessing(event: MouseEvent) {
+        event.preventDefault();
+        this.showDataProcessingDialog = true;
     }
 
     nextStep() {
@@ -468,6 +559,14 @@ export class Signup {
         this.currentStep = Math.max(1, (this.currentStep - 1) as StepKey) as StepKey;
     }
 
+    isContinueDisabled(): boolean {
+        if (this.currentStep !== 2) {
+            return false;
+        }
+
+        return this.loading || this.availabilityLoading || this.emailAvailable === false || this.phoneAvailable === false;
+    }
+
     goToStep(step: StepKey) {
         if (step <= this.currentStep) {
             this.stepNavigationMessage = null;
@@ -486,23 +585,61 @@ export class Signup {
         this.stepNavigationMessage = null;
     }
 
-    constructor(private router: Router) {}
+    constructor(
+        private router: Router,
+        private readonly cdr: ChangeDetectorRef,
+        private readonly auth: AuthAccessService
+    ) {}
 
-    submit() {
+    ngOnInit(): void {
+        void this.loadPublicCategories();
+    }
+
+    ngOnDestroy(): void {
+        this.clearAvailabilityTimer();
+    }
+
+    async submit() {
         this.stepSubmitted[this.currentStep] = true;
         this.touchStepFields(3);
+        this.apiMessage = null;
 
         if (!this.isFormValid()) {
+            this.apiMessage = {
+                severity: 'error',
+                text: 'Revisa los campos marcados antes de continuar.'
+            };
             return;
         }
 
-        void this.router.navigate(['/auth/signup-success'], {
-            state: {
-                academyName: this.form.name,
-                contactEmail: this.form.contactEmail,
-                contactName: this.form.contactName
+        this.loading = true;
+        this.submissionTimedOut = false;
+        this.clearSubmissionTimeout();
+        this.submissionTimeoutHandle = globalThis.setTimeout(() => {
+            if (this.loading) {
+                this.submissionTimedOut = true;
             }
-        });
+        }, 60000);
+
+        try {
+            const result = await firstValueFrom(this.auth.signupTenant(this.buildSignupPayload()));
+
+            this.apiMessage = {
+                severity: 'success',
+                text: result.activationRequired === false ? 'Cuenta creada correctamente.' : 'Cuenta creada. Revisa tu correo para activar el acceso.'
+            };
+            this.auth.saveSignupSummary(this.buildSignupSummary(result));
+            this.navigateToSuccess(result);
+        } catch (error) {
+            const authError = error as AuthErrorLike | undefined;
+            this.apiMessage = {
+                severity: 'error',
+                text: this.getSignupErrorMessage(authError)
+            };
+        } finally {
+            this.loading = false;
+            this.clearSubmissionTimeout();
+        }
     }
 
     onAcademyNameInput(event: Event) {
@@ -515,14 +652,14 @@ export class Signup {
 
     onPhoneInput(event: Event) {
         this.form.phoneNumber = this.sanitizePhoneInput((event.target as HTMLInputElement).value);
-    }
-
-    onPhoneBlur() {
-        this.touched['phoneNumber'] = true;
+        this.clearStepNavigationMessageIfResolved(2);
+        this.scheduleTenantAvailabilityCheck();
     }
 
     onEmailInput() {
         this.form.contactEmail = this.sanitizeEmailInput(this.form.contactEmail);
+        this.clearStepNavigationMessageIfResolved(2);
+        this.scheduleTenantAvailabilityCheck();
     }
 
     onEmailKeydown(event: KeyboardEvent) {
@@ -559,7 +696,8 @@ export class Signup {
     onCountryCodeChange() {
         this.form.department = '';
         this.form.city = '';
-        this.form.address = '';
+        this.clearStepNavigationMessageIfResolved(2);
+        this.scheduleTenantAvailabilityCheck();
     }
 
     onRestrictedNameKeydown(event: KeyboardEvent) {
@@ -588,21 +726,21 @@ export class Signup {
     }
 
     private touchStepFields(step: StepKey) {
+        void step;
         const fieldsByStep: Record<StepKey, string[]> = {
-            1: ['name', 'categoryId', 'teamName'],
-            2: ['contactName', 'contactEmail', 'countryCode', 'phoneNumber', 'department', 'address', 'city'],
-            3: ['password', 'confirmPassword', 'terms']
+            1: ['name', 'onboardingCategoryId', 'teamName'],
+            2: ['contactName', 'contactEmail', 'countryCode', 'phoneNumber', 'department', 'city', 'address'],
+            3: ['password', 'confirmPassword', 'terms', 'dataProcessing']
         };
-
-        fieldsByStep[step].forEach((field) => (this.touched[field] = true));
+        void fieldsByStep;
     }
 
     private getFieldStep(field: string): StepKey {
-        if (['name', 'categoryId', 'teamName'].includes(field)) {
+        if (['name', 'onboardingCategoryId', 'teamName'].includes(field)) {
             return 1;
         }
 
-        if (['contactName', 'contactEmail', 'countryCode', 'phoneNumber', 'department', 'address', 'city'].includes(field)) {
+        if (['contactName', 'contactEmail', 'countryCode', 'phoneNumber', 'department', 'city', 'address'].includes(field)) {
             return 2;
         }
 
@@ -611,14 +749,14 @@ export class Signup {
 
     private isStepValid(step: StepKey): boolean {
         if (step === 1) {
-            return this.isFieldValid('name') && this.isFieldValid('categoryId') && this.isFieldValid('teamName');
+            return this.isFieldValid('name') && this.isFieldValid('onboardingCategoryId') && this.isFieldValid('teamName');
         }
 
         if (step === 2) {
-            return this.isFieldValid('contactName') && this.isFieldValid('contactEmail') && this.isFieldValid('phoneNumber') && this.isFieldValid('department') && this.isFieldValid('address') && this.isFieldValid('city');
+            return this.isFieldValid('contactName') && this.isFieldValid('contactEmail') && this.isFieldValid('phoneNumber') && this.isFieldValid('department') && this.isFieldValid('city') && this.isFieldValid('address');
         }
 
-        return this.isFieldValid('password') && this.isFieldValid('confirmPassword') && this.isFieldValid('terms');
+        return this.isFieldValid('password') && this.isFieldValid('confirmPassword') && this.isFieldValid('terms') && this.isFieldValid('dataProcessing');
     }
 
     private getStepNavigationMessage(step: StepKey): string {
@@ -627,10 +765,77 @@ export class Signup {
         }
 
         if (step === 2) {
-            return 'Revisa los datos de contacto antes de seguir.';
+            return 'Corrige o completa los datos de contacto antes de seguir.';
         }
 
         return 'Completa la contraseña y acepta los términos para continuar.';
+    }
+
+    private clearStepNavigationMessageIfResolved(step: StepKey) {
+        if (this.currentStep !== step) {
+            return;
+        }
+
+        if (this.isStepValid(step)) {
+            this.stepNavigationMessage = null;
+        }
+    }
+
+    private clearSubmissionTimeout() {
+        if (this.submissionTimeoutHandle !== null) {
+            globalThis.clearTimeout(this.submissionTimeoutHandle);
+            this.submissionTimeoutHandle = null;
+        }
+    }
+
+    private clearAvailabilityTimer() {
+        if (this.availabilityTimer !== null) {
+            globalThis.clearTimeout(this.availabilityTimer);
+            this.availabilityTimer = null;
+        }
+    }
+
+    private scheduleTenantAvailabilityCheck() {
+        this.emailAvailable = null;
+        this.phoneAvailable = null;
+        this.clearAvailabilityTimer();
+
+        const email = this.form.contactEmail.trim();
+        const phone = this.buildPhoneNumber().trim();
+
+        if (!email || !phone) {
+            return;
+        }
+
+        if (!this.isFieldValid('contactEmail') || !this.isFieldValid('phoneNumber')) {
+            return;
+        }
+
+        const requestVersion = ++this.availabilityRequestVersion;
+        this.availabilityTimer = globalThis.setTimeout(() => {
+            this.availabilityLoading = true;
+
+            this.auth.checkTenantAvailability(email, phone).subscribe({
+                next: (result) => {
+                    if (requestVersion !== this.availabilityRequestVersion) {
+                        return;
+                    }
+
+                    this.emailAvailable = result.contactEmailAvailable ?? null;
+                    this.phoneAvailable = result.phoneAvailable ?? null;
+                    this.availabilityLoading = false;
+                    this.cdr.detectChanges();
+                },
+                error: () => {
+                    if (requestVersion !== this.availabilityRequestVersion) {
+                        return;
+                    }
+
+                    this.availabilityLoading = false;
+                    this.cdr.detectChanges();
+                }
+            });
+        }, 450);
     }
 
     private isFormValid(): boolean {
@@ -650,25 +855,27 @@ export class Signup {
             case 'contactName':
                 return this.hasValidText(this.form.contactName, 2);
             case 'contactEmail':
-                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.contactEmail.trim());
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.contactEmail.trim()) && this.emailAvailable !== false;
             case 'countryCode':
                 return !!this.form.countryCode.trim();
             case 'phoneNumber':
-                return this.isValidPhoneNumber(this.form.countryCode, this.form.phoneNumber);
+                return this.isValidPhoneNumber(this.form.countryCode, this.form.phoneNumber) && this.phoneAvailable !== false;
             case 'department':
                 return this.form.countryCode !== '+57' || !!this.form.department.trim();
-            case 'address':
-                return this.form.countryCode === '+57' || this.form.address.trim().length >= 5;
             case 'city':
                 return this.form.countryCode === '+57' ? !!this.form.city.trim() : this.hasValidText(this.form.city, 2);
-            case 'categoryId':
-                return !!this.form.categoryId.trim();
+            case 'address':
+                return this.hasValidText(this.form.address, 5);
+            case 'onboardingCategoryId':
+                return !!this.form.onboardingCategoryId.trim();
             case 'password':
                 return this.form.password.trim().length >= 8;
             case 'confirmPassword':
                 return this.form.password.trim().length >= 8 && this.form.password === this.confirmPassword;
             case 'terms':
                 return this.accepted;
+            case 'dataProcessing':
+                return this.acceptedDataProcessing;
             default:
                 return true;
         }
@@ -741,4 +948,97 @@ export class Signup {
         return department?.cities ?? [];
     }
 
+    categoryDisplayLabel(category?: Pick<PublicCategory, 'name' | 'minAge' | 'maxAge'> | null): string {
+        if (!category) {
+            return 'Seleccionar plantilla';
+        }
+
+        return `${category.name} (${category.minAge}-${category.maxAge} años)`;
+    }
+
+    private async loadPublicCategories(): Promise<void> {
+        this.categoriesLoading = true;
+        this.categoriesError = false;
+        this.categoriesEmpty = false;
+
+        this.auth.getPublicCategories().subscribe({
+            next: (categories) => {
+                this.publicCategories = categories;
+                this.categoriesEmpty = categories.length === 0;
+                this.categoriesError = false;
+                this.categoriesLoading = false;
+                this.cdr.detectChanges();
+            },
+            error: () => {
+                this.publicCategories = [];
+                this.categoriesEmpty = false;
+                this.categoriesError = true;
+                this.categoriesLoading = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    private buildSignupPayload() {
+        return {
+            name: this.form.name,
+            contactEmail: this.form.contactEmail,
+            contactName: this.form.contactName,
+            password: this.form.password,
+            phone: this.buildPhoneNumber(),
+            country: this.getSelectedCountryName(),
+            department: this.form.department,
+            city: this.form.city,
+            address: this.form.address,
+            onboardingCategoryId: this.form.onboardingCategoryId,
+            teamName: this.form.teamName,
+            acceptedTerms: this.accepted,
+            acceptedDataProcessing: this.acceptedDataProcessing
+        };
+    }
+
+    private buildPhoneNumber(): string {
+        return this.form.countryCode ? `${this.form.countryCode} ${this.form.phoneNumber}`.trim() : this.form.phoneNumber;
+    }
+
+    private getSelectedCountryName(): string {
+        return this.countryCodes.find((country) => country.dialCode === this.form.countryCode)?.name ?? 'Colombia';
+    }
+
+    private navigateToSuccess(result: { academy?: { name?: string }; admin?: { email?: string; fullName?: string }; team?: { name?: string }; activationRequired?: boolean }) {
+        void this.router.navigate(['/auth/signup-success'], {
+            state: {
+                academyName: result.academy?.name ?? this.form.name,
+                contactEmail: result.admin?.email ?? this.form.contactEmail,
+                contactName: result.admin?.fullName ?? this.form.contactName,
+                teamName: result.team?.name ?? this.form.teamName,
+                activationRequired: result.activationRequired ?? true
+            }
+        });
+    }
+
+    private buildSignupSummary(result: { academy?: { name?: string }; admin?: { email?: string; fullName?: string }; team?: { name?: string }; activationRequired?: boolean; activationEmailSent?: boolean }): TenantSignupSummary {
+        return {
+            academyName: result.academy?.name ?? this.form.name,
+            contactEmail: result.admin?.email ?? this.form.contactEmail,
+            contactName: result.admin?.fullName ?? this.form.contactName,
+            teamName: result.team?.name ?? this.form.teamName,
+            activationRequired: result.activationRequired ?? true,
+            activationEmailSent: result.activationEmailSent ?? !!(result.activationRequired ?? true)
+        };
+    }
+
+    private getSignupErrorMessage(error?: AuthErrorLike): string {
+        if (error?.status === 400) {
+            return 'Revisa los datos ingresados. Hay información que no cumple el formato esperado.';
+        }
+
+        if (error?.status === 409) {
+            return 'Ya existe una academia o correo con esos datos.';
+        }
+
+        return 'No fue posible crear la academia. Intenta nuevamente.';
+    }
+
 }
+

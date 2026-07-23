@@ -1,14 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
-import { Router } from '@angular/router';
 import { AuthAccessService } from '../data-access/auth-access.service';
+import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
+import { AuthRequestState } from '../utils/auth-request-state';
 
 @Component({
     selector: 'app-login',
@@ -19,15 +21,15 @@ import { AuthAccessService } from '../data-access/auth-access.service';
             <div class="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-2xl items-center justify-center">
                 <div class="w-full min-w-0 max-w-xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_28px_90px_-28px_rgba(15,23,42,0.24)] dark:border-surface-800 dark:bg-surface-900">
                     <div class="min-w-0 px-5 py-6 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
-                        <div class="mb-7 text-center">
-                            <p class="text-sm font-medium uppercase tracking-[0.24em] text-sky-700 dark:text-sky-400">Inicio de sesión</p>
-                            <h2 class="mt-2 text-[1.9rem] font-semibold tracking-tight text-surface-900 dark:text-surface-0">Bienvenido de nuevo</h2>
-                            <p class="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">Ingresa con tu correo y contraseña para continuar.</p>
+                        <div class="mb-7 text-center sm:mb-8">
+                            <p class="text-xs font-medium uppercase tracking-[0.32em] text-emerald-700 dark:text-emerald-400">Inicio de sesión</p>
+                            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-surface-900 dark:text-surface-0 sm:text-4xl">Bienvenido de nuevo</h1>
+                            <p class="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">Ingresa con tu correo y contraseña para continuar.</p>
                         </div>
 
-                        @if (apiMessage) {
+                        @if (feedbackMessage()) {
                             <div class="mb-6">
-                                <p-message [severity]="apiMessage.severity" [text]="apiMessage.text" [closable]="false" />
+                                <p-message [severity]="feedbackMessage()!.severity" [closable]="false">{{ feedbackMessage()!.text }}</p-message>
                             </div>
                         }
 
@@ -67,13 +69,13 @@ import { AuthAccessService } from '../data-access/auth-access.service';
                             </div>
 
                             <div class="pt-1">
-                                <p-button label="Ingresar" styleClass="w-full" type="button" (onClick)="submit()" />
+                                <p-button label="Ingresar" styleClass="w-full" type="button" [loading]="requestState.loading()" loadingIcon="pi pi-spinner pi-spin" [disabled]="requestState.loading()" (onClick)="submit()" />
                             </div>
-                        </div>
+                    </div>
 
                         <div class="mt-7 border-t border-slate-200 pt-6 text-center text-sm text-slate-600 dark:border-surface-800 dark:text-slate-300">
                             ¿No tienes una cuenta?
-                            <a routerLink="/auth/signup" class="font-medium text-sky-700 hover:underline dark:text-sky-400">Crear academia</a>
+                            <a routerLink="/auth/signup" class="font-medium text-emerald-700 hover:underline dark:text-emerald-400">Crear academia</a>
                         </div>
                     </div>
                 </div>
@@ -88,11 +90,17 @@ export class Login {
 
     checked: boolean = false;
 
-    apiMessage: { severity: 'success' | 'info' | 'warn' | 'error'; text: string } | null = null;
+    requestState = new AuthRequestState();
+    readonly feedbackMessage = computed(() => this.requestState.message());
+    private readonly returnUrl: string;
 
-    submitted = false;
-
-    constructor(private router: Router, private auth: AuthAccessService) {}
+    constructor(
+        private readonly router: Router,
+        private readonly route: ActivatedRoute,
+        private auth: AuthAccessService
+    ) {
+        this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl')?.trim() || this.auth.getHomeRoute();
+    }
 
     handleEmailKeydown(event: KeyboardEvent) {
         const allowedControlKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
@@ -126,26 +134,32 @@ export class Login {
     }
 
     showError(field: string): boolean {
-        return this.submitted && !this.isFieldValid(field);
+        return this.requestState.submitted() && !this.isFieldValid(field);
     }
 
-    submit() {
-        this.submitted = true;
+    async submit() {
+        this.requestState.submitted.set(true);
+        this.requestState.resetMessage();
 
         if (!this.isFieldValid('email') || !this.isFieldValid('password')) {
-            this.apiMessage = {
-                severity: 'error',
-                text: 'Revisa los datos antes de continuar.'
-            };
+            this.requestState.setError('Revisa los datos antes de continuar.');
             return;
         }
 
-        this.apiMessage = {
-            severity: 'success',
-            text: 'Los datos son válidos. Aquí luego mostraremos la respuesta del backend.'
-        };
-        this.auth.login('tenant_owner');
-        void this.router.navigate(['/']);
+        this.requestState.start();
+
+        try {
+            await firstValueFrom(this.auth.login({
+                email: this.email.trim(),
+                password: this.password
+            }));
+
+            void this.router.navigateByUrl(this.returnUrl);
+        } catch (error) {
+            this.requestState.resolveError(error, (authError) => this.getLoginErrorMessage(authError));
+        } finally {
+            this.requestState.stop();
+        }
     }
 
     private isFieldValid(field: string): boolean {
@@ -157,5 +171,17 @@ export class Login {
             default:
                 return true;
         }
+    }
+
+    private getLoginErrorMessage(error?: AuthErrorLike): string {
+        if (error?.status === 401) {
+            return 'Las credenciales no son válidas.';
+        }
+
+        if (error?.status === 423) {
+            return 'Tu cuenta está bloqueada o pendiente de activación.';
+        }
+
+        return 'No fue posible iniciar sesión. Intenta nuevamente.';
     }
 }

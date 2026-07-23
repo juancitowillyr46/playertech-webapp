@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { MenuItem, MessageService } from 'primeng/api';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -12,17 +13,26 @@ import { MenuModule } from 'primeng/menu';
 import { MessageModule } from 'primeng/message';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SelectModule } from 'primeng/select';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { MockAuthService } from '@/app/core/auth/mock-auth.service';
+import { catchError, finalize, of } from 'rxjs';
+import { AuthErrorLike } from '@/app/core/auth/auth-api.service';
+import { AuthSessionService } from '@/app/core/auth/auth-session.service';
+import { AuthAccessService } from '@/app/features/auth/data-access/auth-access.service';
 import { ImageCropperComponent, ImageCropperFileError, ImageCropperResult } from '@/app/shared/ui/image-cropper/image-cropper';
 import { PageHeader, PageHeaderBreadcrumb } from '@/app/shared/ui/page-header/page-header';
 import { AcademyProfileService } from '../data-access/academy-profile.service';
-import { AcademyProfile, AcademyTaxProfile } from '../models/academy.model';
+import { AcademyProfile, AcademyProfileUpdateRequest, AcademyTaxProfile, AcademyTaxProfileUpdateRequest } from '../models/academy.model';
+import { CategoryApiService } from '../data-access/category-api.service';
+import { CategoryApiCategory as AcademyCategory, CategoryApiMeta as AcademyCategoryApiMeta, CategoryUpsertRequest as AcademyCategoryUpsertRequest } from '../models/category.model';
+import { VenueApiService } from '../data-access/venue-api.service';
+import { VenueApiMeta, VenueApiVenue, VenueUpsertRequest } from '../models/venue.model';
 import { Menu } from 'primeng/menu';
 
 interface CountryOption {
@@ -36,37 +46,28 @@ interface LocationDepartment {
     cities: string[];
 }
 
-interface AcademyVenue {
-    id: string;
-    name: string;
-    address: string;
-    city: string;
-    phone: string;
-    status: 'ACTIVE' | 'INACTIVE';
-}
-
 interface AcademyVenueForm {
     name: string;
     address: string;
+    country: string;
+    department: string;
     city: string;
-    phone: string;
-}
-
-interface AcademyCategory {
-    id: string;
-    categoryKey: string;
-    name: string;
-    minAge: number;
-    maxAge: number;
-    description: string;
-    status: 'ACTIVE' | 'INACTIVE';
+    countryCode: string;
+    phoneNumber: string;
+    notes: string;
 }
 
 interface AcademyCategoryForm {
+    categoryKey: string;
     name: string;
     minAge: string;
     maxAge: string;
     description: string;
+}
+
+interface AgeOption {
+    label: string;
+    value: string;
 }
 
 interface AcademyTeam {
@@ -121,10 +122,42 @@ interface AcademyTeamStaffForm {
 @Component({
     selector: 'app-academy-profile-page',
     standalone: true,
-    imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, ImageCropperComponent, InputIconModule, InputTextModule, MenuModule, MessageModule, PageHeader, RadioButtonModule, RouterModule, SelectModule, TableModule, TabsModule, TagModule, TextareaModule, ToastModule, TooltipModule],
-    providers: [MessageService],
+    imports: [ButtonModule, CommonModule, ConfirmDialogModule, DialogModule, FormsModule, IconFieldModule, ImageCropperComponent, InputIconModule, InputTextModule, MenuModule, MessageModule, PageHeader, ProgressBarModule, RadioButtonModule, RouterModule, SelectModule, SkeletonModule, TableModule, TabsModule, TagModule, TextareaModule, ToastModule, TooltipModule],
+    providers: [ConfirmationService, MessageService],
     template: `
         <p-toast />
+        <p-confirmDialog />
+        <p-dialog
+            header="Sesión expirada"
+            [modal]="true"
+            [closable]="false"
+            [dismissableMask]="false"
+            [visible]="sessionExpiredDialogVisible()"
+            (visibleChange)="sessionExpiredDialogVisible.set($event)"
+            [style]="{ width: 'min(28rem, calc(100vw - 2rem))' }"
+        >
+            <p class="m-0 text-sm leading-6 text-slate-600 dark:text-slate-300">Tu sesión expiró. Vuelve a iniciar sesión para continuar.</p>
+            <ng-template pTemplate="footer">
+                <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                    <p-button label="Iniciar sesión" styleClass="w-full sm:w-auto" (onClick)="goToLogin()" />
+                </div>
+            </ng-template>
+        </p-dialog>
+        <p-dialog
+            header="Escudo institucional"
+            [modal]="true"
+            [closable]="true"
+            [dismissableMask]="true"
+            [visible]="shieldPreviewDialogVisible"
+            (visibleChange)="shieldPreviewDialogVisible = $event"
+            [style]="{ width: 'min(32rem, calc(100vw - 2rem))' }"
+        >
+            @if (shieldPreviewUrl) {
+                <div class="flex items-center justify-center">
+                    <img [src]="shieldPreviewUrl" alt="Escudo institucional" class="max-h-[70vh] w-full rounded-[1rem] object-contain" />
+                </div>
+            }
+        </p-dialog>
         <app-image-cropper
             #shieldCropper
             title="Ajustar escudo institucional"
@@ -136,9 +169,17 @@ interface AcademyTeamStaffForm {
         />
 
         <div class="space-y-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0">
-            <app-page-header [breadcrumbs]="breadcrumbs" title="Academia" subtitle="Actualiza la información principal y los datos de contacto de tu academia."></app-page-header>
+            <app-page-header [breadcrumbs]="breadcrumbs" title="Academia" subtitle="Actualiza la información principal, fiscal y visual de tu academia."></app-page-header>
 
-            @if (!academy) {
+            @if (informationLoadError() && activeTab === 'information') {
+                <div class="rounded-[0.75rem] border border-rose-200 bg-rose-50 p-5 text-rose-900 shadow-sm dark:border-rose-900/50 dark:bg-rose-950/20 dark:text-rose-100">
+                    <p class="m-0 text-base font-semibold">No pudimos cargar la academia</p>
+                    <p class="mt-1 text-sm leading-6">{{ informationLoadError() }}</p>
+                    <div class="mt-4">
+                        <p-button label="Reintentar" severity="danger" outlined styleClass="w-full sm:w-auto" [loading]="informationLoading()" loadingIcon="pi pi-spinner pi-spin" (onClick)="loadInformation()" />
+                    </div>
+                </div>
+            } @else if (!academy && activeTab === 'information' && !informationLoading()) {
                 <div class="rounded-[0.75rem] border border-slate-200 bg-white p-5 shadow-sm dark:border-surface-800 dark:bg-surface-900">
                     <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Sin academia asociada</p>
                     <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Este usuario no tiene una academia vinculada. Este panel aplica para owner o administrador de academia.</p>
@@ -146,43 +187,38 @@ interface AcademyTeamStaffForm {
             } @else {
                 <div
                     class="mx-auto mt-4 w-full space-y-3 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0"
-                    [class.content-width-compact]="activeTab === 'information' || activeTab === 'tax' || activeTab === 'venues' || activeTab === 'categories' || activeTab === 'teams'"
+                    [class.content-width-compact]="activeTab === 'information' || activeTab === 'categories' || activeTab === 'teams'"
+                    [class.content-width-comfortable]="activeTab === 'venues'"
                     [class.content-width-full]="activeTab === 'staff'"
                 >
                     <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white shadow-sm dark:border-surface-800 dark:bg-surface-900">
                         <p-tabs [value]="activeTab">
                             <p-tablist class="overflow-x-auto">
-                                <p-tab value="information" (click)="activeTab = 'information'">
+                                <p-tab value="information" (click)="onTabClicked('information')">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-building text-sm"></i>
                                         <span>Información</span>
                                     </span>
                                 </p-tab>
-                                <p-tab value="tax" (click)="activeTab = 'tax'">
-                                    <span class="inline-flex items-center gap-2 whitespace-nowrap">
-                                        <i class="pi pi-file-edit text-sm"></i>
-                                        <span>Información fiscal</span>
-                                    </span>
-                                </p-tab>
-                                <p-tab value="venues" (click)="activeTab = 'venues'">
+                                <p-tab value="venues" (click)="onTabClicked('venues')">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-map-marker text-sm"></i>
                                         <span>Sedes</span>
                                     </span>
                                 </p-tab>
-                                <p-tab value="categories" (click)="activeTab = 'categories'">
+                                <p-tab value="categories" (click)="onTabClicked('categories')">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-tag text-sm"></i>
                                         <span>Categorías</span>
                                     </span>
                                 </p-tab>
-                                <p-tab value="teams" (click)="activeTab = 'teams'">
+                                <p-tab value="teams" (click)="onTabClicked('teams')">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-users text-sm"></i>
                                         <span>Equipos</span>
                                     </span>
                                 </p-tab>
-                                <p-tab value="staff" (click)="activeTab = 'staff'">
+                                <p-tab value="staff" (click)="onTabClicked('staff')">
                                     <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                         <i class="pi pi-id-card text-sm"></i>
                                         <span>Staff</span>
@@ -192,7 +228,54 @@ interface AcademyTeamStaffForm {
                             <p-tabpanels>
                                 <p-tabpanel value="information">
                                     <div class="space-y-4 p-3 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:p-4 sm:pb-4">
-                                        <div class="grid grid-cols-12 gap-4">
+                                        @if (informationLoading()) {
+                                            <div class="space-y-5">
+                                                <div class="space-y-3">
+                                                    <p-skeleton width="10rem" height="1.1rem"></p-skeleton>
+                                                    <p-skeleton width="22rem" height="0.9rem"></p-skeleton>
+                                                </div>
+                                                <div class="grid grid-cols-12 gap-4">
+                                                    <div class="col-span-12 flex flex-col gap-2">
+                                                        <p-skeleton width="9rem" height="0.9rem"></p-skeleton>
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                        <p-skeleton width="8rem" height="0.9rem"></p-skeleton>
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                        <p-skeleton width="7rem" height="0.9rem"></p-skeleton>
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                        <p-skeleton width="7rem" height="0.9rem"></p-skeleton>
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                                        <p-skeleton width="7rem" height="0.9rem"></p-skeleton>
+                                                        <p-skeleton height="2.75rem"></p-skeleton>
+                                                    </div>
+                                                </div>
+                                                <div class="rounded-[0.9rem] border border-slate-200 bg-white p-4 dark:border-surface-700 dark:bg-surface-900/40">
+                                                    <div class="flex flex-col gap-2">
+                                                        <p-skeleton width="11rem" height="1rem"></p-skeleton>
+                                                        <p-skeleton width="18rem" height="0.85rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="mt-4 rounded-[0.9rem] border border-slate-200 bg-white px-4 py-6 dark:border-surface-700 dark:bg-surface-900">
+                                                        <div class="flex flex-col items-center gap-4 text-center sm:gap-5">
+                                                            <p-skeleton width="5rem" height="5rem" borderRadius="1rem"></p-skeleton>
+                                                            <div class="space-y-2">
+                                                                <p-skeleton width="8rem" height="1rem"></p-skeleton>
+                                                                <p-skeleton width="10rem" height="0.85rem"></p-skeleton>
+                                                            </div>
+                                                            <p-skeleton width="100%" height="2.75rem" borderRadius="0.75rem" class="sm:w-[9rem]"></p-skeleton>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        <div class="grid grid-cols-12 gap-4" [hidden]="informationLoading()">
                                             <div class="col-span-12">
                                                 <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información general</p>
                                                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Estos datos identifican a tu academia dentro de la plataforma.</p>
@@ -272,162 +355,72 @@ interface AcademyTeamStaffForm {
                                                     <p-message severity="error" size="small">Ingresa la dirección.</p-message>
                                                 }
                                             </div>
-                                        </div>
 
-                                        <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/40">
-                                            <div class="flex flex-col gap-2">
-                                                <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Escudo institucional</p>
-                                                <p class="text-sm leading-6 text-slate-500 dark:text-slate-400">Elige una imagen clara y ajústala antes de guardarla.</p>
-                                            </div>
-
-                                            <div class="mt-4 flex flex-col gap-4 rounded-[0.85rem] border border-dashed border-slate-300 bg-white p-4 dark:border-surface-600 dark:bg-surface-900">
-                                                <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-                                                    <div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 dark:border-surface-700 dark:bg-surface-900/60">
-                                                        @if (shieldPreviewUrl) {
-                                                            <img [src]="shieldPreviewUrl" alt="Escudo institucional" class="h-full w-full object-cover" />
-                                                        } @else {
-                                                            <span class="text-xl font-semibold text-sky-700 dark:text-sky-300">{{ academyInitials }}</span>
-                                                        }
-                                                    </div>
-
-                                                    <div class="min-w-0 flex-1">
-                                                        <p class="m-0 text-sm font-medium text-surface-900 dark:text-surface-0">{{ shieldFileName }}</p>
-                                                        <p class="mt-1 text-xs leading-5 text-slate-400 dark:text-slate-500">
-                                                            @if (hasPendingShieldChanges) {
-                                                                Imagen lista para guardarse.
-                                                            } @else {
-                                                                Formatos recomendados: PNG o SVG.
-                                                            }
-                                                        </p>
-                                                        <p class="mt-1 text-xs leading-5 text-slate-400 dark:text-slate-500">Tamaño máximo: 3 MB.</p>
-                                                    </div>
+                                            <div class="col-span-12 rounded-[0.9rem] border border-slate-200 bg-white p-4 dark:border-surface-700 dark:bg-surface-900/40">
+                                                <div class="flex flex-col gap-2">
+                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Escudo institucional</p>
                                                 </div>
 
-                                                <div class="flex flex-col gap-2 sm:flex-row">
-                                                    <input #shieldInput type="file" class="hidden" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml" (change)="onShieldSelected($event)" />
-                                                    <p-button label="Seleccionar archivo" severity="secondary" outlined styleClass="w-full sm:w-auto" (onClick)="shieldInput.click()" />
+                                                <div class="mt-4 flex flex-col items-center gap-4 py-1 text-center sm:gap-5">
                                                     @if (shieldPreviewUrl) {
-                                                        <p-button label="Ajustar imagen" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="reopenShieldDialog()" />
-                                                        <p-button label="Quitar imagen" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="removeShield()" />
+                                                        <div class="flex h-24 w-24 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 transition hover:opacity-95 dark:border-surface-700 dark:bg-surface-800 sm:h-28 sm:w-28">
+                                                            <img [src]="shieldPreviewUrl" alt="Escudo institucional" class="h-full w-full cursor-pointer object-cover" (click)="openShieldPreviewDialog()" />
+                                                        </div>
+                                                    } @else {
+                                                        <div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-50 text-sky-700 dark:border-surface-700 dark:bg-surface-800 sm:h-24 sm:w-24">
+                                                            <i class="pi pi-image text-2xl text-slate-400"></i>
+                                                        </div>
+                                                    }
+
+                                                    <input #shieldInput type="file" accept="image/png,image/jpeg,image/jpg,image/svg+xml" class="hidden" (change)="onShieldSelected($event)" />
+                                                    @if (shieldPreviewUrl) {
+                                                        <div class="flex flex-wrap justify-center gap-2">
+                                                            <p-button label="Ver imagen" icon="pi pi-search" styleClass="w-full sm:w-auto" severity="secondary" text [disabled]="shieldUploadSaving || shieldDeleteSaving" (onClick)="openShieldPreviewDialog()" />
+                                                            <p-button label="Cambiar imagen" icon="pi pi-refresh" styleClass="w-full sm:w-auto" severity="secondary" text [disabled]="shieldUploadSaving || shieldDeleteSaving" (onClick)="shieldInput.click()" />
+                                                            <p-button label="Quitar imagen" icon="pi pi-trash" styleClass="w-full sm:w-auto" severity="danger" text [loading]="shieldDeleteSaving" loadingIcon="pi pi-spinner pi-spin" [disabled]="shieldUploadSaving || shieldDeleteSaving" (onClick)="removeShield()" />
+                                                        </div>
+                                                    } @else {
+                                                        <p-button label="Seleccionar archivo" icon="pi pi-upload" styleClass="w-full sm:w-auto" severity="secondary" [disabled]="shieldUploadSaving || shieldDeleteSaving" (onClick)="shieldInput.click()" />
+                                                    }
+
+                                                    <p class="m-0 max-w-[18rem] text-center text-xs leading-5 text-slate-500 dark:text-slate-400">Archivos permitidos: PNG, JPG, JPEG o SVG. Tamaño máximo: 3 MB.</p>
+
+                                                    @if (hasPendingShieldChanges) {
+                                                        <div class="mt-1 w-full text-left">
+                                                            @if (shieldUploadSaving) {
+                                                                <div class="space-y-1">
+                                                                    <div class="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+                                                                        <i class="pi pi-spinner pi-spin"></i>
+                                                                        <span>Guardando...</span>
+                                                                    </div>
+                                                                    <p-progressBar mode="indeterminate" [style]="{ height: '0.25rem' }" />
+                                                                </div>
+                                                            } @else {
+                                                                <div class="flex w-full justify-center">
+                                                                    <p-button label="Guardar escudo" icon="pi pi-upload" styleClass="w-full sm:w-auto" [loading]="shieldUploadSaving" loadingIcon="pi pi-spinner pi-spin" [disabled]="shieldUploadSaving || shieldDeleteSaving || !shieldCroppedBlob" (onClick)="saveShield()" />
+                                                                </div>
+                                                            }
+                                                        </div>
                                                     }
                                                 </div>
                                             </div>
-                                        </div>
                                     </div>
 
-                                    <div class="sticky bottom-0 z-10 border-t border-slate-200 bg-white/95 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:border-surface-800 dark:bg-surface-900/95 sm:static sm:bg-transparent sm:p-4 sm:backdrop-blur-0">
-                                        <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center sm:justify-end">
-                                            <p-button label="Cancelar" severity="secondary" text styleClass="w-full" routerLink="/" />
-                                            <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full" (onClick)="save()" />
-                                        </div>
-                                    </div>
-                                </p-tabpanel>
-
-                                <p-tabpanel value="tax">
-                                    <div class="space-y-4 p-3 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:p-4 sm:pb-4">
-                                        <div class="form-width-2col mx-auto space-y-4">
-                                            <div class="rounded-[0.9rem] border border-slate-200 bg-slate-50 p-4 dark:border-surface-700 dark:bg-surface-900/60">
-                                                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                                                    <div class="space-y-1">
-                                                        <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Resumen fiscal</p>
-                                                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Verifica la identificación, la facturación y la ubicación fiscal que hoy tiene configurada la academia.</p>
-                                                    </div>
-                                                    <span class="inline-flex items-center self-start rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 dark:border-surface-700 dark:bg-surface-900 dark:text-slate-300">
-                                                        {{ isTaxSummaryConfigured ? 'Configurado' : 'Pendiente de completar' }}
-                                                    </span>
-                                                </div>
-
-                                                <div class="mt-4 grid gap-3 md:grid-cols-3">
-                                                    <div class="rounded-[0.85rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900">
-                                                        <p class="m-0 text-xs font-medium text-slate-500 dark:text-slate-400">Razón social</p>
-                                                        <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ taxForm.legalName || 'No configurado' }}</p>
-                                                    </div>
-                                                    <div class="rounded-[0.85rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900">
-                                                        <p class="m-0 text-xs font-medium text-slate-500 dark:text-slate-400">Identificación</p>
-                                                        <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ taxIdentificationSummary }}</p>
-                                                    </div>
-                                                    <div class="rounded-[0.85rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900">
-                                                        <p class="m-0 text-xs font-medium text-slate-500 dark:text-slate-400">Facturación</p>
-                                                        <p class="mt-2 text-sm font-semibold text-surface-900 dark:text-surface-0">{{ taxBillingSummary }}</p>
-                                                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ taxLocationSummary }}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="grid grid-cols-12 gap-4">
-                                                <div class="col-span-12">
-                                                    <p class="m-0 text-base font-semibold text-surface-900 dark:text-surface-0">Información fiscal</p>
-                                                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Mantén al día los datos que se usarán en comprobantes y procesos de facturación.</p>
-                                                </div>
-
-                                                <div class="col-span-12 flex flex-col gap-2">
-                                                    <label for="legalName" class="text-sm font-medium text-surface-700 dark:text-surface-200">Razón social <span class="text-rose-500">*</span></label>
-                                                    <input pInputText id="legalName" type="text" [(ngModel)]="taxForm.legalName" placeholder="Ej. Academia PlayerTech Demo SAS" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onTaxLegalNameInput($event)" />
-                                                    @if (showTaxError('legalName')) {
-                                                        <p-message severity="error" size="small">Ingresa la razón social.</p-message>
-                                                    }
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="taxIdType" class="text-sm font-medium text-surface-700 dark:text-surface-200">Tipo de identificación <span class="text-rose-500">*</span></label>
-                                                    <p-select id="taxIdType" [(ngModel)]="taxForm.taxIdType" [options]="taxIdTypeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un tipo" class="w-full" appendTo="body" />
-                                                    @if (showTaxError('taxIdType')) {
-                                                        <p-message severity="error" size="small">Selecciona el tipo de identificación.</p-message>
-                                                    }
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="taxIdNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Número de identificación <span class="text-rose-500">*</span></label>
-                                                    <input pInputText id="taxIdNumber" type="text" [(ngModel)]="taxForm.taxIdNumber" placeholder="Ej. 901234567" class="w-full" (input)="onTaxIdNumberInput($event)" />
-                                                    @if (showTaxError('taxIdNumber')) {
-                                                        <p-message severity="error" size="small">Ingresa el número de identificación.</p-message>
-                                                    }
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="taxCheckDigit" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dígito de verificación <span class="text-slate-400">(opcional)</span></label>
-                                                    <input pInputText id="taxCheckDigit" type="text" [(ngModel)]="taxForm.taxCheckDigit" placeholder="Ej. 8" class="w-full" maxlength="2" (input)="onTaxCheckDigitInput($event)" />
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="taxRegime" class="text-sm font-medium text-surface-700 dark:text-surface-200">Régimen fiscal <span class="text-rose-500">*</span></label>
-                                                    <p-select id="taxRegime" [(ngModel)]="taxForm.taxRegime" [options]="taxRegimeOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un régimen" class="w-full" appendTo="body" />
-                                                    @if (showTaxError('taxRegime')) {
-                                                        <p-message severity="error" size="small">Selecciona el régimen fiscal.</p-message>
-                                                    }
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="billingEmail" class="text-sm font-medium text-surface-700 dark:text-surface-200">Correo para facturación <span class="text-rose-500">*</span></label>
-                                                    <input pInputText id="billingEmail" type="text" [(ngModel)]="taxForm.billingEmail" placeholder="Ej. facturacion@academia.com" class="w-full" (keydown)="onEmailKeydown($event)" (paste)="onEmailPaste($event)" (input)="onBillingEmailInput()" />
-                                                    @if (showTaxError('billingEmail')) {
-                                                        <p-message severity="error" size="small">Ingresa un correo válido para facturación.</p-message>
-                                                    }
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="fiscalCountry" class="text-sm font-medium text-surface-700 dark:text-surface-200">País</label>
-                                                    <p-select id="fiscalCountry" [(ngModel)]="taxForm.fiscalCountry" [options]="countryOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name" placeholder="Selecciona un país" class="w-full" appendTo="body" />
-                                                </div>
-
-                                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                                    <label for="fiscalCity" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad</label>
-                                                    <input pInputText id="fiscalCity" type="text" [(ngModel)]="taxForm.fiscalCity" placeholder="Ej. Pereira" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onFiscalCityInput($event)" />
-                                                </div>
-
-                                                <div class="col-span-12 flex flex-col gap-2">
-                                                    <label for="fiscalAddress" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección fiscal</label>
-                                                    <input pInputText id="fiscalAddress" type="text" [(ngModel)]="taxForm.fiscalAddress" placeholder="Ej. Calle 10 # 20-30" class="w-full" (keydown)="onAddressKeydown($event)" (paste)="onAddressPaste($event)" (input)="onFiscalAddressInput($event)" />
-                                                </div>
+                                    @if (informationLoading()) {
+                                        <div class="sticky bottom-0 z-10 bg-white/95 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:bg-surface-900/95 sm:static sm:bg-transparent sm:py-4 sm:backdrop-blur-0">
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                                <p-skeleton width="7rem" height="2.75rem" borderRadius="0.75rem"></p-skeleton>
+                                                <p-skeleton width="9rem" height="2.75rem" borderRadius="0.75rem"></p-skeleton>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <div class="border-t border-slate-200 p-4 dark:border-surface-800">
-                                        <div class="form-width-2col mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-                                            <p-button label="Restablecer" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetTaxForm()" />
-                                            <p-button label="Guardar cambios" icon="pi pi-check" styleClass="w-full sm:w-auto" (onClick)="saveTaxProfile()" />
+                                    } @else {
+                                        <div class="sticky bottom-0 z-10 bg-white/95 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-sm dark:bg-surface-900/95 sm:static sm:bg-transparent sm:py-4 sm:backdrop-blur-0">
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                                <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" [disabled]="informationLoading()" routerLink="/" />
+                                                <p-button label="Guardar datos" icon="pi pi-check" styleClass="w-full sm:w-auto" [loading]="saving" loadingIcon="pi pi-spinner pi-spin" [disabled]="saving || informationLoading()" (onClick)="save()" />
+                                            </div>
                                         </div>
+                                    }
                                     </div>
                                 </p-tabpanel>
 
@@ -445,53 +438,109 @@ interface AcademyTeamStaffForm {
                                             </div>
                                         </div>
 
-                                        <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
+                                        @if (venueLoading()) {
+                                            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
+                                                <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
+                                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                                                        <p-skeleton width="14rem" height="1.1rem"></p-skeleton>
+                                                        <p-skeleton width="10rem" height="2.25rem" borderRadius="0.75rem"></p-skeleton>
+                                                    </div>
+                                                </div>
+                                                <div class="p-3 sm:p-4">
+                                                    <div class="space-y-3">
+                                                        @for (row of [1, 2, 3, 4]; track row) {
+                                                            <div class="grid grid-cols-12 gap-3 rounded-[0.75rem] border border-slate-100 p-3 dark:border-surface-800">
+                                                                <div class="col-span-12 md:col-span-4"><p-skeleton width="70%" height="1rem"></p-skeleton></div>
+                                                                <div class="col-span-6 md:col-span-2"><p-skeleton width="85%" height="1rem"></p-skeleton></div>
+                                                                <div class="col-span-6 md:col-span-2"><p-skeleton width="75%" height="1rem"></p-skeleton></div>
+                                                                <div class="col-span-6 md:col-span-2"><p-skeleton width="65%" height="1rem"></p-skeleton></div>
+                                                                <div class="col-span-6 md:col-span-2 flex justify-end"><p-skeleton width="2.5rem" height="2.5rem" borderRadius="9999px"></p-skeleton></div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                                <div class="flex flex-col gap-3 border-t border-slate-200 px-3 py-3 dark:border-surface-700 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+                                                    <div class="flex items-center gap-2">
+                                                        <p-skeleton width="11rem" height="0.9rem"></p-skeleton>
+                                                        <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                        <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                        <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                        <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                        <p-skeleton width="3.75rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                        <p-skeleton width="4rem" height="0.9rem"></p-skeleton>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        } @else if (venueError()) {
+                                            <div class="rounded-[0.75rem] border border-rose-200 bg-rose-50 p-5 text-rose-900 shadow-sm dark:border-rose-900/50 dark:bg-rose-950/20 dark:text-rose-100">
+                                                <p class="m-0 text-base font-semibold">No pudimos cargar las sedes</p>
+                                                <p class="mt-1 text-sm leading-6">{{ venueError() }}</p>
+                                                <div class="mt-4">
+                                                    <p-button label="Reintentar" severity="danger" outlined styleClass="w-full sm:w-auto" [loading]="venueLoading()" loadingIcon="pi pi-spinner pi-spin" (onClick)="loadVenues()" />
+                                                </div>
+                                            </div>
+                                        } @else {
+                                            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
                                             <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
                                                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                                                     <p-iconfield iconPosition="left" class="w-full sm:max-w-md">
                                                         <p-inputicon styleClass="pi pi-search" />
                                                         <input pInputText type="text" [(ngModel)]="venueSearch" placeholder="Buscar por nombre o descripción" class="w-full" />
                                                     </p-iconfield>
-                                                    <button
-                                                        type="button"
-                                                        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-surface-700 dark:text-slate-400 dark:hover:border-surface-500 dark:hover:text-slate-200"
-                                                        pTooltip="Busca por nombre o descripción."
-                                                        tooltipPosition="left"
-                                                        aria-label="Ayuda de búsqueda"
-                                                    >
-                                                        <i class="pi pi-info-circle text-sm"></i>
-                                                    </button>
                                                 </div>
                                             </div>
 
-                                            <p-table [value]="filteredVenues" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
+                                            <p-table
+                                                [value]="filteredVenues"
+                                                [tableStyle]="{ 'min-width': '100%' }"
+                                                responsiveLayout="scroll"
+                                                styleClass="text-sm"
+                                                [paginator]="true"
+                                                [rows]="venueRows"
+                                                [first]="(venuePage - 1) * venueRows"
+                                                [totalRecords]="venueTotalRecords"
+                                                [rowsPerPageOptions]="[10, 20, 50]"
+                                                paginatorDropdownAppendTo="body"
+                                                [loading]="venueLoading()"
+                                                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} sedes"
+                                                [showCurrentPageReport]="true"
+                                                (onPage)="onVenuePageChange($event)"
+                                            >
                                                 <ng-template pTemplate="header">
                                                     <tr>
-                                                        <th>Nombre</th>
-                                                        <th>Ciudad</th>
-                                                        <th>Teléfono</th>
-                                                        <th>Estado</th>
-                                                        <th class="text-right">Acciones</th>
+                                                        <th class="w-[40%]">Nombre</th>
+                                                        <th class="w-[18%]">Ciudad</th>
+                                                        <th class="w-[18%]">Teléfono</th>
+                                                        <th class="w-[12%]">Estado</th>
+                                                        <th class="w-[12%] text-right">Acciones</th>
                                                     </tr>
                                                 </ng-template>
                                                 <ng-template pTemplate="body" let-venue>
                                                     <tr>
-                                                        <td>
+                                                        <td class="align-top">
                                                             <div class="flex flex-col gap-1">
                                                                 <span class="font-medium text-surface-900 dark:text-surface-0">{{ venue.name }}</span>
-                                                                <span class="text-sm text-slate-500 dark:text-slate-400">{{ venue.address || 'Sin dirección registrada' }}</span>
+                                                                <span class="text-sm text-slate-500 dark:text-slate-400">{{ getVenueLocationSummary(venue) }}</span>
                                                             </div>
                                                         </td>
-                                                        <td>
-                                                            <span class="text-surface-900 dark:text-surface-0">{{ venue.city || 'Sin ciudad' }}</span>
+                                                        <td class="align-top">
+                                                            <span class="text-surface-900 dark:text-surface-0">{{ venue.city || '-' }}</span>
                                                         </td>
-                                                        <td>
-                                                            <span class="text-surface-900 dark:text-surface-0">{{ venue.phone || 'Sin teléfono' }}</span>
+                                                        <td class="align-top">
+                                                            <span class="text-surface-900 dark:text-surface-0">{{ venue.phone || '-' }}</span>
                                                         </td>
-                                                        <td>
-                                                            <p-tag [value]="getVenueStatusLabel(venue.status)" [severity]="getVenueStatusSeverity(venue.status)" />
+                                                        <td class="align-top">
+                                                            <div class="inline-flex items-center gap-2">
+                                                                <p-tag [value]="getVenueStatusLabel(venue.status)" [severity]="getVenueStatusSeverity(venue.status)" />
+                                                                @if (venueStatusUpdatingId === venue.id) {
+                                                                    <i class="pi pi-spinner pi-spin text-sm text-slate-500 dark:text-slate-400" aria-hidden="true"></i>
+                                                                }
+                                                            </div>
                                                         </td>
-                                                        <td>
+                                                        <td class="align-top">
                                                             <div class="flex justify-end">
                                                                 <p-menu #venueActionsMenu [popup]="true" appendTo="body" [model]="venueActionItems"></p-menu>
                                                                 <p-button
@@ -499,6 +548,7 @@ interface AcademyTeamStaffForm {
                                                                     [text]="true"
                                                                     rounded
                                                                     severity="secondary"
+                                                                    [disabled]="venueStatusUpdatingId === venue.id"
                                                                     (onClick)="openVenueActionsMenu($event, venueActionsMenu, venue)"
                                                                 />
                                                             </div>
@@ -517,6 +567,7 @@ interface AcademyTeamStaffForm {
                                                 </ng-template>
                                             </p-table>
                                         </div>
+                                        }
                                     </div>
                                 </p-tabpanel>
 
@@ -534,71 +585,164 @@ interface AcademyTeamStaffForm {
                                             </div>
                                         </div>
 
-                                        <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
-                                            <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
-                                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                                                    <p-iconfield iconPosition="left" class="w-full sm:max-w-md">
-                                                        <p-inputicon styleClass="pi pi-search" />
-                                                        <input pInputText type="text" [(ngModel)]="categorySearch" placeholder="Buscar por nombre o descripción" class="w-full" />
-                                                    </p-iconfield>
-                                                    <button
-                                                        type="button"
-                                                        class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-surface-700 dark:text-slate-400 dark:hover:border-surface-500 dark:hover:text-slate-200"
-                                                        pTooltip="Busca por nombre o descripción."
-                                                        tooltipPosition="left"
-                                                        aria-label="Ayuda de búsqueda"
-                                                    >
-                                                        <i class="pi pi-info-circle text-sm"></i>
-                                                    </button>
+                                        @if (categoryLoading()) {
+                                            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
+                                                <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
+                                                    <div class="flex items-center justify-between gap-3">
+                                                        <p-skeleton width="14rem" height="1rem"></p-skeleton>
+                                                        <p-skeleton width="10rem" height="2.75rem" borderRadius="0.75rem"></p-skeleton>
+                                                    </div>
+                                                </div>
+
+                                                <div class="space-y-3 p-3 sm:p-4">
+                                                    <div class="rounded-[0.75rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900 sm:px-4">
+                                                        <div class="grid grid-cols-12 items-center gap-4">
+                                                            <div class="col-span-12 md:col-span-4"><p-skeleton width="70%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="85%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="75%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="65%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2 flex justify-end"><p-skeleton width="2.5rem" height="2.5rem" borderRadius="9999px"></p-skeleton></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="rounded-[0.75rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900 sm:px-4">
+                                                        <div class="grid grid-cols-12 items-center gap-4">
+                                                            <div class="col-span-12 md:col-span-4"><p-skeleton width="70%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="85%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="75%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="65%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2 flex justify-end"><p-skeleton width="2.5rem" height="2.5rem" borderRadius="9999px"></p-skeleton></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="rounded-[0.75rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900 sm:px-4">
+                                                        <div class="grid grid-cols-12 items-center gap-4">
+                                                            <div class="col-span-12 md:col-span-4"><p-skeleton width="70%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="85%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="75%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="65%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2 flex justify-end"><p-skeleton width="2.5rem" height="2.5rem" borderRadius="9999px"></p-skeleton></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="rounded-[0.75rem] border border-slate-200 bg-white px-3 py-3 dark:border-surface-700 dark:bg-surface-900 sm:px-4">
+                                                        <div class="grid grid-cols-12 items-center gap-4">
+                                                            <div class="col-span-12 md:col-span-4"><p-skeleton width="70%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="85%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="75%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2"><p-skeleton width="65%" height="1rem"></p-skeleton></div>
+                                                            <div class="col-span-6 md:col-span-2 flex justify-end"><p-skeleton width="2.5rem" height="2.5rem" borderRadius="9999px"></p-skeleton></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="border-t border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
+                                                    <div class="flex items-center justify-between gap-3">
+                                                        <p-skeleton width="11rem" height="0.9rem"></p-skeleton>
+                                                        <div class="flex items-center gap-2">
+                                                            <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                            <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                            <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                            <p-skeleton width="2.25rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                            <p-skeleton width="3.75rem" height="2rem" borderRadius="0.75rem"></p-skeleton>
+                                                            <p-skeleton width="4rem" height="0.9rem"></p-skeleton>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        } @else if (categoryError()) {
+                                            <div class="rounded-[0.75rem] border border-rose-200 bg-rose-50 p-5 text-rose-900 shadow-sm dark:border-rose-900/50 dark:bg-rose-950/20 dark:text-rose-100">
+                                                <p class="m-0 text-base font-semibold">No pudimos cargar las categorías</p>
+                                                <p class="mt-1 text-sm leading-6">{{ categoryError() }}</p>
+                                                <div class="mt-4">
+                                                    <p-button label="Reintentar" severity="danger" outlined styleClass="w-full sm:w-auto" [loading]="categoryLoading()" loadingIcon="pi pi-spinner pi-spin" (onClick)="loadCategories()" />
+                                                </div>
+                                            </div>
+                                        } @else {
+                                            <div class="overflow-hidden rounded-[0.75rem] border border-slate-200 bg-white dark:border-surface-700 dark:bg-surface-900">
+                                                <div class="border-b border-slate-200 px-3 py-3 dark:border-surface-700 sm:px-4">
+                                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                                                        <p-iconfield iconPosition="left" class="w-full sm:max-w-md">
+                                                            <p-inputicon styleClass="pi pi-search" />
+                                                            <input pInputText type="text" [(ngModel)]="categorySearch" placeholder="Buscar por nombre, clave o descripción" class="w-full" />
+                                                        </p-iconfield>
+                                                        <button
+                                                            type="button"
+                                                            class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700 dark:border-surface-700 dark:text-slate-400 dark:hover:border-surface-500 dark:hover:text-slate-200"
+                                                            pTooltip="Busca por nombre, clave o descripción."
+                                                            tooltipPosition="left"
+                                                            aria-label="Ayuda de búsqueda"
+                                                        >
+                                                            <i class="pi pi-info-circle text-sm"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
 
-                                            <p-table [value]="filteredCategories" [tableStyle]="{ 'min-width': '100%' }" responsiveLayout="scroll" styleClass="text-sm">
-                                                <ng-template pTemplate="header">
-                                                    <tr>
-                                                        <th>Nombre</th>
-                                                        <th>Rango de edad</th>
-                                                        <th>Estado</th>
-                                                        <th class="text-right">Acciones</th>
-                                                    </tr>
-                                                </ng-template>
-                                                <ng-template pTemplate="body" let-category>
-                                                    <tr>
-                                                        <td>
-                                                            <span class="font-medium text-surface-900 dark:text-surface-0">{{ category.name }}</span>
-                                                        </td>
-                                                        <td>
-                                                            <span class="text-surface-900 dark:text-surface-0">{{ getCategoryAgeRangeLabel(category) }}</span>
-                                                        </td>
-                                                        <td>
-                                                            <p-tag [value]="getCategoryStatusLabel(category.status)" [severity]="getCategoryStatusSeverity(category.status)" />
-                                                        </td>
-                                                        <td>
-                                                            <div class="flex justify-end">
-                                                                <p-menu #categoryActionsMenu [popup]="true" appendTo="body" [model]="categoryActionItems"></p-menu>
-                                                                <p-button
-                                                                    icon="pi pi-ellipsis-h"
-                                                                    [text]="true"
-                                                                    rounded
-                                                                    severity="secondary"
-                                                                    (onClick)="openCategoryActionsMenu($event, categoryActionsMenu, category)"
-                                                                />
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                </ng-template>
-                                                <ng-template pTemplate="emptymessage">
-                                                    <tr>
-                                                        <td colspan="4" class="py-10 text-center">
-                                                            <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                                                                <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay categorías registradas</span>
-                                                                <span>Crea la primera categoría para empezar a ordenar jugadores y equipos por edad.</span>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                </ng-template>
-                                            </p-table>
-                                        </div>
+                                                <p-table
+                                                    [value]="filteredCategories"
+                                                    [tableStyle]="{ 'min-width': '100%' }"
+                                                    responsiveLayout="scroll"
+                                                    styleClass="text-sm"
+                                                    [paginator]="true"
+                                                    [rows]="categoryRows"
+                                                    [first]="(categoryPage - 1) * categoryRows"
+                                                    [totalRecords]="categoryTotalRecords"
+                                                    [rowsPerPageOptions]="[10, 20, 50]"
+                                                    [paginatorDropdownAppendTo]="'body'"
+                                                    (onPage)="onCategoryPageChange($event)"
+                                                >
+                                                    <ng-template pTemplate="header">
+                                                        <tr>
+                                                            <th>Nombre</th>
+                                                            <th>Edad</th>
+                                                            <th>Estado</th>
+                                                            <th class="text-right">Acciones</th>
+                                                        </tr>
+                                                    </ng-template>
+                                                    <ng-template pTemplate="body" let-category>
+                                                        <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-surface-800/70" (click)="openCategoryDetail(category)">
+                                                            <td>
+                                                                <div class="flex flex-col gap-1">
+                                                                    <span class="font-medium text-surface-900 dark:text-surface-0">{{ category.name }}</span>
+                                                                    <span class="text-xs text-slate-500 dark:text-slate-400">{{ category.description || '-' }}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="flex flex-col gap-1">
+                                                                    <span class="text-surface-900 dark:text-surface-0">{{ getCategoryAgeRangeLabel(category) }}</span>
+                                                                    <span class="text-xs text-slate-500 dark:text-slate-400">{{ category.categoryKey || '-' }}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <p-tag [value]="getCategoryStatusLabel(category.status)" [severity]="getCategoryStatusSeverity(category.status)" />
+                                                            </td>
+                                                            <td>
+                                                                <div class="flex justify-end" (click)="$event.stopPropagation()">
+                                                                    <p-menu #categoryActionsMenu [popup]="true" appendTo="body" [model]="categoryActionItems"></p-menu>
+                                                                    <p-button
+                                                                        icon="pi pi-ellipsis-h"
+                                                                        [text]="true"
+                                                                        rounded
+                                                                        severity="secondary"
+                                                                        [disabled]="categoryStatusUpdatingId === category.id"
+                                                                        [loading]="categoryStatusUpdatingId === category.id"
+                                                                        loadingIcon="pi pi-spinner pi-spin"
+                                                                        (onClick)="openCategoryActionsMenu($event, categoryActionsMenu, category)"
+                                                                    />
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </ng-template>
+                                                    <ng-template pTemplate="emptymessage">
+                                                        <tr>
+                                                            <td colspan="4" class="py-10 text-center">
+                                                                <div class="flex flex-col items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                                                    <span class="text-base font-medium text-surface-900 dark:text-surface-0">Todavía no hay categorías registradas</span>
+                                                                    <span>Crea la primera categoría para empezar a ordenar jugadores y equipos por edad.</span>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </ng-template>
+                                                </p-table>
+                                            </div>
+                                        }
                                     </div>
                                 </p-tabpanel>
 
@@ -778,25 +922,55 @@ interface AcademyTeamStaffForm {
                                     }
                                 </div>
 
-                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="venueCity" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad <span class="text-rose-500">*</span></label>
-                                    <input pInputText id="venueCity" type="text" [(ngModel)]="venueForm.city" placeholder="Ej. Pereira" class="w-full" (keydown)="onRestrictedNameKeydown($event)" (paste)="onRestrictedNamePaste($event)" (input)="onVenueCityInput($event)" />
-                                    @if (showVenueError('city')) {
-                                        <p-message severity="error" size="small">Ingresa la ciudad.</p-message>
-                                    }
+                                <div class="hidden">
+                                    <label for="venueCountry" class="text-sm font-medium text-surface-700 dark:text-surface-200">País</label>
+                                    <p-select id="venueCountry" [(ngModel)]="venueForm.country" name="venueCountry" [options]="countryOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name,dialCode" placeholder="Selecciona país" class="w-full" appendTo="body" (onChange)="onVenueLocationCountryChange()" />
                                 </div>
 
-                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
-                                    <label for="venuePhone" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono</label>
-                                    <input pInputText id="venuePhone" type="text" [(ngModel)]="venueForm.phone" placeholder="Ej. 3123456789" class="w-full" (input)="onVenuePhoneInput($event)" />
-                                    @if (showVenueError('phone')) {
+                                <div class="col-span-12 flex flex-col gap-2">
+                                    <label for="venuePhoneNumber" class="text-sm font-medium text-surface-700 dark:text-surface-200">Teléfono <span class="text-slate-500">(opcional)</span></label>
+                                    <div class="grid grid-cols-12 gap-3">
+                                        <p-select id="venueCountryCode" [(ngModel)]="venueForm.countryCode" name="venueCountryCode" [options]="countryOptions" optionLabel="dialCode" optionValue="dialCode" [filter]="true" filterBy="name,dialCode" placeholder="Código" class="col-span-12 sm:col-span-4 md:col-span-3 lg:col-span-3 w-full min-w-0" appendTo="body">
+                                            <ng-template #selectedItem let-option>
+                                                <span class="flex items-center gap-2">
+                                                    <img [src]="option?.flagFile ?? fallbackFlag" [alt]="option?.name ?? 'País'" class="h-4 w-6 rounded-sm object-cover" />
+                                                    <span>{{ option?.dialCode ?? 'Código' }}</span>
+                                                </span>
+                                            </ng-template>
+                                            <ng-template #item let-option>
+                                                <div class="flex items-center justify-between gap-3">
+                                                    <span class="flex items-center gap-2">
+                                                        <img [src]="option.flagFile || fallbackFlag" [alt]="option.name" class="h-4 w-6 rounded-sm object-cover" />
+                                                        <span>{{ option.name }}</span>
+                                                    </span>
+                                                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-surface-800 dark:text-slate-300">{{ option.dialCode }}</span>
+                                                </div>
+                                            </ng-template>
+                                        </p-select>
+                                        <input pInputText id="venuePhoneNumber" type="text" [(ngModel)]="venueForm.phoneNumber" name="venuePhoneNumber" placeholder="Ej. 3123456789" class="col-span-12 sm:col-span-8 md:col-span-9 lg:col-span-9 w-full min-w-0" (input)="onVenuePhoneNumberInput($event)" />
+                                    </div>
+                                    @if (showVenueError('countryCode') || showVenueError('phoneNumber')) {
                                         <p-message severity="error" size="small">Ingresa un teléfono válido.</p-message>
                                     }
                                 </div>
 
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="venueDepartment" class="text-sm font-medium text-surface-700 dark:text-surface-200">Departamento <span class="text-slate-500">(opcional)</span></label>
+                                    <p-select id="venueDepartment" [(ngModel)]="venueForm.department" name="venueDepartment" [options]="venueDepartmentOptions" optionLabel="name" optionValue="name" [filter]="true" filterBy="name" placeholder="Selecciona departamento" class="w-full" appendTo="body" (onChange)="onVenueDepartmentChange()" />
+                                </div>
+
+                                <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
+                                    <label for="venueCity" class="text-sm font-medium text-surface-700 dark:text-surface-200">Ciudad <span class="text-slate-500">(opcional)</span></label>
+                                    <p-select id="venueCity" [(ngModel)]="venueForm.city" name="venueCity" [options]="venueCities" placeholder="Selecciona ciudad" class="w-full" appendTo="body" [filter]="true" />
+                                </div>
+
                                 <div class="col-span-12 flex flex-col gap-2">
-                                    <label for="venueAddress" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección</label>
+                                    <label for="venueAddress" class="text-sm font-medium text-surface-700 dark:text-surface-200">Dirección <span class="text-slate-500">(opcional)</span></label>
                                     <input pInputText id="venueAddress" type="text" [(ngModel)]="venueForm.address" placeholder="Ej. Calle 20 # 15-40" class="w-full" (keydown)="onAddressKeydown($event)" (paste)="onAddressPaste($event)" (input)="onVenueAddressInput($event)" />
+                                </div>
+                                <div class="col-span-12 flex flex-col gap-2">
+                                    <label for="venueNotes" class="text-sm font-medium text-surface-700 dark:text-surface-200">Notas <span class="text-slate-500">(opcional)</span></label>
+                                    <textarea pTextarea id="venueNotes" [(ngModel)]="venueForm.notes" rows="3" placeholder="Notas internas o referencias operativas" class="w-full"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -805,9 +979,51 @@ interface AcademyTeamStaffForm {
                     <ng-template pTemplate="footer">
                         <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                             <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetVenueDialog()" />
-                            <p-button [label]="venueDialogMode === 'create' ? 'Crear sede' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveVenue()" />
+                            <p-button [label]="venueDialogMode === 'create' ? 'Crear sede' : 'Guardar cambios'" styleClass="w-full sm:w-auto" [loading]="venueSaving" loadingIcon="pi pi-spinner pi-spin" (onClick)="saveVenue()" />
                         </div>
                     </ng-template>
+                </p-dialog>
+                <p-dialog [(visible)]="venueDetailVisible" [modal]="true" [draggable]="false" [resizable]="false" [style]="{ width: '34rem' }" [breakpoints]="{ '960px': '42rem', '640px': '96vw' }" header="Detalle de sede" (onHide)="venueDetailVisible = false">
+                    @if (selectedVenue) {
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Nombre</p>
+                                <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ selectedVenue.name }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Dirección</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.address || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Ciudad</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.city || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">País</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.country || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Departamento</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.department || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Teléfono</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.phone || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Notas</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.notes || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Sede principal</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedVenue.isPrimary ? 'Sí' : 'No' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Estado</p>
+                                <p-tag [value]="getVenueStatusLabel(selectedVenue.status)" [severity]="getVenueStatusSeverity(selectedVenue.status)" />
+                            </div>
+                        </div>
+                    }
                 </p-dialog>
 
                 <p-dialog
@@ -821,7 +1037,7 @@ interface AcademyTeamStaffForm {
                     (onHide)="resetCategoryDialog()"
                 >
                     <div class="space-y-3">
-                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Completa el nombre y el rango de edad para dejar lista esta categoría.</p>
+                        <p class="m-0 text-sm leading-6 text-slate-500 dark:text-slate-400">Completa el nombre, la clave y el rango de edad para dejar lista esta categoría.</p>
 
                         <div class="rounded-[0.75rem] border border-slate-200 bg-white p-3 dark:border-surface-700 dark:bg-surface-900 sm:p-4">
                             <div class="grid grid-cols-12 gap-4">
@@ -835,22 +1051,24 @@ interface AcademyTeamStaffForm {
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="minAge" class="text-sm font-medium text-surface-700 dark:text-surface-200">Edad mínima <span class="text-rose-500">*</span></label>
-                                    <input pInputText id="minAge" type="text" [(ngModel)]="categoryForm.minAge" placeholder="Ej. 11" class="w-full" (input)="onCategoryAgeInput('minAge', $event)" />
+                                    <p-select id="minAge" [(ngModel)]="categoryForm.minAge" [options]="ageOptions" optionLabel="label" optionValue="value" placeholder="Selecciona edad mínima" class="w-full" appendTo="body" (onChange)="onCategoryAgeChange()" />
+                                    <p class="m-0 text-xs text-slate-500 dark:text-slate-400">Mínimo 4 años, máximo 99.</p>
                                     @if (showCategoryError('minAge')) {
-                                        <p-message severity="error" size="small">Ingresa una edad mínima válida.</p-message>
+                                        <p-message severity="error" size="small">La edad mínima debe estar entre 4 y 99 años.</p-message>
                                     }
                                 </div>
 
                                 <div class="col-span-12 md:col-span-6 flex flex-col gap-2">
                                     <label for="maxAge" class="text-sm font-medium text-surface-700 dark:text-surface-200">Edad máxima <span class="text-rose-500">*</span></label>
-                                    <input pInputText id="maxAge" type="text" [(ngModel)]="categoryForm.maxAge" placeholder="Ej. 12" class="w-full" (input)="onCategoryAgeInput('maxAge', $event)" />
+                                    <p-select id="maxAge" [(ngModel)]="categoryForm.maxAge" [options]="ageOptions" optionLabel="label" optionValue="value" placeholder="Selecciona edad máxima" class="w-full" appendTo="body" (onChange)="onCategoryAgeChange()" />
+                                    <p class="m-0 text-xs text-slate-500 dark:text-slate-400">Debe ser igual o mayor que la edad mínima.</p>
                                     @if (showCategoryError('maxAge')) {
-                                        <p-message severity="error" size="small">Ingresa una edad máxima válida.</p-message>
+                                        <p-message severity="error" size="small">La edad máxima debe estar entre 4 y 99 años y no puede ser menor que la mínima.</p-message>
                                     }
                                 </div>
 
                                 <div class="col-span-12 flex flex-col gap-2">
-                                    <label for="categoryDescription" class="text-sm font-medium text-surface-700 dark:text-surface-200">Descripción</label>
+                                    <label for="categoryDescription" class="text-sm font-medium text-surface-700 dark:text-surface-200">Descripción <span class="text-slate-500">(opcional)</span></label>
                                     <textarea pTextarea id="categoryDescription" [(ngModel)]="categoryForm.description" rows="3" placeholder="Opcional" class="w-full resize-none"></textarea>
                                 </div>
                             </div>
@@ -860,7 +1078,56 @@ interface AcademyTeamStaffForm {
                     <ng-template pTemplate="footer">
                         <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                             <p-button label="Cancelar" severity="secondary" text styleClass="w-full sm:w-auto" (onClick)="resetCategoryDialog()" />
-                            <p-button [label]="categoryDialogMode === 'create' ? 'Crear categoría' : 'Guardar cambios'" styleClass="w-full sm:w-auto" (onClick)="saveCategory()" />
+                            <p-button [label]="categoryDialogMode === 'create' ? 'Crear categoría' : 'Guardar cambios'" styleClass="w-full sm:w-auto" [loading]="categorySaving" loadingIcon="pi pi-spinner pi-spin" (onClick)="saveCategory()" />
+                        </div>
+                    </ng-template>
+                </p-dialog>
+
+                <p-dialog [(visible)]="categoryDetailVisible" [modal]="true" [draggable]="false" [resizable]="false" [style]="{ width: '34rem' }" [breakpoints]="{ '960px': '42rem', '640px': '96vw' }" header="Detalle de categoría" (onHide)="categoryDetailVisible = false">
+                    @if (selectedCategory) {
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Nombre</p>
+                                <p class="m-0 font-medium text-surface-900 dark:text-surface-0">{{ selectedCategory.name }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Clave</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedCategory.categoryKey || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Academia</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedCategory.academyId || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Edad mínima</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedCategory.minAge ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Edad máxima</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedCategory.maxAge ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Descripción</p>
+                                <p class="m-0 text-surface-900 dark:text-surface-0">{{ selectedCategory.description || '-' }}</p>
+                            </div>
+                            <div>
+                                <p class="m-0 text-xs uppercase tracking-wide text-slate-500">Estado</p>
+                                <p-tag [value]="getCategoryStatusLabel(selectedCategory.status)" [severity]="getCategoryStatusSeverity(selectedCategory.status)" />
+                            </div>
+                        </div>
+                    }
+
+                    <ng-template pTemplate="footer">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                            <p-button label="Editar" severity="secondary" outlined styleClass="w-full sm:w-auto" (onClick)="selectedCategory && openCategoryDialog(selectedCategory)" />
+                            <p-button
+                                [label]="selectedCategory?.status === 'ACTIVE' ? 'Desactivar' : 'Activar'"
+                                styleClass="w-full sm:w-auto"
+                                [severity]="selectedCategory?.status === 'ACTIVE' ? 'danger' : 'primary'"
+                                [loading]="selectedCategory ? categoryStatusUpdatingId === selectedCategory.id : false"
+                                loadingIcon="pi pi-spinner pi-spin"
+                                (onClick)="selectedCategory && toggleCategoryStatus(selectedCategory)"
+                            />
                         </div>
                     </ng-template>
                 </p-dialog>
@@ -1189,7 +1456,7 @@ interface AcademyTeamStaffForm {
         </div>
     `
 })
-export class AcademyProfilePage {
+export class AcademyProfilePage implements OnInit, OnDestroy {
     @ViewChild('shieldCropper') shieldCropper?: ImageCropperComponent;
 
     readonly breadcrumbs: PageHeaderBreadcrumb[] = [{ label: 'Inicio', routerLink: '/' }, { label: 'Academia' }];
@@ -1236,6 +1503,12 @@ export class AcademyProfilePage {
 
     submitted = false;
     taxSubmitted = false;
+    readonly informationLoading = signal(true);
+    readonly informationLoadCompleted = signal(false);
+    readonly informationLoadError = signal<string | null>(null);
+    readonly taxLoading = signal(false);
+    readonly taxLoadCompleted = signal(false);
+    readonly taxLoadError = signal<string | null>(null);
     activeTab: 'information' | 'tax' | 'venues' | 'categories' | 'teams' | 'staff' = 'information';
     academy: AcademyProfile | null;
     form: AcademyProfile;
@@ -1245,16 +1518,42 @@ export class AcademyProfilePage {
     shieldPreviewUrl: string | null = null;
     hasPendingShieldChanges = false;
     shieldCroppedBlob: Blob | null = null;
-    selectedVenue: AcademyVenue | null = null;
+    saving = false;
+    taxSaving = false;
+    shieldUploadSaving = false;
+    shieldDeleteSaving = false;
+    shieldPreviewDialogVisible = false;
+    readonly sessionExpiredDialogVisible = signal(false);
+    private sessionExpiredTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    selectedVenue: VenueApiVenue | null = null;
     venueSearch = '';
     venueSubmitted = false;
     venueDialogVisible = false;
     venueDialogMode: 'create' | 'edit' = 'create';
     editingVenueId: string | null = null;
     venueForm: AcademyVenueForm = this.emptyVenueForm();
+    readonly venueLoading = signal(false);
+    readonly venueLoaded = signal(false);
+    venueSaving = false;
+    readonly venueError = signal<string | null>(null);
+    venueListMeta: VenueApiMeta | null = null;
+    venuePage = 1;
+    venueRows = 20;
+    venueStatusUpdatingId: string | null = null;
+    venueDetailVisible = false;
+    readonly categoryLoading = signal(false);
+    readonly categoryLoaded = signal(false);
+    readonly categoryError = signal<string | null>(null);
+    categoryListMeta: AcademyCategoryApiMeta | null = null;
+    categoryPage = 1;
+    categoryRows = 20;
+    categorySaving = false;
+    categoryStatusUpdatingId: string | null = null;
+    categoryDetailVisible = false;
     selectedCategory: AcademyCategory | null = null;
     categorySearch = '';
     categorySubmitted = false;
+    categoryAgeValidationReady = false;
     categoryDialogVisible = false;
     categoryDialogMode: 'create' | 'edit' = 'create';
     editingCategoryId: string | null = null;
@@ -1279,25 +1578,18 @@ export class AcademyProfilePage {
     staffDialogMode: 'create' | 'edit' = 'create';
     editingStaffId: string | null = null;
     staffForm: AcademyStaffForm = this.emptyStaffForm();
-    venues: AcademyVenue[] = [
-        {
-            id: 'venue-001',
-            name: 'Sede Norte',
-            address: 'Av. Principal 120',
-            city: 'Pereira',
-            phone: '3123456789',
-            status: 'ACTIVE'
-        },
-        {
-            id: 'venue-002',
-            name: 'Sede Sur',
-            address: 'Carrera 18 # 32-10',
-            city: 'Dosquebradas',
-            phone: '3205558899',
-            status: 'INACTIVE'
-        }
-    ];
+    venues: VenueApiVenue[] = [];
+    categories: AcademyCategory[] = [];
     venueActionItems: MenuItem[] = [
+        {
+            label: 'Ver detalle',
+            icon: 'pi pi-eye',
+            command: () => {
+                if (this.selectedVenue) {
+                    this.openVenueDetail(this.selectedVenue);
+                }
+            }
+        },
         {
             label: 'Editar sede',
             icon: 'pi pi-pencil',
@@ -1317,63 +1609,16 @@ export class AcademyProfilePage {
             }
         }
     ];
-    categories: AcademyCategory[] = [
-        {
-            id: 'category-001',
-            categoryKey: 'sub-12',
-            name: 'Sub 12',
-            minAge: 11,
-            maxAge: 12,
-            description: 'Categoría formativa para el primer bloque competitivo.',
-            status: 'ACTIVE'
-        },
-        {
-            id: 'category-002',
-            categoryKey: 'sub-14',
-            name: 'Sub 14',
-            minAge: 13,
-            maxAge: 14,
-            description: 'Categoría de transición para procesos formativos avanzados.',
-            status: 'ACTIVE'
-        },
-        {
-            id: 'category-003',
-            categoryKey: 'sub-8',
-            name: 'Sub 8',
-            minAge: 7,
-            maxAge: 8,
-            description: 'Categoría inicial para etapas tempranas de formación.',
-            status: 'ACTIVE'
-        },
-        {
-            id: 'category-004',
-            categoryKey: 'sub-10',
-            name: 'Sub 10',
-            minAge: 9,
-            maxAge: 10,
-            description: 'Categoría intermedia para consolidar fundamentos técnicos.',
-            status: 'ACTIVE'
-        },
-        {
-            id: 'category-005',
-            categoryKey: 'sub-16',
-            name: 'Sub 16',
-            minAge: 15,
-            maxAge: 16,
-            description: 'Categoría competitiva para procesos avanzados.',
-            status: 'INACTIVE'
-        },
-        {
-            id: 'category-006',
-            categoryKey: 'juvenil',
-            name: 'Juvenil',
-            minAge: 17,
-            maxAge: 18,
-            description: 'Última etapa formativa previa a transición competitiva mayor.',
-            status: 'ACTIVE'
-        }
-    ];
     categoryActionItems: MenuItem[] = [
+        {
+            label: 'Ver detalle',
+            icon: 'pi pi-eye',
+            command: () => {
+                if (this.selectedCategory) {
+                    this.openCategoryDetail(this.selectedCategory);
+                }
+            }
+        },
         {
             label: 'Editar',
             icon: 'pi pi-pencil',
@@ -1583,14 +1828,30 @@ export class AcademyProfilePage {
 
     constructor(
         private readonly academyService: AcademyProfileService,
-        private readonly auth: MockAuthService,
-        private readonly messageService: MessageService
+        private readonly venueService: VenueApiService,
+        private readonly categoryService: CategoryApiService,
+        private readonly auth: AuthSessionService,
+        private readonly authAccess: AuthAccessService,
+        private readonly route: ActivatedRoute,
+        private readonly confirmationService: ConfirmationService,
+        private readonly messageService: MessageService,
+        private readonly router: Router
     ) {
         this.academy = this.academyService.getCurrentAcademy();
         this.form = this.academy ?? this.emptyForm();
         this.taxProfile = this.academyService.getCurrentTaxProfile();
         this.taxForm = this.taxProfile ?? this.emptyTaxForm();
         this.selectedTeam = this.teams[0] ?? null;
+    }
+
+    ngOnInit() {
+        void this.loadTenantContextSilently();
+        this.loadInformation();
+        setTimeout(() => this.applyInitialTabFromFragment());
+    }
+
+    ngOnDestroy() {
+        this.clearSessionExpiredTimeout();
     }
 
     get academyInitials(): string {
@@ -1611,13 +1872,63 @@ export class AcademyProfilePage {
         return department?.cities ?? [];
     }
 
-    get filteredVenues(): AcademyVenue[] {
+    get venueDepartmentOptions(): LocationDepartment[] {
+        return this.locationCatalog[this.venueForm.country] ?? [];
+    }
+
+    get venueCities(): string[] {
+        const department = this.venueDepartmentOptions.find((item) => item.name === this.venueForm.department);
+        return department?.cities ?? [];
+    }
+
+    get venueCountryFlag(): string {
+        return this.countryOptions.find((option) => option.name === this.venueForm.country)?.flagFile ?? this.fallbackFlag;
+    }
+
+    get ageOptions(): AgeOption[] {
+        return Array.from({ length: 96 }, (_, index) => {
+            const age = index + 4;
+            return { label: `${age}`, value: `${age}` };
+        });
+    }
+
+    get filteredVenues(): VenueApiVenue[] {
         const query = this.venueSearch.trim().toLowerCase();
         if (!query) {
             return this.venues;
         }
 
-        return this.venues.filter((venue) => [venue.name, venue.city, venue.address].some((value) => value.toLowerCase().includes(query)));
+        return this.venues.filter((venue) => [venue.name, venue.city ?? '', venue.department ?? '', venue.country ?? '', venue.address ?? '', venue.phone ?? ''].some((value) => value.toLowerCase().includes(query)));
+    }
+
+    get venueTotalRecords(): number {
+        return this.resolveVenueMetaTotal(this.venueListMeta) ?? this.venues.length;
+    }
+
+    getVenueLocationSummary(venue: VenueApiVenue): string {
+        return [venue.address, venue.department, venue.country].filter((value): value is string => !!value && value.trim().length > 0).join(' · ') || 'Sin dirección registrada';
+    }
+
+    private resolveVenueMetaTotal(meta: VenueApiMeta | null): number | null {
+        if (!meta) {
+            return null;
+        }
+
+        const total = meta.total ?? meta.totalItems;
+        return typeof total === 'number' ? total : null;
+    }
+
+    get categoryTotalRecords(): number {
+        return this.resolveCategoryMetaTotal(this.categoryListMeta) ?? this.categories.length;
+    }
+
+    private resolveCategoryMetaTotal(meta: AcademyCategoryApiMeta | null): number | null {
+        if (!meta) {
+            return null;
+        }
+
+        const total = meta.total ?? meta.totalItems;
+        return typeof total === 'number' ? total : null;
     }
 
     get filteredCategories(): AcademyCategory[] {
@@ -1626,7 +1937,7 @@ export class AcademyProfilePage {
             return this.categories;
         }
 
-        return this.categories.filter((category) => [category.name, category.categoryKey, category.description].some((value) => value.toLowerCase().includes(query)));
+        return this.categories.filter((category) => [category.name ?? '', category.categoryKey ?? '', category.description ?? ''].some((value) => value.toLowerCase().includes(query)));
     }
 
     get filteredTeams(): AcademyTeam[] {
@@ -1696,6 +2007,107 @@ export class AcademyProfilePage {
         return this.staffMembers.filter((staff) => staff.status === 'ACTIVE' && !assignedIds.has(staff.id));
     }
 
+    loadInformation() {
+        this.informationLoading.set(true);
+        this.informationLoadError.set(null);
+
+        this.academyService
+            .loadCurrentAcademy()
+            .pipe(
+                finalize(() => {
+                    this.informationLoading.set(false);
+                    this.informationLoadCompleted.set(true);
+                })
+            )
+            .subscribe({
+                next: (academy) => {
+                    const nextAcademy = academy ?? this.academyService.getCurrentAcademy();
+                    this.academy = nextAcademy;
+                    this.form = nextAcademy ?? this.emptyForm();
+                    this.applyShieldState(nextAcademy);
+                },
+                error: (error: AuthErrorLike) => {
+                    if (error.status === 401) {
+                        this.showSessionExpiredDialog();
+                        return;
+                    }
+
+                    this.informationLoadError.set(this.resolveErrorMessage(error, 'No pudimos cargar la información de la academia.'));
+                }
+            });
+    }
+
+    loadTaxProfile() {
+        this.taxLoading.set(true);
+        this.taxLoadError.set(null);
+
+        this.academyService
+            .loadCurrentTaxProfile()
+            .pipe(
+                finalize(() => {
+                    this.taxLoading.set(false);
+                    this.taxLoadCompleted.set(true);
+                })
+            )
+            .subscribe({
+                next: (taxProfile) => {
+                    const nextTaxProfile = taxProfile ?? this.academyService.getCurrentTaxProfile();
+                    this.taxProfile = nextTaxProfile;
+                    this.taxForm = nextTaxProfile ?? this.emptyTaxForm();
+                },
+                error: (error: AuthErrorLike) => {
+                    this.taxLoadError.set(this.resolveErrorMessage(error, 'No pudimos cargar la información fiscal.'));
+                }
+            });
+    }
+
+    onTabSelected(tab: 'information' | 'venues' | 'categories' | 'teams' | 'staff') {
+        this.activeTab = tab;
+
+        if (tab === 'information' && !this.informationLoadCompleted() && !this.informationLoading()) {
+            this.loadInformation();
+        } else if (tab === 'venues') {
+            this.ensureVenuesLoaded();
+        } else if (tab === 'categories') {
+            this.ensureCategoriesLoaded();
+        }
+    }
+
+    onTabClicked(tab: 'information' | 'venues' | 'categories' | 'teams' | 'staff') {
+        this.onTabSelected(tab);
+        void this.router.navigate([], {
+            relativeTo: this.route,
+            fragment: tab,
+            replaceUrl: true
+        });
+    }
+
+    private loadTenantContextSilently() {
+        return this.authAccess.loadTenantContext().pipe(catchError(() => of(null))).subscribe();
+    }
+
+    private showSessionExpiredDialog(): void {
+        this.informationLoading.set(false);
+        this.taxLoading.set(false);
+        this.sessionExpiredDialogVisible.set(true);
+        this.clearSessionExpiredTimeout();
+        this.sessionExpiredTimeoutId = setTimeout(() => {
+            if (this.sessionExpiredDialogVisible()) {
+                this.goToLogin();
+            }
+        }, 30000);
+    }
+
+    private applyInitialTabFromFragment() {
+        const fragment = this.route.snapshot.fragment as 'information' | 'venues' | 'categories' | 'teams' | 'staff' | null;
+        if (fragment === 'venues' || fragment === 'categories' || fragment === 'teams' || fragment === 'staff' || fragment === 'information') {
+            this.onTabSelected(fragment);
+            return;
+        }
+
+        this.onTabSelected('information');
+    }
+
     save() {
         this.submitted = true;
 
@@ -1708,17 +2120,30 @@ export class AcademyProfilePage {
             return;
         }
 
-        this.academyService.updateCurrentAcademy(this.form);
-        this.academy = this.academyService.getCurrentAcademy();
-        this.form = this.academy ?? this.emptyForm();
-
-        this.messageService.add({
-            severity: 'success',
-            summary: 'Academia actualizada',
-            detail: this.hasPendingShieldChanges ? 'Los datos y la nueva imagen quedaron listos en esta iteración mock.' : 'Los datos generales de la academia fueron actualizados.'
+        this.saving = true;
+        this.academyService.updateCurrentAcademy(this.buildAcademyUpdatePayload()).subscribe({
+            next: (academy) => {
+                this.academy = academy;
+                this.form = academy;
+                this.applyShieldState(academy);
+                this.taxProfile = this.taxProfile ?? this.emptyTaxForm();
+                this.taxForm = this.taxProfile;
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Academia actualizada',
+                    detail: 'Los datos generales se guardaron correctamente.'
+                });
+                this.saving = false;
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No se pudo guardar',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+                this.saving = false;
+            }
         });
-
-        this.hasPendingShieldChanges = false;
     }
 
     saveTaxProfile() {
@@ -1733,14 +2158,55 @@ export class AcademyProfilePage {
             return;
         }
 
-        this.academyService.updateCurrentTaxProfile(this.taxForm);
-        this.taxProfile = this.academyService.getCurrentTaxProfile();
-        this.taxForm = this.taxProfile ?? this.emptyTaxForm();
+        this.taxSaving = true;
+        this.academyService.updateCurrentTaxProfile(this.buildTaxProfileUpdatePayload()).subscribe({
+            next: (taxProfile) => {
+                this.taxProfile = taxProfile;
+                this.taxForm = taxProfile;
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Información fiscal actualizada',
+                    detail: 'Los datos fiscales se guardaron correctamente.'
+                });
+                this.taxSaving = false;
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No se pudo guardar',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+                this.taxSaving = false;
+            }
+        });
+    }
 
-        this.messageService.add({
-            severity: 'success',
-            summary: 'Información fiscal actualizada',
-            detail: 'Los datos fiscales quedaron listos en esta iteración mock.'
+    saveShield() {
+        if (!this.shieldCroppedBlob || this.shieldUploadSaving) {
+            return;
+        }
+
+        this.shieldUploadSaving = true;
+        this.academyService.updateCurrentShield(this.shieldCroppedBlob).subscribe({
+            next: (academy) => {
+                this.academy = academy;
+                this.form = academy;
+                this.applyShieldState(academy);
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Escudo actualizado',
+                    detail: 'La imagen se guardó correctamente.'
+                });
+                this.shieldUploadSaving = false;
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No se pudo guardar',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+                this.shieldUploadSaving = false;
+            }
         });
     }
 
@@ -1780,12 +2246,12 @@ export class AcademyProfilePage {
         }
     }
 
-    reopenShieldDialog() {
+    openShieldPreviewDialog() {
         if (!this.shieldPreviewUrl) {
             return;
         }
 
-        this.shieldCropper?.openWithPreview(this.shieldPreviewUrl, this.shieldFileName);
+        this.shieldPreviewDialogVisible = true;
     }
 
     onShieldApplied(result: ImageCropperResult) {
@@ -1801,7 +2267,7 @@ export class AcademyProfilePage {
         });
     }
 
-    openVenueActionsMenu(event: Event, menu: Menu, venue: AcademyVenue) {
+    openVenueActionsMenu(event: Event, menu: Menu, venue: VenueApiVenue) {
         this.selectedVenue = venue;
         this.venueActionItems = [
             {
@@ -1825,6 +2291,11 @@ export class AcademyProfilePage {
         ];
 
         menu.toggle(event);
+    }
+
+    openVenueDetail(venue: VenueApiVenue) {
+        this.selectedVenue = venue;
+        this.venueDetailVisible = true;
     }
 
     openCategoryActionsMenu(event: Event, menu: Menu, category: AcademyCategory) {
@@ -1938,28 +2409,208 @@ export class AcademyProfilePage {
     }
 
     removeShield() {
-        this.shieldPreviewUrl = null;
-        this.shieldFileName = 'Sin imagen seleccionada';
-        this.shieldCroppedBlob = null;
-        this.hasPendingShieldChanges = true;
+        if (this.shieldUploadSaving || this.shieldDeleteSaving) {
+            return;
+        }
 
-        this.messageService.add({
-            severity: 'info',
-            summary: 'Imagen quitada',
-            detail: 'El cambio quedó listo para guardarse con el formulario.'
+        if (this.hasPendingShieldChanges && this.shieldCroppedBlob) {
+            this.applyShieldState(this.academy);
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Cambio cancelado',
+                detail: 'La imagen volvió al estado anterior.'
+            });
+            return;
+        }
+
+        if (!this.academy?.shieldUrl) {
+            this.applyShieldState(this.academy);
+            return;
+        }
+
+        this.shieldDeleteSaving = true;
+        this.academyService.deleteCurrentShield().subscribe({
+            next: () => {
+                const updatedAcademy = this.academy
+                    ? {
+                          ...this.academy,
+                          shieldUrl: null,
+                          shieldFileName: null
+                      }
+                    : null;
+
+                this.academy = updatedAcademy;
+                if (updatedAcademy) {
+                    this.form = updatedAcademy;
+                }
+                this.applyShieldState(updatedAcademy);
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Escudo eliminado',
+                    detail: 'El escudo ya no se mostrará en la academia.'
+                });
+                this.shieldDeleteSaving = false;
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No se pudo eliminar',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+                this.shieldDeleteSaving = false;
+            }
         });
     }
 
-    openVenueDialog(venue?: AcademyVenue) {
+    private buildAcademyUpdatePayload(): AcademyProfileUpdateRequest {
+        return {
+            name: this.form.name.trim(),
+            contactEmail: this.form.contactEmail.trim(),
+            phone: `${this.form.countryCode.trim()}${this.form.phoneNumber.trim()}`.trim(),
+            country: this.form.country.trim(),
+            department: this.form.department.trim(),
+            city: this.form.city.trim(),
+            address: this.form.address.trim()
+        };
+    }
+
+    private buildTaxProfileUpdatePayload(): AcademyTaxProfileUpdateRequest {
+        return {
+            taxIdType: this.taxForm.taxIdType.trim(),
+            taxIdNumber: this.taxForm.taxIdNumber.trim(),
+            taxCheckDigit: this.taxForm.taxCheckDigit.trim(),
+            taxRegime: this.taxForm.taxRegime.trim(),
+            billingEmail: this.taxForm.billingEmail.trim()
+        };
+    }
+
+    private applyShieldState(academy: AcademyProfile | null) {
+        this.shieldPreviewUrl = academy?.shieldUrl ?? null;
+        this.shieldFileName = academy?.shieldFileName ?? (academy?.shieldUrl ? 'Escudo actual' : 'Sin imagen seleccionada');
+        this.hasPendingShieldChanges = false;
+        this.shieldCroppedBlob = null;
+    }
+
+    private resolveErrorMessage(error: AuthErrorLike | undefined, fallback: string): string {
+        return error?.detail?.trim() || error?.message?.trim() || fallback;
+    }
+
+    goToLogin() {
+        this.sessionExpiredDialogVisible.set(false);
+        this.clearSessionExpiredTimeout();
+        this.auth.clearSession();
+        void this.router.navigate(['/auth/login'], {
+            queryParams: {
+                returnUrl: '/academy'
+            }
+        });
+    }
+
+    private clearSessionExpiredTimeout() {
+        if (this.sessionExpiredTimeoutId) {
+            clearTimeout(this.sessionExpiredTimeoutId);
+            this.sessionExpiredTimeoutId = null;
+        }
+    }
+
+    loadVenues() {
+        this.venueLoading.set(true);
+        this.venueError.set(null);
+
+        this.venueService.list({ page: this.venuePage, per_page: this.venueRows, sort: 'created_at', direction: 'DESC' }).pipe(finalize(() => this.venueLoading.set(false))).subscribe({
+            next: (response) => {
+                this.venues = response.data;
+                this.venueListMeta = response.meta;
+                this.venueLoaded.set(true);
+            },
+            error: (error: AuthErrorLike) => {
+                this.venueError.set(this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.'));
+            }
+        });
+    }
+
+    loadCategories() {
+        this.categoryLoading.set(true);
+        this.categoryError.set(null);
+
+        this.categoryService.list({ page: this.categoryPage, per_page: this.categoryRows, sort: 'created_at', direction: 'DESC' }).pipe(finalize(() => this.categoryLoading.set(false))).subscribe({
+            next: (response) => {
+                this.categories = response.data;
+                this.categoryListMeta = response.meta;
+                this.categoryLoaded.set(true);
+            },
+            error: (error: AuthErrorLike) => {
+                this.categoryError.set(this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.'));
+            }
+        });
+    }
+
+    ensureVenuesLoaded() {
+        if (this.venueLoaded() || this.venueLoading()) {
+            return;
+        }
+
+        this.loadVenues();
+    }
+
+    ensureCategoriesLoaded() {
+        if (this.categoryLoaded() || this.categoryLoading()) {
+            return;
+        }
+
+        this.loadCategories();
+    }
+
+    onVenuePageChange(event: { page?: number; first?: number; rows?: number }) {
+        const rows = event.rows ?? this.venueRows;
+        const page = typeof event.page === 'number' ? event.page + 1 : Math.floor((event.first ?? 0) / rows) + 1;
+
+        if (page === this.venuePage && rows === this.venueRows) {
+            return;
+        }
+
+        this.venuePage = page;
+        this.venueRows = rows;
+        this.loadVenues();
+    }
+
+    onCategoryPageChange(event: { page?: number; first?: number; rows?: number }) {
+        const rows = event.rows ?? this.categoryRows;
+        const page = typeof event.page === 'number' ? event.page + 1 : Math.floor((event.first ?? 0) / rows) + 1;
+
+        if (page === this.categoryPage && rows === this.categoryRows) {
+            return;
+        }
+
+        this.categoryPage = page;
+        this.categoryRows = rows;
+        this.loadCategories();
+    }
+
+    refreshVenues() {
+        this.venueLoaded.set(false);
+        this.loadVenues();
+    }
+
+    refreshCategories() {
+        this.categoryLoaded.set(false);
+        this.loadCategories();
+    }
+
+    openVenueDialog(venue?: VenueApiVenue) {
         this.venueSubmitted = false;
         this.venueDialogMode = venue ? 'edit' : 'create';
         this.editingVenueId = venue?.id ?? null;
         this.venueForm = venue
             ? {
                   name: venue.name,
-                  address: venue.address,
-                  city: venue.city,
-                  phone: venue.phone
+                  address: venue.address ?? '',
+                  country: venue.country ?? this.form.country ?? 'Colombia',
+                  department: venue.department ?? '',
+                  city: venue.city ?? '',
+                  countryCode: this.resolveVenueCountryCode(venue.phone ?? ''),
+                  phoneNumber: this.resolveVenuePhoneNumber(venue.phone ?? ''),
+                  notes: typeof venue.notes === 'string' ? venue.notes : ''
               }
             : this.emptyVenueForm();
         this.venueDialogVisible = true;
@@ -1975,22 +2626,34 @@ export class AcademyProfilePage {
 
     openCategoryDialog(category?: AcademyCategory) {
         this.categorySubmitted = false;
+        this.categoryAgeValidationReady = false;
         this.categoryDialogMode = category ? 'edit' : 'create';
         this.editingCategoryId = category?.id ?? null;
         this.categoryForm = category
             ? {
+                  categoryKey: category.categoryKey ?? this.buildCategoryKey(category.name),
                   name: category.name,
                   minAge: String(category.minAge),
                   maxAge: String(category.maxAge),
-                  description: category.description
+                  description: category.description ?? ''
               }
             : this.emptyCategoryForm();
         this.categoryDialogVisible = true;
     }
 
+    openCategoryDetail(category: AcademyCategory) {
+        this.selectedCategory = category;
+        this.categoryDetailVisible = true;
+
+        if (!this.categoryLoaded() || !this.categoryHasDetail(category)) {
+            void this.loadCategoryDetail(category.id);
+        }
+    }
+
     resetCategoryDialog() {
         this.categoryDialogVisible = false;
         this.categorySubmitted = false;
+        this.categoryAgeValidationReady = false;
         this.editingCategoryId = null;
         this.categoryDialogMode = 'create';
         this.categoryForm = this.emptyCategoryForm();
@@ -2090,45 +2753,32 @@ export class AcademyProfilePage {
             return;
         }
 
-        if (this.venueDialogMode === 'create') {
-            this.venues = [
-                {
-                    id: `venue-${Date.now()}`,
-                    name: this.venueForm.name.trim(),
-                    address: this.venueForm.address.trim(),
-                    city: this.venueForm.city.trim(),
-                    phone: this.venueForm.phone.trim(),
-                    status: 'ACTIVE'
-                },
-                ...this.venues
-            ];
-
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Sede agregada',
-                detail: 'La nueva sede quedó registrada en esta iteración mock.'
-            });
-        } else if (this.editingVenueId) {
-            this.venues = this.venues.map((venue) =>
-                venue.id === this.editingVenueId
-                    ? {
-                          ...venue,
-                          name: this.venueForm.name.trim(),
-                          address: this.venueForm.address.trim(),
-                          city: this.venueForm.city.trim(),
-                          phone: this.venueForm.phone.trim()
-                      }
-                    : venue
-            );
-
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Sede actualizada',
-                detail: 'Los cambios de la sede quedaron listos en esta iteración mock.'
-            });
+        this.venueSaving = true;
+        const payload = this.buildVenuePayload();
+        const request$ = this.venueDialogMode === 'create' ? this.venueService.create(payload) : this.editingVenueId ? this.venueService.update(this.editingVenueId, payload) : null;
+        if (!request$) {
+            this.venueSaving = false;
+            return;
         }
 
-        this.resetVenueDialog();
+        request$.pipe(finalize(() => (this.venueSaving = false))).subscribe({
+            next: () => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: this.venueDialogMode === 'create' ? 'Sede agregada' : 'Sede actualizada',
+                    detail: 'Los cambios quedaron guardados correctamente.'
+                });
+                this.resetVenueDialog();
+                this.refreshVenues();
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No pudimos guardar la sede',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+            }
+        });
     }
 
     saveCategory() {
@@ -2143,53 +2793,39 @@ export class AcademyProfilePage {
             return;
         }
 
-        const normalizedKey = this.buildCategoryKey(this.categoryForm.name);
-        const trimmedName = this.categoryForm.name.trim();
-        const trimmedDescription = this.categoryForm.description.trim();
-        const minAge = Number(this.categoryForm.minAge);
-        const maxAge = Number(this.categoryForm.maxAge);
+        this.categorySaving = true;
+        const payload = this.buildCategoryPayload();
+        const request$ =
+            this.categoryDialogMode === 'create'
+                ? this.categoryService.create(payload)
+                : this.editingCategoryId
+                  ? this.categoryService.update(this.editingCategoryId, payload)
+                  : null;
 
-        if (this.categoryDialogMode === 'create') {
-            this.categories = [
-                {
-                    id: `category-${Date.now()}`,
-                    categoryKey: normalizedKey,
-                    name: trimmedName,
-                    minAge,
-                    maxAge,
-                    description: trimmedDescription,
-                    status: 'ACTIVE'
-                },
-                ...this.categories
-            ];
-
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Categoría agregada',
-                detail: 'La nueva categoría quedó registrada en esta iteración mock.'
-            });
-        } else if (this.editingCategoryId) {
-            this.categories = this.categories.map((category) =>
-                category.id === this.editingCategoryId
-                    ? {
-                          ...category,
-                          categoryKey: normalizedKey,
-                          name: trimmedName,
-                          minAge,
-                          maxAge,
-                          description: trimmedDescription
-                      }
-                    : category
-            );
-
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Categoría actualizada',
-                detail: 'Los cambios de la categoría quedaron listos en esta iteración mock.'
-            });
+        if (!request$) {
+            this.categorySaving = false;
+            return;
         }
 
-        this.resetCategoryDialog();
+        request$.pipe(finalize(() => (this.categorySaving = false))).subscribe({
+            next: (category) => {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: this.categoryDialogMode === 'create' ? 'Categoría agregada' : 'Categoría actualizada',
+                    detail: 'Los cambios quedaron guardados correctamente.'
+                });
+                this.resetCategoryDialog();
+                this.refreshCategories();
+                this.selectedCategory = category;
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No pudimos guardar la categoría',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+            }
+        });
     }
 
     saveTeam() {
@@ -2408,25 +3044,73 @@ export class AcademyProfilePage {
         });
     }
 
-    toggleVenueStatus(venue: AcademyVenue) {
-        const nextStatus = venue.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-        this.venues = this.venues.map((item) => (item.id === venue.id ? { ...item, status: nextStatus } : item));
-
-        this.messageService.add({
-            severity: 'info',
-            summary: nextStatus === 'ACTIVE' ? 'Sede activada' : 'Sede inactivada',
-            detail: nextStatus === 'ACTIVE' ? 'La sede volvió a quedar disponible.' : 'La sede dejó de estar disponible para la operación.'
+    toggleVenueStatus(venue: VenueApiVenue) {
+        const nextAction = (venue.status ?? 'ACTIVE') === 'ACTIVE' ? 'inactivate' : 'activate';
+        this.confirmationService.confirm({
+            header: nextAction === 'inactivate' ? 'Desactivar sede' : 'Reactivar sede',
+            icon: 'pi pi-exclamation-triangle',
+            message: nextAction === 'inactivate' ? `¿Deseas desactivar la sede "${venue.name}"?` : `¿Deseas reactivar la sede "${venue.name}"?`,
+            acceptLabel: nextAction === 'inactivate' ? 'Desactivar' : 'Reactivar',
+            rejectLabel: 'Cancelar',
+            acceptButtonStyleClass: nextAction === 'inactivate' ? 'p-button-danger' : '',
+            accept: () => {
+                this.venueStatusUpdatingId = venue.id;
+                const request$ = nextAction === 'inactivate' ? this.venueService.inactivate(venue.id) : this.venueService.activate(venue.id);
+                request$
+                    .pipe(finalize(() => (this.venueStatusUpdatingId = null)))
+                    .subscribe({
+                        next: () => {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: nextAction === 'inactivate' ? 'Sede desactivada' : 'Sede activada',
+                                detail: 'El listado se refrescó con el estado más reciente.'
+                            });
+                            this.refreshVenues();
+                        },
+                        error: (error: AuthErrorLike) => {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'No pudimos cambiar el estado',
+                                detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                            });
+                        }
+                    });
+            }
         });
     }
 
     toggleCategoryStatus(category: AcademyCategory) {
-        const nextStatus = category.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-        this.categories = this.categories.map((item) => (item.id === category.id ? { ...item, status: nextStatus } : item));
-
-        this.messageService.add({
-            severity: 'info',
-            summary: nextStatus === 'ACTIVE' ? 'Categoría activada' : 'Categoría inactivada',
-            detail: nextStatus === 'ACTIVE' ? 'La categoría volvió a quedar disponible.' : 'La categoría dejó de estar disponible para la operación.'
+        const nextAction = category.status === 'ACTIVE' ? 'inactivate' : 'activate';
+        this.confirmationService.confirm({
+            header: nextAction === 'inactivate' ? 'Desactivar categoría' : 'Reactivar categoría',
+            icon: 'pi pi-exclamation-triangle',
+            message: nextAction === 'inactivate' ? `¿Deseas desactivar la categoría "${category.name}"?` : `¿Deseas reactivar la categoría "${category.name}"?`,
+            acceptLabel: nextAction === 'inactivate' ? 'Desactivar' : 'Reactivar',
+            rejectLabel: 'Cancelar',
+            acceptButtonStyleClass: nextAction === 'inactivate' ? 'p-button-danger' : '',
+            accept: () => {
+                this.categoryStatusUpdatingId = category.id;
+                const request$ = nextAction === 'inactivate' ? this.categoryService.inactivate(category.id) : this.categoryService.activate(category.id);
+                request$
+                    .pipe(finalize(() => (this.categoryStatusUpdatingId = null)))
+                    .subscribe({
+                        next: () => {
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: nextAction === 'inactivate' ? 'Categoría desactivada' : 'Categoría activada',
+                                detail: 'El listado se refrescó con el estado más reciente.'
+                            });
+                            this.refreshCategories();
+                        },
+                        error: (error: AuthErrorLike) => {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'No pudimos cambiar el estado',
+                                detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                            });
+                        }
+                    });
+            }
         });
     }
 
@@ -2456,6 +3140,10 @@ export class AcademyProfilePage {
     }
 
     showCategoryError(field: keyof AcademyCategoryForm): boolean {
+        if ((field === 'minAge' || field === 'maxAge') && this.categoryAgeValidationReady) {
+            return !this.isCategoryFieldValid(field);
+        }
+
         return this.categorySubmitted && !this.isCategoryFieldValid(field);
     }
 
@@ -2475,12 +3163,17 @@ export class AcademyProfilePage {
         this.venueForm.name = this.sanitizeNameInput((event.target as HTMLInputElement).value);
     }
 
-    onVenueCityInput(event: Event) {
-        this.venueForm.city = this.sanitizeNameInput((event.target as HTMLInputElement).value);
+    onVenueLocationCountryChange() {
+        this.venueForm.department = '';
+        this.venueForm.city = '';
     }
 
-    onVenuePhoneInput(event: Event) {
-        this.venueForm.phone = this.sanitizePhoneInput((event.target as HTMLInputElement).value);
+    onVenueDepartmentChange() {
+        this.venueForm.city = '';
+    }
+
+    onVenuePhoneNumberInput(event: Event) {
+        this.venueForm.phoneNumber = this.sanitizePhoneInput((event.target as HTMLInputElement).value);
     }
 
     onVenueAddressInput(event: Event) {
@@ -2489,10 +3182,18 @@ export class AcademyProfilePage {
 
     onCategoryNameInput(event: Event) {
         this.categoryForm.name = this.sanitizeNameInput((event.target as HTMLInputElement).value);
+        this.categoryForm.categoryKey = this.buildCategoryKey(this.categoryForm.name);
     }
 
     onCategoryAgeInput(field: 'minAge' | 'maxAge', event: Event) {
-        this.categoryForm[field] = this.sanitizeNumericInput((event.target as HTMLInputElement).value);
+        const input = event.target as HTMLInputElement;
+        const digits = this.sanitizeNumericInput(input.value).slice(0, 2);
+        input.value = digits;
+        this.categoryForm[field] = digits;
+    }
+
+    onCategoryAgeChange() {
+        this.categoryAgeValidationReady = true;
     }
 
     onTeamNameInput(event: Event) {
@@ -2616,11 +3317,11 @@ export class AcademyProfilePage {
     }
 
     private canEditAcademy(): boolean {
-        return ['tenant_owner', 'academy_admin'].includes(this.auth.getRole());
+        return ['tenant_owner', 'academy_admin', 'ROLE_TENANT_OWNER', 'ROLE_ACADEMY_ADMIN'].includes(this.auth.getRole() ?? '');
     }
 
     private isFormValid(): boolean {
-        return ['name', 'contactEmail', 'countryCode', 'phoneNumber', 'country', 'department', 'city', 'address'].every((field) => this.isFieldValid(field));
+        return ['name', 'contactEmail', 'countryCode', 'phoneNumber', 'country', 'department', 'city'].every((field) => this.isFieldValid(field));
     }
 
     private isTaxFormValid(): boolean {
@@ -2628,11 +3329,11 @@ export class AcademyProfilePage {
     }
 
     private isVenueFormValid(): boolean {
-        return ['name', 'city', 'phone'].every((field) => this.isVenueFieldValid(field as keyof AcademyVenueForm));
+        return ['name', 'countryCode', 'phoneNumber'].every((field) => this.isVenueFieldValid(field as keyof AcademyVenueForm));
     }
 
     private isCategoryFormValid(): boolean {
-        return ['name', 'minAge', 'maxAge'].every((field) => this.isCategoryFieldValid(field as keyof AcademyCategoryForm));
+        return ['categoryKey', 'name', 'minAge', 'maxAge'].every((field) => this.isCategoryFieldValid(field as keyof AcademyCategoryForm));
     }
 
     private isTeamFormValid(): boolean {
@@ -2672,7 +3373,7 @@ export class AcademyProfilePage {
             case 'city':
                 return !!this.form.city.trim();
             case 'address':
-                return this.hasValidAddressText(this.form.address, 5);
+                return !this.form.address?.trim() || this.hasValidAddressText(this.form.address, 5);
             default:
                 return true;
         }
@@ -2707,11 +3408,18 @@ export class AcademyProfilePage {
         switch (field) {
             case 'name':
                 return this.hasValidText(this.venueForm.name, 2);
+            case 'country':
+                return !!this.venueForm.country.trim();
+            case 'department':
+                return !!this.venueForm.department.trim();
             case 'city':
-                return this.hasValidText(this.venueForm.city, 2);
-            case 'phone':
-                return !this.venueForm.phone.trim() || this.isValidPhoneNumber(this.form.countryCode, this.venueForm.phone);
+                return !!this.venueForm.city.trim();
+            case 'countryCode':
+                return !!this.venueForm.countryCode.trim();
+            case 'phoneNumber':
+                return !this.venueForm.phoneNumber.trim() || this.isValidPhoneNumber(this.venueForm.countryCode, this.venueForm.phoneNumber);
             case 'address':
+            case 'notes':
             default:
                 return true;
         }
@@ -2720,14 +3428,17 @@ export class AcademyProfilePage {
     private isCategoryFieldValid(field: keyof AcademyCategoryForm): boolean {
         const minAge = Number(this.categoryForm.minAge);
         const maxAge = Number(this.categoryForm.maxAge);
+        const categoryKey = this.categoryForm.categoryKey.trim();
 
         switch (field) {
+            case 'categoryKey':
+                return /^[a-zA-Z0-9_-]+$/.test(categoryKey);
             case 'name':
-                return this.hasValidText(this.categoryForm.name, 2) && !this.isDuplicateCategoryName(this.categoryForm.name) && !this.isDuplicateCategoryKey(this.buildCategoryKey(this.categoryForm.name));
+                return this.hasValidText(this.categoryForm.name, 2);
             case 'minAge':
-                return Number.isInteger(minAge) && minAge >= 0 && minAge < maxAge;
+                return Number.isInteger(minAge) && minAge >= 4 && minAge <= 99 && (!Number.isInteger(maxAge) || minAge < maxAge);
             case 'maxAge':
-                return Number.isInteger(maxAge) && maxAge > minAge;
+                return Number.isInteger(maxAge) && maxAge >= 4 && maxAge <= 99 && (!Number.isInteger(minAge) || maxAge > minAge);
             case 'description':
             default:
                 return true;
@@ -2882,7 +3593,7 @@ export class AcademyProfilePage {
             return false;
         }
 
-        return this.categories.some((category) => category.id !== this.editingCategoryId && category.categoryKey.trim().toLowerCase() === normalizedKey);
+        return this.categories.some((category) => category.id !== this.editingCategoryId && (category.categoryKey ?? '').trim().toLowerCase() === normalizedKey);
     }
 
     private buildCategoryKey(name: string): string {
@@ -2897,17 +3608,23 @@ export class AcademyProfilePage {
             .replace(/^-+|-+$/g, '');
     }
 
-    private isDuplicateStaffEmail(email: string): boolean {
-        const normalizedEmail = email.trim().toLowerCase();
-        if (!normalizedEmail) {
-            return false;
+    getCategoryAgeRangeLabel(category: AcademyCategory): string {
+        const minAge = category.minAge ?? null;
+        const maxAge = category.maxAge ?? null;
+
+        if (minAge === null && maxAge === null) {
+            return '-';
         }
 
-        return this.staffMembers.some((staff) => staff.id !== this.editingStaffId && staff.email.trim().toLowerCase() === normalizedEmail);
-    }
+        if (minAge === null) {
+            return `Hasta ${maxAge} años`;
+        }
 
-    getCategoryAgeRangeLabel(category: AcademyCategory): string {
-        return `${category.minAge} a ${category.maxAge} años`;
+        if (maxAge === null) {
+            return `Desde ${minAge} años`;
+        }
+
+        return `${minAge} a ${maxAge} años`;
     }
 
     getCategoryStatusLabel(status: AcademyCategory['status']): string {
@@ -2917,7 +3634,7 @@ export class AcademyProfilePage {
             case 'INACTIVE':
                 return 'Inactiva';
             default:
-                return status;
+                return status ?? '-';
         }
     }
 
@@ -2929,6 +3646,48 @@ export class AcademyProfilePage {
             default:
                 return 'danger';
         }
+    }
+
+    private buildCategoryPayload(): AcademyCategoryUpsertRequest {
+        const categoryKey = this.categoryForm.categoryKey.trim() || this.buildCategoryKey(this.categoryForm.name);
+
+        return {
+            categoryKey,
+            name: this.categoryForm.name.trim(),
+            minAge: Number(this.categoryForm.minAge),
+            maxAge: Number(this.categoryForm.maxAge),
+            description: this.categoryForm.description.trim() || undefined
+        };
+    }
+
+    private categoryHasDetail(category: AcademyCategory): boolean {
+        return typeof category.academyId === 'string' && !!category.academyId.trim();
+    }
+
+    private loadCategoryDetail(categoryId: string) {
+        return this.categoryService.getById(categoryId).subscribe({
+            next: (category) => {
+                this.selectedCategory = category;
+                this.categoryDetailVisible = true;
+                this.categories = this.categories.map((item) => (item.id === category.id ? category : item));
+            },
+            error: (error: AuthErrorLike) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'No pudimos cargar el detalle',
+                    detail: this.resolveErrorMessage(error, 'Intenta nuevamente en unos segundos.')
+                });
+            }
+        });
+    }
+
+    private isDuplicateStaffEmail(email: string): boolean {
+        const normalizedEmail = email.trim().toLowerCase();
+        if (!normalizedEmail) {
+            return false;
+        }
+
+        return this.staffMembers.some((staff) => staff.id !== this.editingStaffId && staff.email.trim().toLowerCase() === normalizedEmail);
     }
 
     getTeamStatusLabel(status: AcademyTeam['status']): string {
@@ -3039,18 +3798,18 @@ export class AcademyProfilePage {
         }
     }
 
-    getVenueStatusLabel(status: AcademyVenue['status']): string {
+    getVenueStatusLabel(status: VenueApiVenue['status']): string {
         switch (status) {
             case 'ACTIVE':
                 return 'Activa';
             case 'INACTIVE':
                 return 'Inactiva';
             default:
-                return status;
+                return status ?? '-';
         }
     }
 
-    getVenueStatusSeverity(status: AcademyVenue['status']): 'success' | 'danger' {
+    getVenueStatusSeverity(status: VenueApiVenue['status']): 'success' | 'danger' {
         switch (status) {
             case 'ACTIVE':
                 return 'success';
@@ -3095,13 +3854,54 @@ export class AcademyProfilePage {
         return {
             name: '',
             address: '',
+            country: this.form?.country ?? 'Colombia',
+            department: '',
             city: '',
-            phone: ''
+            countryCode: this.form?.countryCode ?? '+57',
+            phoneNumber: '',
+            notes: ''
         };
+    }
+
+    private buildVenuePayload(): VenueUpsertRequest {
+        return {
+            name: this.venueForm.name.trim(),
+            address: this.venueForm.address.trim() || undefined,
+            country: this.venueForm.country.trim() || undefined,
+            department: this.venueForm.department.trim() || undefined,
+            city: this.venueForm.city.trim() || undefined,
+            phone: `${this.venueForm.countryCode.trim()}${this.venueForm.phoneNumber.trim()}`.trim() || undefined,
+            notes: this.venueForm.notes.trim() || undefined
+        };
+    }
+
+    private resolveVenueCountryCode(phone: string): string {
+        const normalized = phone.replace(/\s+/g, '');
+
+        if (normalized.startsWith('+57')) return '+57';
+        if (normalized.startsWith('+51')) return '+51';
+        if (normalized.startsWith('+56')) return '+56';
+        if (normalized.startsWith('+593')) return '+593';
+        if (normalized.startsWith('+52')) return '+52';
+        if (normalized.startsWith('+34')) return '+34';
+
+        return this.form?.countryCode ?? '+57';
+    }
+
+    private resolveVenuePhoneNumber(phone: string): string {
+        const normalized = phone.replace(/\s+/g, '');
+        const countryCode = this.resolveVenueCountryCode(normalized);
+
+        if (normalized.startsWith(countryCode)) {
+            return normalized.slice(countryCode.length).trim();
+        }
+
+        return normalized.replace(/^\+\d+/, '').trim();
     }
 
     private emptyCategoryForm(): AcademyCategoryForm {
         return {
+            categoryKey: '',
             name: '',
             minAge: '',
             maxAge: '',

@@ -12,7 +12,7 @@ El ancho del contenido debe responder al tipo de tarea principal:
 
 * `content-width-compact`: formularios de edición y lectura con foco, normalmente de 1 o 2 columnas.
 * `content-width-comfortable`: formularios más densos, asistentes y vistas mixtas.
-* `content-width-full`: tablas, listados y paneles con varias columnas visibles.
+* `content-width-full`: tablas, listados y paneles que necesitan usar todo el ancho disponible.
 
 ## Criterio de uso
 
@@ -42,7 +42,8 @@ Usar cuando el contenido principal es tabular o necesita aire horizontal para no
 Ejemplos:
 
 * staff;
-* cualquier listado con 5 o más columnas visibles.
+* cualquier listado con 5 o más columnas visibles;
+* paneles de operación que se benefician de un ancho intermedio entre `compact` y `full`.
 
 ## Regla técnica
 
@@ -56,5 +57,6 @@ Aplicado en:
 * `src/app/features/tenants/pages/tenant-wizard.ts` → `content-width-comfortable`
 * `src/app/features/academy/pages/academy-profile.ts`
   * `Información` → `content-width-compact`
-  * `Sedes`, `Categorías`, `Equipos` → `content-width-compact`
+  * `Sedes` → `content-width-comfortable`
+  * `Categorías`, `Equipos` → `content-width-compact`
   * `Staff` → `content-width-full`

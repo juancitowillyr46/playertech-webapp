@@ -97,6 +97,12 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 border-radius: 0.75rem;
             }
 
+            @media (max-width: 991px) {
+                .layout-sidebar {
+                    width: min(22rem, calc(100vw - 1.5rem));
+                }
+            }
+
             .layout-sidebar-shell {
                 display: flex;
                 flex-direction: column;
@@ -335,18 +341,21 @@ export class AppSidebar implements OnInit, OnDestroy {
 
     readonly desktopCollapsed = computed(() => this.layoutService.isDesktop() && this.layoutService.layoutState().staticMenuDesktopInactive);
 
-    readonly userName = computed(() => this.profileService.currentProfile().fullName);
+    readonly currentProfile = computed(() => this.profileService.currentProfile() ?? null);
 
-    readonly userEmail = computed(() => this.profileService.currentProfile().email);
+    readonly userName = computed(() => this.currentProfile()?.fullName?.trim() || 'Usuario');
 
-    readonly userPlan = computed(() => this.profileService.currentProfile().roleLabel);
+    readonly userEmail = computed(() => this.currentProfile()?.email?.trim() || 'Cargando...');
+
+    readonly userPlan = computed(() => this.currentProfile()?.primaryRoleLabel || 'Sin rol');
 
     readonly userInitials = computed(() =>
         this.userName()
+            .trim()
             .split(' ')
             .filter(Boolean)
             .slice(0, 2)
-            .map((part) => part.charAt(0).toUpperCase())
+            .map((part: string) => part.charAt(0).toUpperCase())
             .join('')
     );
 

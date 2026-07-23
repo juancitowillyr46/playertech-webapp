@@ -16,6 +16,19 @@ Convención de estado vigente:
 * `In Progress` = trabajo iniciado pero aún no hay una experiencia completa validable.
 * `Draft` = definición documental sin implementación visible todavía.
 
+Documentación SDD relacionada:
+
+* [Auditoría de preparación SDD](./00-sdd-audit-report.md)
+* [Plan de adopción incremental SDD](./02-sdd-adoption-plan.md)
+* [Convención de trazabilidad SDD](./03-sdd-traceability-conventions.md)
+* [Plantilla de criterios de aceptación SDD](./04-sdd-acceptance-template.md)
+* [Matriz de trazabilidad inicial SDD](./05-sdd-traceability-matrix.md)
+* [Plan de caracterización inicial](./06-sdd-characterization-plan.md)
+* [Guía de entrada para nuevas features](./07-sdd-feature-intake-playbook.md)
+* [Plantilla de nueva feature SDD](./08-new-feature-template.md)
+* [Checklist rápida de decisión](./09-feature-decision-checklist.md)
+* [Evolución del perfil base del jugador](./10-player-base-profile-evolution.md)
+
 ---
 
 # Criterio de Mapeo
@@ -126,15 +139,15 @@ Cobertura de alta unificada del staff, acceso y relación del staff con equipos.
 
 ## EF-005 Sports Configuration
 
-* HU-001 Crear sede → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-002 Listar sedes → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-003 Ver detalle de sede → `Partial` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-004 Actualizar sede → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-005 Activar o inactivar sede → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-006 Crear categoría → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-007 Listar categorías → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-008 Actualizar categoría → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
-* HU-009 Activar o inactivar categoría → `Done (Mock UI)` → `src/app/features/academy/pages/academy-profile.ts`
+* HU-001 Crear sede → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/venue-api.service.ts`
+* HU-002 Listar sedes → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/venue-api.service.ts`
+* HU-003 Ver detalle de sede → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/venue-api.service.ts`
+* HU-004 Actualizar sede → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/venue-api.service.ts`
+* HU-005 Activar o inactivar sede → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/venue-api.service.ts`
+* HU-006 Crear categoría → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/category-api.service.ts`
+* HU-007 Listar categorías → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/category-api.service.ts`
+* HU-008 Actualizar categoría → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/category-api.service.ts`
+* HU-009 Activar o inactivar categoría → `Done` → `src/app/features/academy/pages/academy-profile.ts`, `src/app/features/academy/data-access/category-api.service.ts`
 
 ## EF-006 Player Management
 

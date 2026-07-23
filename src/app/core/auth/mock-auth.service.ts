@@ -1,83 +1,67 @@
 import { Injectable } from '@angular/core';
+import { AuthRole } from './auth.models';
+import { AuthSessionService } from './auth-session.service';
 
 export type MockUserRole = 'super_admin' | 'tenant_owner' | 'academy_admin' | 'staff';
-
-type MockAuthState = {
-    authenticated: boolean;
-    role: MockUserRole;
-};
-
-const AUTH_STORAGE_KEY = 'playertech.mock-auth';
 
 @Injectable({
     providedIn: 'root'
 })
 export class MockAuthService {
-    private state: MockAuthState = this.readState();
+    constructor(private readonly session: AuthSessionService) {}
 
     isAuthenticated(): boolean {
-        return this.state.authenticated;
+        return this.session.isAuthenticated();
     }
 
     getRole(): MockUserRole {
-        return this.state.role;
+        return this.mapRole(this.session.primaryRole() ?? 'ROLE_USER');
     }
 
     login(role: MockUserRole = 'tenant_owner') {
-        this.state = {
-            authenticated: true,
-            role
-        };
-        this.persistState();
+        this.session.setSession({
+            id: 'mock-session',
+            fullName: 'Usuario Demo',
+            email: 'demo@playertech.com',
+            academyId: role === 'super_admin' ? null : 'tenant-demo',
+            academyName: role === 'super_admin' ? null : 'Academia Demo',
+            roles: [this.mapLegacyRole(role)],
+            role: this.mapLegacyRole(role),
+            status: 'ACTIVE'
+        });
     }
 
     logout() {
-        this.state = {
-            authenticated: false,
-            role: 'tenant_owner'
-        };
-        this.persistState();
+        this.session.clearSession();
     }
 
     canAccess(routePath: string): boolean {
-        if (!this.isAuthenticated()) {
-            return false;
-        }
-
-        if (this.state.role === 'super_admin') {
-            return true;
-        }
-
-        if (routePath.startsWith('/pages') || routePath === '/' || routePath.startsWith('/dashboard')) {
-            return true;
-        }
-
-        return true;
+        return this.isAuthenticated();
     }
 
-    private readState(): MockAuthState {
-        if (typeof localStorage === 'undefined') {
-            return { authenticated: false, role: 'tenant_owner' };
-        }
-
-        const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-
-        if (!raw) {
-            return { authenticated: false, role: 'tenant_owner' };
-        }
-
-        try {
-            return JSON.parse(raw) as MockAuthState;
-        } catch {
-            return { authenticated: false, role: 'tenant_owner' };
+    private mapRole(role: AuthRole): MockUserRole {
+        switch (role) {
+            case 'ROLE_ROOT':
+                return 'super_admin';
+            case 'ROLE_ACADEMY_ADMIN':
+                return 'academy_admin';
+            case 'ROLE_COACH':
+                return 'staff';
+            default:
+                return 'tenant_owner';
         }
     }
 
-    private persistState() {
-        if (typeof localStorage === 'undefined') {
-            return;
+    private mapLegacyRole(role: MockUserRole): AuthRole {
+        switch (role) {
+            case 'super_admin':
+                return 'ROLE_ROOT';
+            case 'academy_admin':
+                return 'ROLE_ACADEMY_ADMIN';
+            case 'staff':
+                return 'ROLE_COACH';
+            default:
+                return 'ROLE_USER';
         }
-
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(this.state));
     }
 }
